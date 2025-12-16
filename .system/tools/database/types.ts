@@ -278,11 +278,14 @@ export interface FinishCriterion {
 /**
  * Input type for creating a new journal entry.
  *
- * Requires entry_type and content; entity associations are optional.
+ * Requires entry_type and content; entity associations and timestamp are optional.
+ * Timestamp will be validated and normalized to ISO 8601 format by createEntry().
+ * If not provided, defaults to server time (NOW()).
  */
 export interface CreateEntryInput {
   entry_type: EntryType;
   content: string;
+  timestamp?: string;
   related_task_id?: number;
   related_project_id?: number;
   related_role_id?: number;

@@ -735,6 +735,7 @@ export interface UpdateProjectInput {
 export interface CreateEntryInput {
   entry_type: EntryType;
   content: string;
+  timestamp?: string;  // Optional ISO 8601 datetime, validated/normalized, defaults to NOW()
   related_task_id?: number;
   related_project_id?: number;
   related_role_id?: number;

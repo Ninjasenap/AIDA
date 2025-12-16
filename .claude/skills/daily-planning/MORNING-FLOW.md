@@ -157,14 +157,22 @@ _Space for notes during the day_
 
 ### 9. Create Journal Entry
 
+**Timestamp format:**
+- Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
+- Get current time via: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Extract the `date` and `time` fields, combine as: `{date}T{time}:00`
+- Example: `2025-12-16T08:30:00`
+
 **Via script:**
 ```bash
 bun run .system/tools/aida-cli.ts journal createEntry '{
   "entry_type": "checkin",
   "content": "Morgonplanering: Fokus på [task 1], [task 2], [task 3]",
-  "timestamp": "[current timestamp from getTimeInfo]"
+  "timestamp": "2025-12-16T08:30:00"
 }'
 ```
+
+**Note:** If `timestamp` is omitted, the database will use the current server time automatically.
 
 ### 10. Provide First Action
 

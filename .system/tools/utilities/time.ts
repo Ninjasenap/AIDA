@@ -1091,6 +1091,70 @@ export async function getTimeInfo(input?: string): Promise<TimeInfo> {
 
 /**
 ─────────────────────────────────────────────────────────────────────────────
+TIMESTAMP NORMALIZATION
+─────────────────────────────────────────────────────────────────────────────
+*/
+
+/**
+ * Normalizes a timestamp string to ISO 8601 datetime format.
+ *
+ * Accepts various input formats including:
+ * - ISO dates: "2025-12-16" → "2025-12-16T00:00:00"
+ * - ISO datetime: "2025-12-16T08:30" → "2025-12-16T08:30:00"
+ * - Swedish natural language: "imorgon kl 14:00" → "2025-12-17T14:00:00"
+ *
+ * Uses parseWithNative and parseWithChrono (synchronous parsing only, no LLM fallback).
+ * If the input contains a time component, it is preserved. Otherwise, defaults to 00:00:00.
+ *
+ * @param input - Timestamp string to normalize
+ * @returns ISO 8601 datetime string (YYYY-MM-DDTHH:mm:ss) or null if unparseable
+ * @example
+ * normalizeToISO8601("2025-12-16"); // "2025-12-16T00:00:00"
+ * normalizeToISO8601("2025-12-16T08:30"); // "2025-12-16T08:30:00"
+ * normalizeToISO8601("imorgon kl 14"); // "2025-12-17T14:00:00"
+ * normalizeToISO8601("invalid"); // null
+ */
+export function normalizeToISO8601(input: string): string | null {
+  if (!input || input.trim() === '') {
+    return null;
+  }
+
+  const normalized = input.trim();
+
+  // Try native parsing first (fastest)
+  const nativeResult = parseWithNative(normalized);
+  if (nativeResult.date) {
+    const date = nativeResult.date;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
+
+  // Try chrono parsing (Swedish-aware)
+  const chronoResult = parseWithChrono(normalized);
+  if (chronoResult.date) {
+    const date = chronoResult.date;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
+
+  // Unable to parse
+  return null;
+}
+
+/**
+─────────────────────────────────────────────────────────────────────────────
 CLI INTERFACE
 ─────────────────────────────────────────────────────────────────────────────
 */

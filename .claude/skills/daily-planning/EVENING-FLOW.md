@@ -126,14 +126,22 @@ Accept short answers:
 
 ### 7. Create Reflection Journal Entry
 
+**Timestamp format:**
+- Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
+- Get current time via: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Extract the `date` and `time` fields, combine as: `{date}T{time}:00`
+- Example: `2025-12-16T18:00:00`
+
 **Via script:**
 ```bash
 bun run .system/tools/aida-cli.ts journal createEntry '{
   "entry_type": "reflection",
   "content": "[Summary of day]: Completed [X] tasks, rolled over [Y]. [User reflection if provided]",
-  "timestamp": "[current timestamp]"
+  "timestamp": "2025-12-16T18:00:00"
 }'
 ```
+
+**Note:** If `timestamp` is omitted, the database will use the current server time automatically.
 
 ### 8. DELETE Daily Plan File
 

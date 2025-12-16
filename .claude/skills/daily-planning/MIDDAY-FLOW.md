@@ -127,14 +127,22 @@ Låter det bra?
 
 ### 8. Update Journal Entry
 
+**Timestamp format:**
+- Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
+- Get current time via: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Extract the `date` and `time` fields, combine as: `{date}T{time}:00`
+- Example: `2025-12-16T12:30:00`
+
 **Create new entry:**
 ```bash
 bun run .system/tools/aida-cli.ts journal createEntry '{
   "entry_type": "checkin",
   "content": "Middag check-in: [progress summary]. Justerade prioriteter: [new focus]",
-  "timestamp": "[current timestamp]"
+  "timestamp": "2025-12-16T12:30:00"
 }'
 ```
+
+**Note:** If `timestamp` is omitted, the database will use the current server time automatically.
 
 ### 9. Optional: Update Plan File
 

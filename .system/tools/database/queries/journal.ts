@@ -23,6 +23,7 @@
  */
 
 import { getDatabase } from '../connection';
+import { normalizeToISO8601 } from '../../utilities/time';
 import type {
   JournalEntry,
   JournalEntryFull,
@@ -282,44 +283,76 @@ export function getEntriesByDateRange(startDate: string, endDate: string): Journ
  *
  * IMMUTABILITY GUARANTEE:
  * Journal entries are WRITE-ONCE, READ-MANY. Once created, they can NEVER be
- * edited or deleted. The timestamp is server-generated and immutable. This is
- * intentional to create an audit trail of thoughts, decisions, and observations
- * that cannot be retroactively modified.
+ * edited or deleted. The timestamp is immutable. This is intentional to create
+ * an audit trail of thoughts, decisions, and observations that cannot be
+ * retroactively modified.
+ *
+ * TIMESTAMP HANDLING:
+ * - If input.timestamp is provided: Validates and normalizes to ISO 8601 format
+ * - If input.timestamp is omitted: Database DEFAULT datetime('now') is used
+ * - Accepts flexible formats: ISO dates, datetime strings, Swedish natural language
  *
  * QUERY PATTERN:
  * Single INSERT with RETURNING clause to immediately return the created entry
- * including the auto-generated id and server timestamp.
+ * including the auto-generated id and timestamp (either provided or server-generated).
  *
  * @param input - Journal entry creation data:
  *        - entry_type: Type of entry (required)
  *        - content: Text content (required)
+ *        - timestamp: Optional ISO 8601 datetime or parseable string
  *        - related_task_id: Optional numeric task ID
  *        - related_project_id: Optional numeric project ID
  *        - related_role_id: Optional numeric role ID
  *
  * @returns Created JournalEntry object with:
  *         - id: Auto-generated numeric primary key
- *         - timestamp: Server-generated creation time (immutable)
+ *         - timestamp: Either provided or server-generated creation time (immutable)
  *         - All input fields echoed back
  *
- * @throws Error if database insert fails or input validation fails
+ * @throws Error if timestamp format is invalid or database insert fails
  */
 export function createEntry(input: CreateEntryInput): JournalEntry {
   const db = getDatabase();
 
-  const result = db
-    .query(
-      `INSERT INTO journal_entries (entry_type, content, related_task_id, related_project_id, related_role_id)
-       VALUES (?, ?, ?, ?, ?)
-       RETURNING *`
-    )
-    .get(
+  // Validate and normalize timestamp if provided
+  let normalizedTimestamp: string | null = null;
+  if (input.timestamp !== undefined) {
+    normalizedTimestamp = normalizeToISO8601(input.timestamp);
+    if (!normalizedTimestamp) {
+      throw new Error(`Invalid timestamp format: "${input.timestamp}". Expected ISO 8601 format or parseable date expression.`);
+    }
+  }
+
+  // Build dynamic INSERT based on whether timestamp is provided
+  let sql: string;
+  let params: any[];
+
+  if (normalizedTimestamp !== null) {
+    sql = `INSERT INTO journal_entries (timestamp, entry_type, content, related_task_id, related_project_id, related_role_id)
+           VALUES (?, ?, ?, ?, ?, ?)
+           RETURNING *`;
+    params = [
+      normalizedTimestamp,
       input.entry_type,
       input.content,
       input.related_task_id ?? null,
       input.related_project_id ?? null,
-      input.related_role_id ?? null
-    ) as JournalEntry;
+      input.related_role_id ?? null,
+    ];
+  } else {
+    sql = `INSERT INTO journal_entries (entry_type, content, related_task_id, related_project_id, related_role_id)
+           VALUES (?, ?, ?, ?, ?)
+           RETURNING *`;
+    params = [
+      input.entry_type,
+      input.content,
+      input.related_task_id ?? null,
+      input.related_project_id ?? null,
+      input.related_role_id ?? null,
+    ];
+  }
+
+  const result = db.query(sql).get(...params) as JournalEntry;
 
   return result;
 }
