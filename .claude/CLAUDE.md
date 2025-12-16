@@ -241,6 +241,25 @@ Keep these in mind when implementing:
 - Package management: `cd .system && bun install` (dependencies in `.system/`)
 - Run scripts with: `bun run .system/tools/<script.ts>`
 
+### Git Branching Strategy
+
+**⚠️ CRITICAL: Branches ONLY for system changes**
+
+**When to create a branch:**
+- **System changes** (files in `.claude/` or `.system/`)
+- Create branch AFTER planning is complete, BEFORE implementation starts
+- Branch naming: `feat/description` or `fix/description`
+
+**When to ABSOLUTELY NOT create a branch:**
+- **PKM changes** (all other folders: `0-INBOX/`, `0-JOURNAL/`, `0-SHARED/`, role folders `01-*`, `02-*`)
+- User's personal knowledge management data should NEVER be on branches
+- Commit PKM changes directly to main
+
+**After implementation:**
+- Offer to merge the branch to main
+- Offer to delete the branch after successful merge
+- Example: "Implementeringen är klar. Vill du att jag mergar branchen och tar bort den?"
+
 ### Code Documentation
 - **Always use `@agent-code-commenter`** after creating script files or test files
 - Add clear JSDoc comments to all exported functions
