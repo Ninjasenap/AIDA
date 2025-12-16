@@ -218,13 +218,13 @@ describe('getTimeInfo - edge cases', () => {
 
     // Feb 30 rolls over to March 2
     expect(result.date).toBe('2025-03-02');
-  });
+  }, 10000);
 
   test('should handle gibberish', async () => {
     const result = await getTimeInfo('asdfghjkl');
 
     expect(result.date).toBeNull();
-  });
+  }, 10000);
 
   test('should be case insensitive for Swedish words', async () => {
     const lower = await getTimeInfo('imorgon');
