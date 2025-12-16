@@ -20,6 +20,8 @@
  *   - roles: Role management (7 functions)
  *   - projects: Project management (10 functions)
  *   - journal: Journal entries (7 functions)
+ *   - journalMd: Journal markdown generation (5 functions)
+ *   - plan: Daily plan file management (6 functions)
  *
  * Arguments:
  *   - JSON strings are automatically parsed: '{"key":"value"}' → object
@@ -35,19 +37,23 @@ import * as tasks from './database/queries/tasks';
 import * as roles from './database/queries/roles';
 import * as projects from './database/queries/projects';
 import * as journal from './database/queries/journal';
+import * as journalMd from './utilities/journal-markdown';
+import * as plan from './utilities/daily-plan';
 
-const modules = { tasks, roles, projects, journal };
+const modules = { tasks, roles, projects, journal, journalMd, plan };
 
 const [module, func, ...args] = process.argv.slice(2);
 
 if (!module || !func) {
   console.log('Usage: aida-cli <module> <function> [args...]');
   console.log('');
-  console.log('Modules: tasks, roles, projects, journal');
+  console.log('Modules: tasks, roles, projects, journal, journalMd, plan');
   console.log('');
   console.log('Examples:');
   console.log('  bun run .system/tools/aida-cli.ts tasks getTodayTasks');
   console.log('  bun run .system/tools/aida-cli.ts journal createEntry \'{"entry_type":"checkin","content":"test"}\'');
+  console.log('  bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"');
+  console.log('  bun run .system/tools/aida-cli.ts plan createDailyPlan \'{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}\'');
   process.exit(1);
 }
 

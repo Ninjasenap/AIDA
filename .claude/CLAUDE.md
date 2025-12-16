@@ -54,6 +54,9 @@ AIDA/
 │   ├── architecture/     # Design specs and coding standards
 │   ├── context/          # User profile data
 │   ├── data/             # SQLite database (aida.db)
+│   ├── templates/        # Markdown templates for journals and plans
+│   │   ├── journal-log.md   # Template for daily journal log
+│   │   └── daily-plan.md    # Template for daily plan file
 │   ├── tools/            # Bun/TypeScript scripts
 │   │   ├── aida-cli.ts   # CLI for all database operations
 │   │   ├── database/     # Database layer
@@ -61,7 +64,12 @@ AIDA/
 │   │   │   ├── connection.ts
 │   │   │   ├── helpers.ts
 │   │   │   └── types.ts
-│   │   └── utilities/    # Helper utilities (time, symbols)
+│   │   └── utilities/    # Helper utilities
+│   │       ├── time.ts           # Swedish date/time parsing
+│   │       ├── symbols.ts        # Status/type emoji mappings
+│   │       ├── templates.ts      # Template loader and renderer
+│   │       ├── journal-markdown.ts  # Journal markdown generation
+│   │       └── daily-plan.ts     # Daily plan file management
 │   ├── bunfig.toml       # Bun configuration
 │   ├── package.json      # Dependencies (chrono-node, @types/bun)
 │   ├── bun.lock          # Lock file (gitignored)
@@ -104,7 +112,7 @@ AIDA/
 bun run .system/tools/aida-cli.ts <module> <function> [args...]
 ```
 
-**Available modules:** `tasks`, `roles`, `projects`, `journal`
+**Available modules:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`
 
 **Common examples:**
 ```bash
@@ -117,7 +125,7 @@ bun run .system/tools/aida-cli.ts tasks getOverdueTasks
 # Get today's journal entries
 bun run .system/tools/aida-cli.ts journal getTodayEntries
 
-# Create journal entry (JSON argument)
+# Create journal entry (JSON argument - auto-regenerates markdown)
 bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning check-in"}'
 
 # Get active roles
@@ -131,13 +139,24 @@ bun run .system/tools/aida-cli.ts tasks createTask '{"title":"Task title","role_
 
 # Set task status
 bun run .system/tools/aida-cli.ts tasks setTaskStatus 123 "done"
+
+# Regenerate journal markdown for a date
+bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"
+
+# Create daily plan
+bun run .system/tools/aida-cli.ts plan createDailyPlan '{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}'
+
+# Delete daily plan
+bun run .system/tools/aida-cli.ts plan deleteDailyPlan "2025-12-16"
 ```
 
-**Available query functions:**
+**Available functions:**
 - **tasks**: 12 functions (getTaskById, getTodayTasks, getWeekTasks, getOverdueTasks, getStaleTasks, getTasksByRole, getTasksByProject, searchTasks, getTasksWithSubtasks, createTask, updateTask, setTaskStatus)
 - **roles**: 7 functions (getRoleById, getActiveRoles, getInactiveRoles, getRolesByType, createRole, updateRole, setRoleStatus)
 - **projects**: 10 functions (getProjectById, getAllProjects, getProjectsByRole, searchProjects, getProjectProgress, getPausedProjects, createProject, updateProject, setProjectStatus, updateFinishCriteria)
 - **journal**: 7 functions (getTodayEntries, getEntriesByTask, getEntriesByProject, getEntriesByRole, getEntriesByType, getEntriesByDateRange, createEntry)
+- **journalMd**: 5 functions (generateJournalMarkdown, writeJournalMarkdown, regenerateJournalMarkdown, journalFileExists, getJournalFilePath)
+- **plan**: 6 functions (createDailyPlan, readDailyPlan, updateDailyPlan, deleteDailyPlan, dailyPlanExists, appendNoteToPlan)
 
 See `.system/architecture/system-architecture.md` for complete function signatures.
 
@@ -151,7 +170,11 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 - Type definitions for all entities
 - Helper utilities (grouping, parsing, date calculations)
 - **36 query functions** across 4 modules (tasks, roles, projects, journal)
-- CLI tool (`aida-cli.ts`) for safe database access
+- **Journal markdown generation** (5 functions: generate, write, regenerate, check, get path)
+- **Daily plan file management** (6 functions: create, read, update, delete, check, append)
+- **Template system** (Mustache-style rendering for journals and plans)
+- **Auto-regeneration** of journal markdown on createEntry
+- CLI tool (`aida-cli.ts`) with 6 modules (tasks, roles, projects, journal, journalMd, plan)
 - Database management tool (init/delete/reset)
 - Comprehensive test suite with demo data
 - Symbol/emoji mappings for statuses
@@ -168,8 +191,6 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 
 ### Planned
 - Hook configurations (SessionStart, PostToolUse)
-- Daily plan file management (create/delete)
-- Journal markdown generation from database
 
 ## Commands
 
@@ -244,8 +265,10 @@ cd .system && bun test tools/utilities/__tests__/time.test.ts
 
 - Use Swedish for user-facing text (default language)
 - Profile data accessed from `.system/context/personal-profile.json`
-- Journal entries stored in SQLite (`journal_entries` table)
-- Daily plans are temporary markdown files, deleted at evening check-in
+- **Database is source of truth** for journal entries (`journal_entries` table)
+- **Journal markdown files** (`YYYY-MM-DD.md`) are auto-generated from database
+- **Daily plans** (`YYYY-MM-DD-plan.md`) are temporary, deleted at evening check-in
+- **Templates** stored in `.system/templates/` using Mustache-style syntax
 - ALL database operations via `aida-cli.ts`, never direct SQL
 
 ## Architecture Reference

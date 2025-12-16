@@ -24,6 +24,7 @@
 
 import { getDatabase } from '../connection';
 import { normalizeToISO8601 } from '../../utilities/time';
+import { regenerateJournalMarkdown } from '../../utilities/journal-markdown.js';
 import type {
   JournalEntry,
   JournalEntryFull,
@@ -266,7 +267,7 @@ export function getEntriesByDateRange(startDate: string, endDate: string): Journ
        LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
-       WHERE je.timestamp BETWEEN ? AND ?
+       WHERE DATE(je.timestamp) BETWEEN ? AND ?
        ORDER BY je.timestamp ASC`
     )
     .all(startDate, endDate) as JournalEntryFull[];
@@ -353,6 +354,15 @@ export function createEntry(input: CreateEntryInput): JournalEntry {
   }
 
   const result = db.query(sql).get(...params) as JournalEntry;
+
+  // Auto-regenerate journal markdown for the entry's date
+  const entryDate = result.timestamp.split('T')[0]; // Extract YYYY-MM-DD from ISO datetime
+  try {
+    regenerateJournalMarkdown(entryDate);
+  } catch (error) {
+    // Log error but don't fail the entry creation
+    console.error(`Failed to regenerate journal markdown for ${entryDate}:`, error);
+  }
 
   return result;
 }
