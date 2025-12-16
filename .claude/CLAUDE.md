@@ -42,7 +42,7 @@ AIDA/
 │   │   ├── checkin.md    # /checkin - Daily check-ins
 │   │   ├── capture.md    # /capture - Quick task capture
 │   │   ├── next.md       # /next - Next action suggestion
-│   │   └── status.md     # /status - Workload overview
+│   │   └── overview.md   # /overview - Workload overview
 │   ├── skills/           # Auto-invoked skills
 │   │   ├── task-activation/   # Help START tasks (ADHD support)
 │   │   ├── task-capture/      # Quick task capture
@@ -193,7 +193,7 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 - `/checkin` - Context-aware daily check-in (morning/midday/evening)
 - `/next` - Get next action with activation support
 - `/capture [text]` - Quick task capture
-- `/status [role]` - Workload overview
+- `/overview [role]` - Workload overview
 
 ### Planned
 - Hook configurations (SessionStart, PostToolUse)
@@ -205,7 +205,7 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 | `/checkin` | Context-aware daily check-in (auto-detects morning/midday/evening) | daily-planning |
 | `/next` | Next recommended action with activation support | task-activation |
 | `/capture [text]` | Quick task capture with minimal friction | task-capture |
-| `/status [role]` | Workload overview for role(s) | status-overview |
+| `/overview [role]` | Workload overview for role(s) | status-overview |
 
 ## Skills (Auto-Invoked)
 

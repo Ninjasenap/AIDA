@@ -334,7 +334,7 @@ Du har inga aktiva tasks just nu.
 
 Vill du:
 - Fånga något nytt? (skriv bara vad du behöver göra)
-- Kolla på någon specifik roll? (/status [roll])
+- Kolla på någon specifik roll? (/overview [roll])
 ```
 
 **If database query fails:**

@@ -45,7 +45,7 @@ Once installed, use these commands:
 | `/checkin` | Daily check-in (auto-detects morning/midday/evening) |
 | `/next` | Get next recommended action |
 | `/capture [text]` | Quick task capture |
-| `/status [role]` | Workload overview |
+| `/overview [role]` | Workload overview |
 
 ## Architecture
 

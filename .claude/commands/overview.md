@@ -55,7 +55,7 @@ bun run .system/tools/aida-cli.ts <module> <function> [args...]
 
 ## Example Usage
 
-### `/status`
+### `/overview`
 ```
 📊 Din arbetsbelastning
 
@@ -70,10 +70,10 @@ bun run .system/tools/aida-cli.ts <module> <function> [args...]
 
 💡 Förälder under mål (18% vs 25%)
 
-Detaljer? /status [roll]
+Detaljer? /overview [roll]
 ```
 
-### `/status Förälder`
+### `/overview Förälder`
 ```
 📊 Förälder - Status
 

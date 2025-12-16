@@ -213,7 +213,7 @@ Inga uppgifter för idag! 🎉
 
 Alternativ:
 1. 📥 Fånga något nytt (/capture)
-2. 🔍 Kolla framåt (/status)
+2. 🔍 Kolla framåt (/overview)
 3. 🛋️ Vila - du har gjort det!
 ```
 

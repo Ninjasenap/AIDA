@@ -760,7 +760,7 @@ Suggested command patterns for common interactions:
 /checkin         - Mid-day status check
 /kväll           - Evening closure
 /nästa           - Get next recommended action
-/status [role]   - Status for specific role or all
+/overview [role] - Status for specific role or all
 /block [task]    - Schedule time for task
 /capture [text]  - Quick task/note capture
 /prep [meeting]  - Prepare for upcoming meeting

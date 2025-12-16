@@ -167,7 +167,7 @@ The system reduces cognitive load rather than adding organizational overhead. Su
 
 **Responsibilities:**
 - Accept natural language input from user
-- Process commands (e.g., `/checkin`, `/next`, `/capture`, `/status`)
+- Process commands (e.g., `/checkin`, `/next`, `/capture`, `/overview`)
 - Generate contextually appropriate responses
 - Adapt communication style to user's neurotype profile
 
@@ -1191,7 +1191,7 @@ AND last_updated < date('now', '-14 days');
    - Verify: Obsidian opens without errors
 
 3. VERIFICATION
-   - Run /status command
+   - Run /overview command
    - Check task counts match expected
    - Review recent journal entries
 
@@ -1309,7 +1309,7 @@ Phase 4: Intelligence
 | `/checkin` | Context-aware daily check-in (morning/midday/evening) | Profile, Time, Tasks, Journal entries, Yesterday's log |
 | `/next` | Next recommended action | Active tasks, Energy state, Current context |
 | `/capture [text]` | Quick task capture | Parse to task store, Create journal entry |
-| `/status [role]` | Role workload overview | Tasks, Projects by role (from v_roles_summary view) |
+| `/overview [role]` | Role workload overview | Tasks, Projects by role (from v_roles_summary view) |
 
 **Deprecated Commands** (replaced by `/checkin`):
 - ~~`/morgon`~~ → `/checkin` (morning behavior auto-detected)
@@ -1431,8 +1431,9 @@ Key profile fields used by AIDA:
 | Date | Version | Change |
 |------|---------|--------|
 | 2025-12-14 | 1.0 | Initial solution architecture document |
-| 2025-12-14 | 2.0 | Updated for new database schema: added projects table, removed activity_log, unified journal_entries. Updated commands: consolidated /morgon, /kvall to context-aware /checkin. Renamed commands to English (/next, /capture, /status). Updated all data flows and workflows. |
+| 2025-12-14 | 2.0 | Updated for new database schema: added projects table, removed activity_log, unified journal_entries. Updated commands: consolidated /morgon, /kvall to context-aware /checkin. Renamed commands to English (/next, /capture, /overview). Updated all data flows and workflows. |
 | 2025-12-15 | 2.1 | Added installation section (7.1): documented cross-platform install scripts (install.sh, install.ps1, setup.ts), gitignore pattern for user folders, and setup workflow. |
+| 2025-12-16 | 2.2 | Renamed /status command to /overview to avoid conflict with Claude Code's built-in /status command. Updated all references across documentation. |
 
 ---
 

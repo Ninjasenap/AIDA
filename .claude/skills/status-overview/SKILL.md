@@ -12,7 +12,7 @@ Provides clear visibility into workload across roles and projects. Helps users u
 
 ## Triggers
 
-- **Command**: `/status [role]`
+- **Command**: `/overview [role]`
 - **Auto-triggers**: "how am I doing", "workload", "what's on my plate", "role balance", "project status", "hur ligger jag till", "arbetsbelastning", "rollbalans", "visa status", "hur ser det ut", "översikt"
 
 ## Critical Rules
@@ -62,7 +62,7 @@ bun run .system/tools/aida-cli.ts projects getProjectsByRole 1
 
 ### Mode 1: General Overview (No Role Specified)
 
-**Trigger:** `/status` or "hur ligger jag till"
+**Trigger:** `/overview` or "hur ligger jag till"
 
 **Steps:**
 1. Fetch all active roles
@@ -85,7 +85,7 @@ bun run .system/tools/aida-cli.ts tasks getStaleTasks
 
 ### Mode 2: Role-Specific Overview
 
-**Trigger:** `/status Developer` or "hur ligger Developer-rollen till"
+**Trigger:** `/overview Developer` or "hur ligger Developer-rollen till"
 
 **Steps:**
 1. Fetch role details
@@ -132,7 +132,7 @@ bun run .system/tools/aida-cli.ts projects getProjectsByRole [id]
 
 💡 Förälder-rollen har för lite fokus (15% vs mål 25%)
 
-Vill du se detaljer för en roll? (/status [roll])
+Vill du se detaljer för en roll? (/overview [roll])
 ```
 
 ### Role-Specific Format
@@ -172,7 +172,7 @@ Vill du se detaljer för en roll? (/status [roll])
 
 ### Example 1: General Check
 
-**User**: "/status"
+**User**: "/overview"
 
 **Response**:
 ```
@@ -194,7 +194,7 @@ Vill du gå djupare i någon roll?
 
 ### Example 2: Role-Specific
 
-**User**: "/status Förälder"
+**User**: "/overview Förälder"
 
 **Response**:
 ```

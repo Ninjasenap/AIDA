@@ -31,7 +31,7 @@ AIDA reduces cognitive load through:
 |                                                                           |
 |  Responsibilities:                                                        |
 |  - Load user context via SessionStart hook                                |
-|  - Execute slash commands (/checkin, /next, /capture, /status)            |
+|  - Execute slash commands (/checkin, /next, /capture, /overview)          |
 |  - Invoke skills automatically based on context                           |
 |  - Maintain conversation flow and memory via CLAUDE.md                    |
 |  - NEVER use direct SQL - only call TypeScript query scripts              |
@@ -125,7 +125,7 @@ User Input
     |               /checkin → daily-planning skill
     |               /next → task-management skill
     |               /capture → task-management skill
-    |               /status → task-management skill
+    |               /overview → status-overview skill
     |     |
     |     +--NO---> Analyze request
     |
@@ -266,7 +266,7 @@ Output: Day summary, wins acknowledged, items for tomorrow
 - `/checkin` - Context-aware daily check-in (auto-detects morning/midday/evening)
 - `/next` - Get next recommended action based on energy and context
 - `/capture [text]` - Quick task capture with automatic processing
-- `/status [role]` - View workload overview for role or all roles
+- `/overview [role]` - View workload overview for role or all roles
 
 **Deprecated commands** (functionality now in `/checkin`):
 - ~~`/morgon`~~ → `/checkin` (morning)
@@ -1284,13 +1284,13 @@ Output: "Noterat: Ide - ny feature for projektet. Vill du utveckla den?"
 - Confirm quickly and offer to add more
 ```
 
-### 6.6 /status
+### 6.6 /overview
 
-**Location:** `.claude/commands/status.md`
+**Location:** `.claude/commands/overview.md`
 
 ```markdown
 ---
-description: View current status for a specific role or all roles. Shows open tasks, upcoming deadlines, and blocked items. Usage: /status [role_id or 'all']
+description: View current status for a specific role or all roles. Shows open tasks, upcoming deadlines, and blocked items. Usage: /overview [role_id or 'all']
 argument-hint: [role_id | all]
 allowed-tools: Read, Bash
 ---
@@ -1890,7 +1890,7 @@ close out and try fresh tomorrow. What sounds right?"
 - [ ] Implement /kvall command
 - [ ] Implement /nasta command
 - [ ] Implement /fanga command
-- [ ] Implement /status command
+- [ ] Implement /overview command
 
 ### Phase 4: Skills & Hooks (Week 4)
 
