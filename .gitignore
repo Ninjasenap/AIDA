@@ -88,6 +88,6 @@ personal-profile.json
 # SQLite database (user data)
 .system/data/*.db
 
-# User folders (start with digit, created by install script)
-# This includes: 0-INBOX/, 0-JOURNAL/, 0-SHARED RESOURCES/, and role folders like 01-*, 02-*
+# User folders (created by install script)
+# This includes: 0-INBOX/, 0-JOURNAL/, 0-SHARED/, and role folders like 01-*, 02-*
 [0-9]*/

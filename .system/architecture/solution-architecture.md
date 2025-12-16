@@ -848,7 +848,9 @@ Run install.sh / install.ps1
                    |     - 0-JOURNAL/
                    |       - 1-DAILY/
                    |       - 2-WEEKLY/
-                   |     - 0-SHARED RESOURCES/
+                   |       - 3-MONTHLY/
+                   |       - 4-YEARLY/
+                   |     - 0-SHARED/
                    |
                    +---> Initialize database:
                          - Create .system/data/aida.db
@@ -864,8 +866,8 @@ Run install.sh / install.ps1
 
 All user content folders start with a digit and are gitignored via pattern `[0-9]*/`:
 - `0-INBOX/` - Capture bucket
-- `0-JOURNAL/` - Daily logs and journals
-- `0-SHARED RESOURCES/` - Cross-role resources
+- `0-JOURNAL/` - Daily logs and journals (with 1-DAILY/, 2-WEEKLY/, 3-MONTHLY/, 4-YEARLY/ subfolders)
+- `0-SHARED/` - Cross-role shared resources
 - `01-{role}/`, `02-{role}/`, etc. - Role-specific folders (created by user as needed)
 
 This approach keeps the repository clean and focuses version control on:

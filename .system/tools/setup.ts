@@ -67,8 +67,24 @@ const DEFAULT_FOLDERS = [
   '0-JOURNAL',
   '0-JOURNAL/1-DAILY',
   '0-JOURNAL/2-WEEKLY',
-  '0-SHARED RESOURCES',
+  '0-JOURNAL/3-MONTHLY',
+  '0-JOURNAL/4-YEARLY',
+  '0-SHARED',
 ];
+
+/**
+ * Emoji display mapping for pretty console output
+ * Maps folder paths to their emoji representations
+ */
+const FOLDER_EMOJI_MAP: Record<string, string> = {
+  '0-INBOX': '📥 0-INBOX',
+  '0-JOURNAL': '📔 0-JOURNAL',
+  '0-JOURNAL/1-DAILY': '📔 0-JOURNAL/📅 1-DAILY',
+  '0-JOURNAL/2-WEEKLY': '📔 0-JOURNAL/📅 2-WEEKLY',
+  '0-JOURNAL/3-MONTHLY': '📔 0-JOURNAL/📅 3-MONTHLY',
+  '0-JOURNAL/4-YEARLY': '📔 0-JOURNAL/📅 4-YEARLY',
+  '0-SHARED': '🗂️ 0-SHARED',
+};
 
 /**
 ─────────────────────────────────────────────────────────────────────────────
@@ -84,7 +100,9 @@ SETUP OPERATIONS
  * - 0-JOURNAL/            : Time-based logs and journals
  *   - 1-DAILY/            : Daily journal entries
  *   - 2-WEEKLY/           : Weekly reviews
- * - 0-SHARED RESOURCES/   : Cross-role resources and references
+ *   - 3-MONTHLY/          : Monthly reviews
+ *   - 4-YEARLY/           : Yearly reviews
+ * - 0-SHARED/             : Cross-role shared resources
  *
  * Folders that already exist are silently skipped. This allows the script
  * to be run multiple times safely without errors.
@@ -93,7 +111,7 @@ SETUP OPERATIONS
  *
  * @example
  * createFolders();
- * // Output: ✓ Created: 0-INBOX/
+ * // Output: ✓ Created: 📥 0-INBOX/
  */
 function createFolders(): void {
   console.log('📁 Creating folder structure...');
@@ -103,17 +121,18 @@ function createFolders(): void {
 
   for (const folder of DEFAULT_FOLDERS) {
     const fullPath = join(PROJECT_ROOT, folder);
+    const displayName = FOLDER_EMOJI_MAP[folder] || folder;
 
     if (existsSync(fullPath)) {
-      console.log(`   ℹ️  Already exists: ${folder}/`);
+      console.log(`   ℹ️  Already exists: ${displayName}/`);
       skippedCount++;
     } else {
       try {
         mkdirSync(fullPath, { recursive: true });
-        console.log(`   ✓ Created: ${folder}/`);
+        console.log(`   ✓ Created: ${displayName}/`);
         createdCount++;
       } catch (error) {
-        console.error(`   ✗ Failed to create ${folder}/:`, error);
+        console.error(`   ✗ Failed to create ${displayName}/:`, error);
       }
     }
   }

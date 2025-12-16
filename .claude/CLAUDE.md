@@ -24,10 +24,10 @@ AIDA is a cognitive augmentation system built on Claude Code, designed to functi
 The install script will:
 1. Check for Bun installation
 2. Install npm dependencies (`cd .system && bun install`)
-3. Create user folders (0-INBOX, 0-JOURNAL, 0-SHARED RESOURCES)
+3. Create user folders (0-INBOX, 0-JOURNAL with subfolders, 0-SHARED)
 4. Initialize the SQLite database
 
-**Note:** User folders (0-INBOX/, 0-JOURNAL/, 0-SHARED RESOURCES/, and role folders 01-*, 02-*) are gitignored and created by the install script.
+**Note:** User folders (0-INBOX/, 0-JOURNAL/, 0-SHARED/, and role folders 01-*, 02-*) are gitignored and created by the install script.
 
 ## Repository Structure
 
@@ -67,8 +67,12 @@ AIDA/
 │   ├── bun.lock          # Lock file (gitignored)
 │   └── node_modules/     # Dependencies (gitignored)
 ├── 0-INBOX/              # Capture bucket
-├── 0-JOURNAL/            # Daily journals (markdown)
-└── 0-SHARED/             # Cross-role resources
+├── 0-JOURNAL/            # Journals (markdown)
+│   ├── 1-DAILY/          # Daily journal entries
+│   ├── 2-WEEKLY/         # Weekly reviews
+│   ├── 3-MONTHLY/        # Monthly reviews
+│   └── 4-YEARLY/         # Yearly reviews
+└── 0-SHARED/             # Cross-role shared resources
 ```
 
 ## Technology Stack
