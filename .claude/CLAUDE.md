@@ -146,8 +146,14 @@ bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-1
 # Create daily plan
 bun run .system/tools/aida-cli.ts plan createDailyPlan '{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}'
 
-# Delete daily plan
-bun run .system/tools/aida-cli.ts plan deleteDailyPlan "2025-12-16"
+# Check if plan has content
+bun run .system/tools/aida-cli.ts plan planHasContent
+
+# Archive plan to log file
+bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-16"
+
+# Clear plan file
+bun run .system/tools/aida-cli.ts plan clearPlan
 ```
 
 **Available functions:**
@@ -155,8 +161,8 @@ bun run .system/tools/aida-cli.ts plan deleteDailyPlan "2025-12-16"
 - **roles**: 7 functions (getRoleById, getActiveRoles, getInactiveRoles, getRolesByType, createRole, updateRole, setRoleStatus)
 - **projects**: 10 functions (getProjectById, getAllProjects, getProjectsByRole, searchProjects, getProjectProgress, getPausedProjects, createProject, updateProject, setProjectStatus, updateFinishCriteria)
 - **journal**: 7 functions (getTodayEntries, getEntriesByTask, getEntriesByProject, getEntriesByRole, getEntriesByType, getEntriesByDateRange, createEntry)
-- **journalMd**: 5 functions (generateJournalMarkdown, writeJournalMarkdown, regenerateJournalMarkdown, journalFileExists, getJournalFilePath)
-- **plan**: 6 functions (createDailyPlan, readDailyPlan, updateDailyPlan, deleteDailyPlan, dailyPlanExists, appendNoteToPlan)
+- **journalMd**: 8 functions (generateJournalMarkdown, writeJournalMarkdown, regenerateJournalMarkdown, generateJournalMarkdownWithPlan, regenerateJournalMarkdownWithPlan, parseJournalMarkdown, journalFileExists, getJournalFilePath)
+- **plan**: 7 functions (getPlanPath, planHasContent, createDailyPlan, readDailyPlan, parsePlanMarkdown, clearPlan, archivePlanToLog)
 
 See `.system/architecture/system-architecture.md` for complete function signatures.
 
@@ -170,10 +176,10 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 - Type definitions for all entities
 - Helper utilities (grouping, parsing, date calculations)
 - **36 query functions** across 4 modules (tasks, roles, projects, journal)
-- **Journal markdown generation** (5 functions: generate, write, regenerate, check, get path)
-- **Daily plan file management** (6 functions: create, read, update, delete, check, append)
+- **Journal markdown generation** (8 functions: generate, write, regenerate, generateWithPlan, regenerateWithPlan, parse, check, get path)
+- **Daily plan file management** (7 functions: get path, check content, create, read, parse, clear, archive)
 - **Template system** (Mustache-style rendering for journals and plans)
-- **Auto-regeneration** of journal markdown on createEntry
+- **Auto-regeneration** of journal markdown on createEntry with focus/calendar preservation
 - CLI tool (`aida-cli.ts`) with 6 modules (tasks, roles, projects, journal, journalMd, plan)
 - Database management tool (init/delete/reset)
 - Comprehensive test suite with demo data
@@ -267,7 +273,8 @@ cd .system && bun test tools/utilities/__tests__/time.test.ts
 - Profile data accessed from `.system/context/personal-profile.json`
 - **Database is source of truth** for journal entries (`journal_entries` table)
 - **Journal markdown files** (`YYYY-MM-DD.md`) are auto-generated from database
-- **Daily plans** (`YYYY-MM-DD-plan.md`) are temporary, deleted at evening check-in
+- **Daily plan** (`0-JOURNAL/PLAN.md`) is a single file, overwritten each morning, cleared each evening
+- **Plan archiving**: Focus and calendar are copied to log file at evening checkout
 - **Templates** stored in `.system/templates/` using Mustache-style syntax
 - ALL database operations via `aida-cli.ts`, never direct SQL
 

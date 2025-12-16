@@ -35,7 +35,7 @@ Dags att reflektera över dagen!
 
 ### 2. Read Morning Plan
 
-**File:** `0-JOURNAL/1-DAILY/YYYY-MM-DD-plan.md`
+**File:** `0-JOURNAL/PLAN.md` (single plan file for today)
 
 Extract:
 - Original focus items
@@ -128,9 +128,10 @@ Accept short answers:
 
 **Timestamp format:**
 - Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
-- Get current time via: `bun run .system/tools/utilities/time.ts getTimeInfo`
-- Extract the `date` and `time` fields, combine as: `{date}T{time}:00`
+- Get current time: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Extract `date` and `time` fields from JSON output, combine as: `{date}T{time}:00`
 - Example: `2025-12-16T18:00:00`
+- Or omit timestamp to use server time automatically
 
 **Via script:**
 ```bash
@@ -143,19 +144,82 @@ bun run .system/tools/aida-cli.ts journal createEntry '{
 
 **Note:** If `timestamp` is omitted, the database will use the current server time automatically.
 
-### 8. DELETE Daily Plan File
+### 8. Archive Plan to Log and Clear Plan File
 
-**CRITICAL: This file is only for TODAY**
+**CRITICAL: Archive focus and calendar to today's log file, then clear PLAN.md**
 
+**Archive via CLI:**
 ```bash
-rm 0-JOURNAL/1-DAILY/YYYY-MM-DD-plan.md
+bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-16"
 ```
 
-**Why delete:**
-- Tomorrow is a new day
-- Fresh planning each morning
-- Prevents clutter and confusion
+**What this does:**
+1. Reads `0-JOURNAL/PLAN.md`
+2. Extracts focus items and calendar events
+3. Regenerates today's log file (`0-JOURNAL/1-DAILY/2025-12-16.md`) with plan data prepended:
+   ```markdown
+   # 2025-12-16 - tisdag
+
+   ---
+
+   ## Fokus för dagen
+   1. Task 1
+   2. Task 2
+
+   ---
+
+   ## Dagens kalender
+   - 09:00 Event 1
+   - 18:00 Event 2
+
+   ---
+
+   ## 08:30 | checkin ✓
+   Morning check-in content...
+
+   ---
+
+   ## 12:30 | checkin ✓
+   Midday check-in content...
+
+   ---
+
+   ## 18:00 | reflection 💭
+   Evening reflection content...
+   ```
+4. Clears `0-JOURNAL/PLAN.md` (empties content, keeps file)
+
+**Why archive and clear:**
+- Preserves what you planned to do (context for reflection)
+- Shows calendar context for the day
+- Tomorrow gets a fresh PLAN.md
+- Log file becomes complete record of both plan and execution
 - Forces intentional daily planning
+
+---
+
+## 🔄 Critical Sequence for Evening Closure
+
+**The evening flow MUST execute in this exact order:**
+
+1. **Create reflection journal entry** (Step 7)
+   - This ensures the reflection is captured in the database first
+
+2. **Archive plan to log** (Step 8)
+   - Reads PLAN.md and extracts focus/events
+   - Regenerates journal markdown WITH focus/events prepended
+   - All journal entries created up to this point will be included
+   - Clears PLAN.md content
+
+3. **Post-archive additions** (if user wants to add more)
+   - If user wants to add more journal entries after archiving, that's fine
+   - The focus and calendar are now permanently part of the daily log file
+   - New entries will be appended without removing focus/calendar
+   - The system automatically preserves focus/calendar when regenerating
+
+**Important:** Once archived, the focus and calendar sections become part of the daily log file and will persist through any additional journal entries. The parseJournalMarkdown() function ensures they're preserved during regeneration.
+
+---
 
 ### 9. Optional: Tomorrow Preview
 
@@ -352,21 +416,27 @@ Use sparingly, 1-2 max:
 
 ---
 
-## What Gets Deleted vs Kept
+## What Gets Archived vs Cleared
 
-**DELETE (temporary, day-specific):**
-- `YYYY-MM-DD-plan.md` - The daily plan file
+**ARCHIVED to log file (preserved):**
+- Focus items for the day → Copied to `YYYY-MM-DD.md` header
+- Calendar events → Copied to `YYYY-MM-DD.md` header
+- Combined with journal entries → Complete day record
 
-**KEEP (permanent record):**
-- `YYYY-MM-DD.md` - Daily journal log (generated from journal_entries)
+**CLEARED (emptied, not deleted):**
+- `PLAN.md` - Emptied at evening checkout, rewritten next morning
+
+**KEPT (permanent record):**
+- `YYYY-MM-DD.md` - Daily journal log with plan data + entries (auto-generated from database + archive)
 - Journal entries in database (all types: checkin, reflection, task, etc.)
 - Task completion timestamps in database
 - All task data
 
-**Why this split:**
-- Plan = TODAY only, fresh start each morning
-- Journal = permanent record for reflection and patterns
-- Database = source of truth for all data
+**Why this approach:**
+- Plan file = Living document for TODAY, cleared for fresh start tomorrow
+- Log file = Permanent record showing both intention (plan) and execution (entries)
+- Database = Source of truth for all data
+- Archive = Preserves context for reflection (what did I plan vs what happened)
 
 ---
 
@@ -377,7 +447,8 @@ Use sparingly, 1-2 max:
 - [ ] Rollover items identified (framed as rescheduling)
 - [ ] Reflection questions asked (1-2 max, optional)
 - [ ] Journal entry created (type='reflection')
-- [ ] Daily plan file DELETED
+- [ ] Plan archived to log file (focus + calendar preserved)
+- [ ] PLAN.md cleared (ready for tomorrow)
 - [ ] Positive, supportive tone throughout
 - [ ] Swedish output
 - [ ] No guilt-inducing language

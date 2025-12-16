@@ -126,11 +126,11 @@ From `personal-profile.json`:
 
 ### Step 1: Get Current Time
 
-```typescript
-const now = await getTimeInfo();
-const currentHour = now.hour;
-const currentMinute = now.minute;
+```bash
+bun run .system/tools/utilities/time.ts getTimeInfo
 ```
+
+Parse the JSON output to extract `hour` and `minute` fields.
 
 ### Step 2: Determine Current Energy Level
 

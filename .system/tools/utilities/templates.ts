@@ -11,17 +11,10 @@ import { SWEDISH_MONTHS, SWEDISH_WEEKDAYS } from './time.js';
 
 /**
  * Path to the templates directory
- * Resolves correctly whether run from project root or .system directory
+ * Uses import.meta.dir for stable path resolution regardless of working directory
  */
-const TEMPLATES_DIR = (() => {
-  const cwd = process.cwd();
-  // If already in .system directory, go up one level
-  if (cwd.endsWith('.system')) {
-    return join(cwd, 'templates');
-  }
-  // Otherwise, assume we're at project root
-  return join(cwd, '.system', 'templates');
-})();
+const PROJECT_ROOT = join(import.meta.dir, '../../..');
+const TEMPLATES_DIR = join(PROJECT_ROOT, '.system', 'templates');
 
 /**
  * Template names available in the system

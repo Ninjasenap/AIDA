@@ -37,7 +37,7 @@ bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ NO!
 sqlite3 .system/data/aida.db "SELECT..."                       # ❌ NO!
 ```
 
-**Available modules:** `tasks`, `roles`, `projects`, `journal`
+**Available modules:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`
 
 **Example queries you will need:**
 ```bash
@@ -61,15 +61,23 @@ bun run .system/tools/aida-cli.ts roles getActiveRoles
 
 ### 1. Determine Context
 
-```typescript
-import { getTimeInfo } from '.system/tools/utilities/time.ts';
-const now = await getTimeInfo();
+**Get current time via bash:**
+```bash
+bun run .system/tools/utilities/time.ts getTimeInfo
 ```
 
+This returns JSON with current time info including `hour`, `minute`, `date`, `weekday`, etc.
+
 Check:
-- Current time (`now.hour`)
-- Whether daily plan file exists (`0-JOURNAL/1-DAILY/YYYY-MM-DD-plan.md`)
+- Current time (from `hour` field in JSON output)
+- Whether daily plan file exists (check via `bun run .system/tools/aida-cli.ts plan planHasContent`)
 - Whether morning check-in has happened (query today's journal entries for type='checkin')
+
+**Flow Selection Priority (first match wins):**
+
+1. **Evening** → Time >= 18:00 AND plan exists AND not first check-in of day
+2. **Midday** → Time 11:00-17:59 AND plan exists
+3. **Morning** → Time < 11:00 OR first check-in of day OR no plan exists
 
 ### 2. Morning Check-in (first check-in of day)
 

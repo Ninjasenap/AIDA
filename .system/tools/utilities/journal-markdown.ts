@@ -14,17 +14,10 @@ import { loadTemplate, renderTemplate, formatSwedishDate } from './templates.js'
 
 /**
  * Path to the daily journals directory
- * Resolves correctly whether run from project root or .system directory
+ * Uses import.meta.dir for stable path resolution regardless of working directory
  */
-const DAILY_JOURNAL_DIR = (() => {
-  const cwd = process.cwd();
-  // If already in .system directory, go up one level
-  if (cwd.endsWith('.system')) {
-    return join(cwd, '..', '0-JOURNAL', '1-DAILY');
-  }
-  // Otherwise, assume we're at project root
-  return join(cwd, '0-JOURNAL', '1-DAILY');
-})();
+const PROJECT_ROOT = join(import.meta.dir, '../../..');
+const DAILY_JOURNAL_DIR = join(PROJECT_ROOT, '0-JOURNAL', '1-DAILY');
 
 /**
  * Ensure the daily journal directory exists
@@ -80,13 +73,13 @@ function formatEntry(entry: JournalEntryFull): string {
   const symbol = getEntryTypeSymbol(entry.entry_type);
   const metadata = formatEntryMetadata(entry);
 
-  let markdown = `---\n## ${time} | ${entry.entry_type} ${symbol}\n${entry.content}`;
+  let markdown = `---\n\n## ${time} | ${entry.entry_type} ${symbol}\n${entry.content}`;
 
   if (metadata) {
     markdown += `\n\n${metadata}`;
   }
 
-  markdown += '\n';
+  markdown += '\n\n';
 
   return markdown;
 }
@@ -143,6 +136,72 @@ export function regenerateJournalMarkdown(date: string): string {
 }
 
 /**
+ * Generate journal markdown with plan data (focus and calendar) prepended
+ * @param date - Date in YYYY-MM-DD format
+ * @param focusItems - Array of focus items for the day
+ * @param calendarEvents - Array of calendar events
+ * @returns Generated markdown content
+ */
+export function generateJournalMarkdownWithPlan(
+  date: string,
+  focusItems: string[],
+  calendarEvents: { time: string; title: string }[]
+): string {
+  // Get entries for the date
+  const entries = getEntriesByDateRange(date, date);
+
+  // Parse date and format Swedish parts
+  const dateObj = new Date(date);
+  const dateParts = formatSwedishDate(dateObj);
+
+  let markdown = `# ${dateParts.date_long} - ${dateParts.weekday}\n\n`;
+
+  // Add focus section if there are focus items
+  if (focusItems.length > 0) {
+    markdown += '---\n\n## Fokus för dagen\n\n';
+    focusItems.forEach((item, index) => {
+      markdown += `${index + 1}. ${item}\n\n`;
+    });
+  }
+
+  // Add calendar section if there are events
+  if (calendarEvents.length > 0) {
+    markdown += '---\n\n# Dagens kalender\n\n';
+    calendarEvents.forEach(event => {
+      markdown += `- ${event.time} ${event.title}\n`;
+    });
+    markdown += '\n';
+  }
+
+  // Add journal entries
+  if (entries.length === 0) {
+    markdown += '---\n\n_Inga journalposter för denna dag_\n';
+  } else {
+    entries.forEach(entry => {
+      markdown += formatEntry(entry);
+    });
+  }
+
+  return markdown;
+}
+
+/**
+ * Regenerate journal markdown with plan data
+ * @param date - Date in YYYY-MM-DD format
+ * @param focusItems - Array of focus items for the day
+ * @param calendarEvents - Array of calendar events
+ * @returns Path to the regenerated file
+ */
+export function regenerateJournalMarkdownWithPlan(
+  date: string,
+  focusItems: string[],
+  calendarEvents: { time: string; title: string }[]
+): string {
+  const markdown = generateJournalMarkdownWithPlan(date, focusItems, calendarEvents);
+  return writeJournalMarkdown(date, markdown);
+}
+
+/**
  * Check if a journal file exists for a specific date
  * @param date - Date in YYYY-MM-DD format
  * @returns True if file exists
@@ -159,4 +218,61 @@ export function journalFileExists(date: string): boolean {
  */
 export function getJournalFilePath(date: string): string {
   return join(DAILY_JOURNAL_DIR, `${date}.md`);
+}
+
+/**
+ * Parse focus and calendar from existing journal markdown
+ *
+ * Extracts "Fokus för dagen" and "Dagens kalender" sections from a journal
+ * markdown file. This allows preserving plan data when regenerating the file.
+ *
+ * @param content - Markdown content to parse
+ * @returns Object with focus items and calendar events
+ */
+export function parseJournalMarkdown(content: string): {
+  focus: string[];
+  events: { time: string; title: string }[];
+} {
+  const focus: string[] = [];
+  const events: { time: string; title: string }[] = [];
+
+  const lines = content.split('\n');
+  let inFocusSection = false;
+  let inCalendarSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Detect section headers
+    if (trimmed === '## Fokus för dagen') {
+      inFocusSection = true;
+      inCalendarSection = false;
+      continue;
+    } else if (trimmed.startsWith('# Dagens kalender') || trimmed === '## Dagens kalender') {
+      inCalendarSection = true;
+      inFocusSection = false;
+      continue;
+    } else if (trimmed.startsWith('## ') || trimmed === '---') {
+      // New section or separator - exit current section
+      inFocusSection = false;
+      inCalendarSection = false;
+      continue;
+    }
+
+    // Parse focus items (numbered list)
+    if (inFocusSection && /^\d+\.\s+/.test(trimmed)) {
+      const text = trimmed.replace(/^\d+\.\s+/, '').trim();
+      if (text) focus.push(text);
+    }
+
+    // Parse calendar events (bullet list with time)
+    if (inCalendarSection && trimmed.startsWith('- ')) {
+      const match = trimmed.match(/^-\s+(\d{2}:\d{2})\s+(.+)$/);
+      if (match) {
+        events.push({ time: match[1], title: match[2] });
+      }
+    }
+  }
+
+  return { focus, events };
 }

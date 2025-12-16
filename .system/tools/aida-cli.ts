@@ -54,6 +54,8 @@ if (!module || !func) {
   console.log('  bun run .system/tools/aida-cli.ts journal createEntry \'{"entry_type":"checkin","content":"test"}\'');
   console.log('  bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"');
   console.log('  bun run .system/tools/aida-cli.ts plan createDailyPlan \'{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}\'');
+  console.log('  bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-16"');
+  console.log('  bun run .system/tools/aida-cli.ts plan clearPlan');
   process.exit(1);
 }
 

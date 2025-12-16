@@ -1,6 +1,6 @@
 # Morning Check-in Flow
 
-> **When**: First check-in of the day OR time < 12:00
+> **When**: First check-in of the day OR time < 11:00
 > **Goal**: Structure the day with clear focus and minimal overwhelm
 
 ---
@@ -28,9 +28,10 @@ bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
 - 10:00-12:00: "Hej! 👋"
 
 **Query time context:**
-```typescript
-const now = await getTimeInfo();
+```bash
+bun run .system/tools/utilities/time.ts getTimeInfo
 ```
+Returns JSON with current time including `hour`, `minute`, `date`, `weekday`, etc.
 
 ### 2. Query Today's Data
 
@@ -132,19 +133,52 @@ Vill du prioritera den först, eller ska vi lägga om den till senare idag?
 
 ### 8. Create Daily Plan File
 
-**Location:** `0-JOURNAL/1-DAILY/YYYY-MM-DD-plan.md`
+**Location:** `0-JOURNAL/PLAN.md` (single file, overwritten each morning)
 
-**Content:**
+**⚠️ Check first:** Before creating a new plan, check if PLAN.md has content:
+```bash
+bun run .system/tools/aida-cli.ts plan planHasContent
+```
+
+If it returns `true`, warn the user that yesterday's plan wasn't archived:
+```
+⚠️ Observera: Förra dagens plan arkiverades inte. Vill du arkivera den nu innan vi skapar dagens plan?
+```
+
+**Create plan via CLI:**
+```bash
+bun run .system/tools/aida-cli.ts plan createDailyPlan '{
+  "date": "2025-12-16",
+  "events": [
+    {"time": "09:00", "title": "Team standup"},
+    {"time": "18:00", "title": "Träning"}
+  ],
+  "focus": [
+    "Färdigställ arkitekturdokumentation",
+    "Code review för projekt X"
+  ],
+  "next_steps": [
+    "Öppna arkitekturdokumentet"
+  ],
+  "parked": [],
+  "notes": ""
+}'
+```
+
+**Template structure generated:**
 ```markdown
-# Plan for [date in Swedish]
+# Plan för [date in Swedish]
 
-## Focus för dagen
-1. [Task 1]
-2. [Task 2]
-3. [Task 3]
+## Dagens events
+- 09:00 Team standup
+- 18:00 Träning
+
+## Fokus för dagen
+1. Färdigställ arkitekturdokumentation
+2. Code review för projekt X
 
 ## Nästa steg
-- [Smallest first step for task 1]
+- [ ] Öppna arkitekturdokumentet
 
 ## Parkerade items
 _Items that came up but aren't for today_
@@ -153,15 +187,14 @@ _Items that came up but aren't for today_
 _Space for notes during the day_
 ```
 
-**Use Markdown Write tool to create file.**
-
 ### 9. Create Journal Entry
 
 **Timestamp format:**
 - Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
-- Get current time via: `bun run .system/tools/utilities/time.ts getTimeInfo`
-- Extract the `date` and `time` fields, combine as: `{date}T{time}:00`
+- Get current time: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Extract `date` and `time` fields from JSON output, combine as: `{date}T{time}:00`
 - Example: `2025-12-16T08:30:00`
+- Or omit timestamp to use server time automatically
 
 **Via script:**
 ```bash

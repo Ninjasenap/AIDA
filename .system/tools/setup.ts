@@ -31,7 +31,7 @@ DEPENDENCIES:
 */
 
 import { Database } from 'bun:sqlite';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 /**
@@ -146,6 +146,32 @@ function createFolders(): void {
 }
 
 /**
+ * Creates the empty PLAN.md file in 0-JOURNAL/
+ *
+ * The PLAN.md file is used to store the daily plan, which is overwritten
+ * each morning and cleared each evening after archiving to the daily log.
+ *
+ * @returns {void}
+ */
+function createPlanFile(): void {
+  console.log('\n📄 Creating PLAN.md file...');
+
+  const planPath = join(PROJECT_ROOT, '0-JOURNAL', 'PLAN.md');
+
+  if (existsSync(planPath)) {
+    console.log('   ℹ️  PLAN.md already exists');
+    return;
+  }
+
+  try {
+    writeFileSync(planPath, '', 'utf-8');
+    console.log('   ✓ Created: 0-JOURNAL/PLAN.md');
+  } catch (error) {
+    console.error('   ✗ Failed to create PLAN.md:', error);
+  }
+}
+
+/**
  * Initializes the database with the schema from db_schema.sql.
  *
  * Performs the following steps:
@@ -245,6 +271,9 @@ async function runSetup(): Promise<void> {
 
   // Create folders
   createFolders();
+
+  // Create PLAN.md file
+  createPlanFile();
 
   // Initialize database
   await initializeDatabase();

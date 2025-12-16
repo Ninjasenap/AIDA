@@ -36,7 +36,7 @@ tidsläge! Låt oss kolla hur morgonen gått.
 
 ### 2. Read Morning Plan
 
-**File:** `0-JOURNAL/1-DAILY/YYYY-MM-DD-plan.md`
+**File:** `0-JOURNAL/PLAN.md` (single plan file for today)
 
 Extract:
 - Original focus items (1-3 tasks)
@@ -129,9 +129,10 @@ Låter det bra?
 
 **Timestamp format:**
 - Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
-- Get current time via: `bun run .system/tools/utilities/time.ts getTimeInfo`
-- Extract the `date` and `time` fields, combine as: `{date}T{time}:00`
+- Get current time: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Extract `date` and `time` fields from JSON output, combine as: `{date}T{time}:00`
 - Example: `2025-12-16T12:30:00`
+- Or omit timestamp to use server time automatically
 
 **Create new entry:**
 ```bash
@@ -148,12 +149,14 @@ bun run .system/tools/aida-cli.ts journal createEntry '{
 
 **If significant changes:**
 
-Update `0-JOURNAL/1-DAILY/YYYY-MM-DD-plan.md`:
+Update `0-JOURNAL/PLAN.md`:
 - Mark completed items with ✅
 - Update "Nästa steg" section
 - Add any new notes
 
-**Use Edit tool to update file.**
+**Note:** User can edit PLAN.md directly in their editor. CLI update not required - file is meant to be a living document throughout the day.
+
+**Use Edit tool to update file if updating via skill.**
 
 ### 10. Suggest Next Action
 

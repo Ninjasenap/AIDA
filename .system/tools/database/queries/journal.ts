@@ -66,7 +66,7 @@ export function getTodayEntries(): JournalEntryFull[] {
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE DATE(je.timestamp) = DATE('now')
-       ORDER BY je.timestamp ASC`
+       ORDER BY datetime(je.timestamp) ASC`
     )
     .all() as JournalEntryFull[];
 
@@ -103,7 +103,7 @@ export function getEntriesByTask(taskId: number): JournalEntryFull[] {
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.related_task_id = ?
-       ORDER BY je.timestamp ASC`
+       ORDER BY datetime(je.timestamp) ASC`
     )
     .all(taskId) as JournalEntryFull[];
 
@@ -140,7 +140,7 @@ export function getEntriesByProject(projectId: number): JournalEntryFull[] {
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.related_project_id = ?
-       ORDER BY je.timestamp ASC`
+       ORDER BY datetime(je.timestamp) ASC`
     )
     .all(projectId) as JournalEntryFull[];
 
@@ -148,20 +148,18 @@ export function getEntriesByProject(projectId: number): JournalEntryFull[] {
 }
 
 /**
- * Retrieves all journal entries for a specific role (most recent first).
+ * Retrieves all journal entries for a specific role.
  *
  * Fetches the activity log for a role context (e.g., "Developer", "Manager",
- * "Mentor"), showing recent work within that role. Ordered newest first for
- * quick access to latest role-specific activities.
+ * "Mentor"), showing work within that role in chronological order.
  *
  * QUERY PATTERN:
  * Filters entries by related_role_id and enriches with task and project context.
  * Uses LEFT JOINs so entries remain accessible even if role is deleted (id only).
- * Note: Ordered DESC (newest first) unlike other queries for quick recent access.
  *
  * @param roleId - Numeric ID of the role to retrieve entries for
  * @returns Array of journal entries associated with the role, ordered by
- *          timestamp descending (newest first). Entries may be null for
+ *          timestamp ascending (oldest first). Entries may be null for
  *          task_title and project_name if not set.
  */
 export function getEntriesByRole(roleId: number): JournalEntryFull[] {
@@ -178,7 +176,7 @@ export function getEntriesByRole(roleId: number): JournalEntryFull[] {
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.related_role_id = ?
-       ORDER BY je.timestamp DESC`
+       ORDER BY datetime(je.timestamp) ASC`
     )
     .all(roleId) as JournalEntryFull[];
 
@@ -195,7 +193,6 @@ export function getEntriesByRole(roleId: number): JournalEntryFull[] {
  * QUERY PATTERN:
  * Filters by entry_type, optionally narrows with timestamp BETWEEN if date range
  * provided. Enriches with all related entity names via standard LEFT JOINs.
- * Ordered DESC (newest first) for quick access to recent entries of a type.
  *
  * @param type - EntryType to filter by (required)
  * @param options - Optional date range:
@@ -203,7 +200,7 @@ export function getEntriesByRole(roleId: number): JournalEntryFull[] {
  *        - endDate: ISO string for range end (inclusive)
  *        If both provided, applies BETWEEN filter; partial options are ignored.
  * @returns Array of journal entries matching type (and optionally date range),
- *          ordered by timestamp descending (newest first).
+ *          ordered by timestamp ascending (oldest first).
  *          Entries enriched with task_title, project_name, role_name (null if unset).
  */
 export function getEntriesByType(
@@ -229,7 +226,7 @@ export function getEntriesByType(
     params.push(options.startDate, options.endDate);
   }
 
-  sql += ` ORDER BY je.timestamp DESC`;
+  sql += ` ORDER BY datetime(je.timestamp) ASC`;
 
   const entries = db.query(sql).all(...params) as JournalEntryFull[];
 
@@ -268,7 +265,7 @@ export function getEntriesByDateRange(startDate: string, endDate: string): Journ
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE DATE(je.timestamp) BETWEEN ? AND ?
-       ORDER BY je.timestamp ASC`
+       ORDER BY datetime(je.timestamp) ASC`
     )
     .all(startDate, endDate) as JournalEntryFull[];
 
@@ -356,9 +353,31 @@ export function createEntry(input: CreateEntryInput): JournalEntry {
   const result = db.query(sql).get(...params) as JournalEntry;
 
   // Auto-regenerate journal markdown for the entry's date
-  const entryDate = result.timestamp.split('T')[0]; // Extract YYYY-MM-DD from ISO datetime
+  // Handle both "T" and space separators in timestamp format
+  const entryDate = result.timestamp.split(/[T ]/)[0]; // Extract YYYY-MM-DD
   try {
-    regenerateJournalMarkdown(entryDate);
+    // Import functions dynamically to avoid circular dependency
+    const { readFileSync, existsSync } = require('fs');
+    const { getJournalFilePath, parseJournalMarkdown, regenerateJournalMarkdownWithPlan } = require('../../utilities/journal-markdown.js');
+
+    const journalPath = getJournalFilePath(entryDate);
+
+    // Check if journal file exists and has focus/calendar data to preserve
+    if (existsSync(journalPath)) {
+      const existingContent = readFileSync(journalPath, 'utf-8');
+      const { focus, events } = parseJournalMarkdown(existingContent);
+
+      if (focus.length > 0 || events.length > 0) {
+        // Preserve focus and calendar when regenerating
+        regenerateJournalMarkdownWithPlan(entryDate, focus, events);
+      } else {
+        // No plan data to preserve, use standard regeneration
+        regenerateJournalMarkdown(entryDate);
+      }
+    } else {
+      // File doesn't exist yet, create it without plan data
+      regenerateJournalMarkdown(entryDate);
+    }
   } catch (error) {
     // Log error but don't fail the entry creation
     console.error(`Failed to regenerate journal markdown for ${entryDate}:`, error);

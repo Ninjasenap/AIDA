@@ -327,13 +327,13 @@ describe('getEntriesByProject', () => {
  *
  * TESTS:
  * - Returns all entries for specific role
- * - Entries ordered reverse chronologically (DESC)
+ * - Entries ordered chronologically (ASC)
  * - Includes role_name from JOIN
  * - Returns empty array for role with no entries
  *
  * VALIDATES:
  * - Role filtering
- * - DESC ordering
+ * - ASC ordering
  * - JOIN retrieval
  *
  * NOT TESTED:
@@ -354,14 +354,14 @@ describe('getEntriesByRole', () => {
     expect(entries.every(e => e.related_role_id === 1)).toBe(true);
   });
 
-  test('should return entries in reverse chronological order (DESC)', () => {
+  test('should return entries in chronological order (ASC)', () => {
     const entries = getEntriesByRole(1);
 
     if (entries.length > 1) {
       for (let i = 0; i < entries.length - 1; i++) {
         const current = new Date(entries[i].timestamp);
         const next = new Date(entries[i + 1].timestamp);
-        expect(current.getTime()).toBeGreaterThanOrEqual(next.getTime());
+        expect(current.getTime()).toBeLessThanOrEqual(next.getTime());
       }
     }
   });
@@ -389,7 +389,7 @@ describe('getEntriesByRole', () => {
  *
  * TESTS:
  * - Returns entries of specific type
- * - Entries ordered reverse chronologically (DESC)
+ * - Entries ordered chronologically (ASC)
  * - Filters by date range when provided
  * - Includes related entity names
  * - Returns empty array for type with no entries
@@ -397,7 +397,7 @@ describe('getEntriesByRole', () => {
  * VALIDATES:
  * - Type filtering
  * - Date range filtering
- * - DESC ordering
+ * - ASC ordering
  * - JOIN retrieval
  *
  * NOT TESTED:
@@ -421,14 +421,14 @@ describe('getEntriesByType', () => {
     expect(entries.every(e => e.entry_type === 'reflection')).toBe(true);
   });
 
-  test('should return entries in reverse chronological order (DESC)', () => {
+  test('should return entries in chronological order (ASC)', () => {
     const entries = getEntriesByType('checkin');
 
     if (entries.length > 1) {
       for (let i = 0; i < entries.length - 1; i++) {
         const current = new Date(entries[i].timestamp);
         const next = new Date(entries[i + 1].timestamp);
-        expect(current.getTime()).toBeGreaterThanOrEqual(next.getTime());
+        expect(current.getTime()).toBeLessThanOrEqual(next.getTime());
       }
     }
   });

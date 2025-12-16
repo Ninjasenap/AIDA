@@ -1,27 +1,21 @@
 /**
  * Daily Plan File Management
  *
- * Manages temporary daily plan files (YYYY-MM-DD-plan.md).
- * These files are created in the morning, updated during the day, and deleted in the evening.
+ * Manages the single PLAN.md file in 0-JOURNAL/.
+ * This file is overwritten each morning and cleared each evening after archiving to the daily log.
  */
 
-import { writeFileSync, readFileSync, existsSync, unlinkSync, mkdirSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { loadTemplate, renderTemplate, formatSwedishDate } from './templates.js';
 
 /**
- * Path to the daily journals directory (where plans are also stored)
- * Resolves correctly whether run from project root or .system directory
+ * Paths to plan file and journal directory
+ * Uses import.meta.dir for stable path resolution regardless of working directory
  */
-const DAILY_JOURNAL_DIR = (() => {
-  const cwd = process.cwd();
-  // If already in .system directory, go up one level
-  if (cwd.endsWith('.system')) {
-    return join(cwd, '..', '0-JOURNAL', '1-DAILY');
-  }
-  // Otherwise, assume we're at project root
-  return join(cwd, '0-JOURNAL', '1-DAILY');
-})();
+const PROJECT_ROOT = join(import.meta.dir, '../../..');
+const PLAN_FILE_PATH = join(PROJECT_ROOT, '0-JOURNAL', 'PLAN.md');
+const JOURNAL_DIR = join(PROJECT_ROOT, '0-JOURNAL');
 
 /**
  * Event item for the daily plan
@@ -44,34 +38,34 @@ export interface DailyPlan {
 }
 
 /**
- * Ensure the daily journal directory exists
+ * Ensure the journal directory exists
  */
 function ensureJournalDir(): void {
-  if (!existsSync(DAILY_JOURNAL_DIR)) {
-    mkdirSync(DAILY_JOURNAL_DIR, { recursive: true });
+  if (!existsSync(JOURNAL_DIR)) {
+    mkdirSync(JOURNAL_DIR, { recursive: true });
   }
 }
 
 /**
- * Get the path to a daily plan file
- * @param date - Date in YYYY-MM-DD format
+ * Get the path to the PLAN.md file
  * @returns Full path to the plan file
  */
-export function getDailyPlanPath(date: string): string {
-  return join(DAILY_JOURNAL_DIR, `${date}-plan.md`);
+export function getPlanPath(): string {
+  return PLAN_FILE_PATH;
 }
 
 /**
- * Check if a daily plan exists
- * @param date - Date in YYYY-MM-DD format
- * @returns True if plan file exists
+ * Check if the plan file has content
+ * @returns True if plan file exists and has content
  */
-export function dailyPlanExists(date: string): boolean {
-  return existsSync(getDailyPlanPath(date));
+export function planHasContent(): boolean {
+  if (!existsSync(PLAN_FILE_PATH)) return false;
+  const content = readFileSync(PLAN_FILE_PATH, 'utf-8');
+  return content.trim().length > 0;
 }
 
 /**
- * Create a daily plan file
+ * Create/overwrite the daily plan file
  * @param plan - Daily plan data
  * @returns Path to the created file
  */
@@ -102,97 +96,104 @@ export function createDailyPlan(plan: DailyPlan): string {
   const markdown = renderTemplate(template, templateData);
 
   // Write to file
-  const filePath = getDailyPlanPath(plan.date);
-  writeFileSync(filePath, markdown, 'utf-8');
+  writeFileSync(PLAN_FILE_PATH, markdown, 'utf-8');
 
-  return filePath;
+  return PLAN_FILE_PATH;
 }
 
 /**
- * Read a daily plan file
- * @param date - Date in YYYY-MM-DD format
- * @returns Daily plan data or null if file doesn't exist
+ * Read the daily plan file
+ * @returns Daily plan content as string, or null if file doesn't exist
  */
-export function readDailyPlan(date: string): DailyPlan | null {
-  const filePath = getDailyPlanPath(date);
-
-  if (!existsSync(filePath)) {
+export function readDailyPlan(): string | null {
+  if (!existsSync(PLAN_FILE_PATH)) {
     return null;
   }
 
-  const content = readFileSync(filePath, 'utf-8');
-
-  // Parse markdown back to structure
-  // For simplicity, we'll return a basic structure
-  // In a full implementation, we'd parse the markdown properly
-  return {
-    date,
-    events: [],
-    focus: [],
-    next_steps: [],
-    parked: [],
-    notes: content
-  };
+  return readFileSync(PLAN_FILE_PATH, 'utf-8');
 }
 
 /**
- * Update a daily plan file
- * @param date - Date in YYYY-MM-DD format
- * @param updates - Partial plan data to update
- * @returns Path to the updated file, or null if plan doesn't exist
+ * Parse plan markdown to extract focus and events
+ * @param content - Markdown content
+ * @returns Parsed focus items and calendar events
  */
-export function updateDailyPlan(date: string, updates: Partial<Omit<DailyPlan, 'date'>>): string | null {
-  const existing = readDailyPlan(date);
+export function parsePlanMarkdown(content: string): { focus: string[], events: PlanEvent[] } {
+  const focus: string[] = [];
+  const events: PlanEvent[] = [];
 
-  if (!existing) {
-    return null;
+  const lines = content.split('\n');
+  let inFocusSection = false;
+  let inCalendarSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Check section headers
+    if (trimmed === '## Fokus för dagen') {
+      inFocusSection = true;
+      inCalendarSection = false;
+      continue;
+    } else if (trimmed === '## Dagens events' || trimmed === '## Dagens kalender') {
+      inCalendarSection = true;
+      inFocusSection = false;
+      continue;
+    } else if (trimmed.startsWith('## ')) {
+      // Other section, stop parsing
+      inFocusSection = false;
+      inCalendarSection = false;
+      continue;
+    }
+
+    // Parse focus items (numbered list)
+    if (inFocusSection && /^\d+\.\s+/.test(trimmed)) {
+      const text = trimmed.replace(/^\d+\.\s+/, '');
+      if (text) focus.push(text);
+    }
+
+    // Parse calendar events (bulleted list with time)
+    if (inCalendarSection && trimmed.startsWith('- ')) {
+      const match = trimmed.match(/^-\s+(\d{2}:\d{2})\s+(.+)$/);
+      if (match) {
+        events.push({ time: match[1], title: match[2] });
+      }
+    }
   }
 
-  // Merge updates with existing plan
-  const updated: DailyPlan = {
-    date,
-    events: updates.events ?? existing.events,
-    focus: updates.focus ?? existing.focus,
-    next_steps: updates.next_steps ?? existing.next_steps,
-    parked: updates.parked ?? existing.parked,
-    notes: updates.notes ?? existing.notes
-  };
-
-  return createDailyPlan(updated);
+  return { focus, events };
 }
 
 /**
- * Delete a daily plan file
- * @param date - Date in YYYY-MM-DD format
- * @returns True if file was deleted, false if it didn't exist
+ * Clear the plan file (keep file but remove content)
  */
-export function deleteDailyPlan(date: string): boolean {
-  const filePath = getDailyPlanPath(date);
-
-  if (!existsSync(filePath)) {
-    return false;
-  }
-
-  unlinkSync(filePath);
-  return true;
+export function clearPlan(): void {
+  ensureJournalDir();
+  writeFileSync(PLAN_FILE_PATH, '', 'utf-8');
 }
 
 /**
- * Append a note to the daily plan
+ * Archive plan to daily log and clear plan file
  * @param date - Date in YYYY-MM-DD format
- * @param note - Note to append
- * @returns Path to the updated file, or null if plan doesn't exist
+ * @returns Path to the updated log file
  */
-export function appendNoteToPlan(date: string, note: string): string | null {
-  const filePath = getDailyPlanPath(date);
-
-  if (!existsSync(filePath)) {
-    return null;
+export function archivePlanToLog(date: string): string {
+  // Read plan content
+  const planContent = readDailyPlan();
+  if (!planContent || planContent.trim().length === 0) {
+    throw new Error('No plan content to archive');
   }
 
-  const existing = readFileSync(filePath, 'utf-8');
-  const updated = existing + `\n${note}`;
+  // Parse focus and events from plan
+  const { focus, events } = parsePlanMarkdown(planContent);
 
-  writeFileSync(filePath, updated, 'utf-8');
-  return filePath;
+  // Import regenerateJournalMarkdownWithPlan dynamically to avoid circular dependency
+  const { regenerateJournalMarkdownWithPlan } = require('./journal-markdown.js');
+
+  // Regenerate journal with plan data
+  const logPath = regenerateJournalMarkdownWithPlan(date, focus, events);
+
+  // Clear plan file
+  clearPlan();
+
+  return logPath;
 }
