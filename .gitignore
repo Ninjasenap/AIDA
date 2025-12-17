@@ -81,3 +81,4 @@ config/aida-paths.json
 # Personal profile
 personal-profile.json
 
+.system/config/aida-paths.json
