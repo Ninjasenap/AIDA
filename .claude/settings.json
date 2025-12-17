@@ -1,3 +1,13 @@
 {
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(bun run:*)",
+      "Read",
+      "Skill",
+      "Search",
+      "grep"
+    ]
+  },
   "model": "opusplan"
 }
