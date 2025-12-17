@@ -42,6 +42,10 @@ import { getConfigPath, getConfig, expandPath } from './utilities/paths';
 const EXECUTE_MODE = process.argv.includes('--execute');
 const LOCAL_ROOT = join(import.meta.dir, '../..');
 
+// Parse --path argument
+const pathArgIndex = process.argv.indexOf('--path');
+const PATH_ARG = pathArgIndex !== -1 ? process.argv[pathArgIndex + 1] : null;
+
 // Folders to migrate from LOCAL to PKM
 const PKM_FOLDERS = [
   '0-INBOX',
@@ -365,10 +369,17 @@ async function main() {
   console.log('PKM data will be moved to your specified OneDrive location.');
   console.log('');
 
-  const pkmPathInput = await prompt('Enter OneDrive PKM path (e.g., ~/OneDrive/AIDA-PKM): ');
-  if (!pkmPathInput) {
-    console.log('❌ No path provided. Aborting.');
-    process.exit(1);
+  let pkmPathInput: string;
+  if (PATH_ARG) {
+    pkmPathInput = PATH_ARG;
+    console.log(`Using path from --path argument: ${pkmPathInput}`);
+    console.log('');
+  } else {
+    pkmPathInput = await prompt('Enter OneDrive PKM path (e.g., ~/OneDrive/AIDA-PKM): ');
+    if (!pkmPathInput) {
+      console.log('❌ No path provided. Aborting.');
+      process.exit(1);
+    }
   }
 
   const pkmRoot = expandPath(pkmPathInput);
