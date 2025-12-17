@@ -12,13 +12,9 @@ description: |
   - During weekly planning when 20+ new journal entries or tasks exist
 
   EXAMPLES:
-  - User: "Vad har du lärt dig om mig?" → Invoke profile-learner
   - User: "What have you learned about me?" → Invoke profile-learner
-  - User: "Har du sett några mönster i mitt arbete?" → Invoke profile-learner
   - User: "What patterns have you noticed?" → Invoke profile-learner
   - User: "Review observations" → Invoke profile-learner
-
-  DO NOT USE for: view profile, update profile, profile setup (use profile-management skill instead)
 model: haiku
 tools: Bash, Read
 skills: profile-management
