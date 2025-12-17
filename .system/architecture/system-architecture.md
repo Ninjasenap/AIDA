@@ -1,9 +1,9 @@
 # AIDA System Architecture
 
 > **Document Type:** System Architecture Specification
-> **Version:** 2.0
-> **Date:** 2025-12-14
-> **Scope:** Complete Database Layer - Aligned with Implementation
+> **Version:** 2.1
+> **Date:** 2025-12-17
+> **Scope:** Complete Database Layer + Utility Modules - Aligned with Implementation
 > **Status:** Production - Reflects Actual Implementation
 
 ---
@@ -32,6 +32,8 @@ The complete data layer includes:
 - **Journal Entries** - Structured activity logging with flexible categorization
 - **Views** - Pre-computed queries for common access patterns
 - **36 Query Functions** - Complete CRUD operations across all entities
+- **Journal Markdown** - 8 functions for generating human-readable journal files
+- **Daily Plan Management** - 7 functions for morning planning and evening archiving
 
 ---
 
@@ -1161,6 +1163,331 @@ export function getEntriesByDateRange(
 export function createEntry(input: CreateEntryInput): JournalEntry
 ```
 
+### 7.5 Journal Markdown Generation (`utilities/journal-markdown.ts`)
+
+**8 functions total** for generating human-readable journal files from database entries.
+
+The database is the source of truth for journal entries. Markdown files in `0-JOURNAL/1-DAILY/` are generated views for human readability and Obsidian compatibility.
+
+#### Generation Functions (2 functions)
+
+```typescript
+/**
+ * Generate journal markdown content for a specific date.
+ * Fetches entries from database and formats them as markdown.
+ *
+ * @param date - Date in YYYY-MM-DD format
+ * @returns Generated markdown content as string
+ *
+ * @example
+ * const markdown = generateJournalMarkdown('2025-12-17');
+ * // Returns:
+ * // # 2025-12-17 - Onsdag
+ * //
+ * // ---
+ * // ## 08:30 | checkin 📋
+ * // Morning check-in content...
+ */
+export function generateJournalMarkdown(date: string): string
+
+/**
+ * Generate journal markdown with plan data prepended.
+ * Includes focus items and calendar events from the daily plan,
+ * followed by journal entries from the database.
+ *
+ * @param date - Date in YYYY-MM-DD format
+ * @param focusItems - Array of focus items for the day
+ * @param calendarEvents - Array of calendar events with time and title
+ * @returns Generated markdown content with plan sections
+ *
+ * @example
+ * const markdown = generateJournalMarkdownWithPlan(
+ *   '2025-12-17',
+ *   ['Finish API documentation', 'Review PR #123'],
+ *   [{ time: '09:00', title: 'Team standup' }]
+ * );
+ */
+export function generateJournalMarkdownWithPlan(
+  date: string,
+  focusItems: string[],
+  calendarEvents: { time: string; title: string }[]
+): string
+```
+
+#### Write Functions (2 functions)
+
+```typescript
+/**
+ * Write journal markdown content to file.
+ * Creates or overwrites the file at 0-JOURNAL/1-DAILY/{date}.md
+ *
+ * @param date - Date in YYYY-MM-DD format (used as filename)
+ * @param content - Markdown content to write
+ * @returns Full path to the written file
+ *
+ * @example
+ * const path = writeJournalMarkdown('2025-12-17', markdownContent);
+ * // Returns: '/path/to/AIDA/0-JOURNAL/1-DAILY/2025-12-17.md'
+ */
+export function writeJournalMarkdown(date: string, content: string): string
+
+/**
+ * Regenerate journal markdown from database entries.
+ * Combines generateJournalMarkdown + writeJournalMarkdown.
+ * Use when entries are added/modified and file needs updating.
+ *
+ * @param date - Date in YYYY-MM-DD format
+ * @returns Path to the regenerated file
+ *
+ * @example
+ * // After creating a journal entry via CLI:
+ * bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-17"
+ */
+export function regenerateJournalMarkdown(date: string): string
+```
+
+#### Regenerate with Plan (1 function)
+
+```typescript
+/**
+ * Regenerate journal markdown including plan data.
+ * Used during evening checkout to archive focus and calendar to log.
+ *
+ * @param date - Date in YYYY-MM-DD format
+ * @param focusItems - Array of focus items to archive
+ * @param calendarEvents - Array of calendar events to archive
+ * @returns Path to the regenerated file
+ *
+ * @example
+ * // Called by archivePlanToLog during evening checkout
+ * regenerateJournalMarkdownWithPlan(
+ *   '2025-12-17',
+ *   ['Completed API docs', 'Reviewed PR'],
+ *   [{ time: '09:00', title: 'Team standup' }]
+ * );
+ */
+export function regenerateJournalMarkdownWithPlan(
+  date: string,
+  focusItems: string[],
+  calendarEvents: { time: string; title: string }[]
+): string
+```
+
+#### Utility Functions (3 functions)
+
+```typescript
+/**
+ * Parse focus and calendar sections from existing journal markdown.
+ * Extracts "Fokus för dagen" and "Dagens kalender" sections.
+ * Used to preserve plan data when regenerating files.
+ *
+ * @param content - Markdown content to parse
+ * @returns Object with focus items and calendar events
+ *
+ * @example
+ * const { focus, events } = parseJournalMarkdown(markdownContent);
+ * // focus: ['Task 1', 'Task 2']
+ * // events: [{ time: '09:00', title: 'Meeting' }]
+ */
+export function parseJournalMarkdown(content: string): {
+  focus: string[];
+  events: { time: string; title: string }[];
+}
+
+/**
+ * Check if a journal file exists for a specific date.
+ *
+ * @param date - Date in YYYY-MM-DD format
+ * @returns True if file exists at 0-JOURNAL/1-DAILY/{date}.md
+ *
+ * @example
+ * if (journalFileExists('2025-12-17')) {
+ *   // File exists, can read or regenerate
+ * }
+ */
+export function journalFileExists(date: string): boolean
+
+/**
+ * Get the full path to a journal file.
+ * Returns path regardless of whether file exists.
+ *
+ * @param date - Date in YYYY-MM-DD format
+ * @returns Full absolute path to journal file
+ *
+ * @example
+ * const path = getJournalFilePath('2025-12-17');
+ * // Returns: '/path/to/AIDA/0-JOURNAL/1-DAILY/2025-12-17.md'
+ */
+export function getJournalFilePath(date: string): string
+```
+
+### 7.6 Daily Plan File Management (`utilities/daily-plan.ts`)
+
+**7 functions total** for managing the single `PLAN.md` file in `0-JOURNAL/`.
+
+The daily plan is a working document:
+- **Morning:** Created/overwritten with today's plan
+- **Throughout day:** Updated as priorities change
+- **Evening:** Archived to daily log, then cleared
+
+#### Type Definitions
+
+```typescript
+/**
+ * Event item for the daily plan calendar section.
+ */
+export interface PlanEvent {
+  time: string;   // HH:MM format (e.g., "09:00")
+  title: string;  // Event description
+}
+
+/**
+ * Complete daily plan structure.
+ * All fields are required when creating a plan.
+ */
+export interface DailyPlan {
+  date: string;           // YYYY-MM-DD format
+  events: PlanEvent[];    // Calendar events for the day
+  focus: string[];        // Priority items (numbered list)
+  next_steps: string[];   // Upcoming actions
+  parked: string[];       // Items deferred to later
+  notes: string;          // Free-form notes section
+}
+```
+
+#### Path Functions (1 function)
+
+```typescript
+/**
+ * Get the path to the PLAN.md file.
+ * Always returns 0-JOURNAL/PLAN.md regardless of existence.
+ *
+ * @returns Full absolute path to plan file
+ *
+ * @example
+ * const path = getPlanPath();
+ * // Returns: '/path/to/AIDA/0-JOURNAL/PLAN.md'
+ */
+export function getPlanPath(): string
+```
+
+#### Check Functions (1 function)
+
+```typescript
+/**
+ * Check if the plan file has content.
+ * Returns false if file doesn't exist OR exists but is empty.
+ *
+ * @returns True if plan file exists and has non-whitespace content
+ *
+ * @example
+ * if (planHasContent()) {
+ *   // Plan exists, can be read or archived
+ * } else {
+ *   // Need to create plan first
+ * }
+ */
+export function planHasContent(): boolean
+```
+
+#### Create/Read Functions (2 functions)
+
+```typescript
+/**
+ * Create or overwrite the daily plan file.
+ * Renders the daily-plan template with provided data.
+ *
+ * @param plan - Complete DailyPlan object
+ * @returns Path to the created file
+ *
+ * @example
+ * // Via CLI (morning planning):
+ * bun run .system/tools/aida-cli.ts plan createDailyPlan '{
+ *   "date": "2025-12-17",
+ *   "events": [{"time": "09:00", "title": "Standup"}],
+ *   "focus": ["Complete API documentation", "Review PR #123"],
+ *   "next_steps": ["Deploy to staging"],
+ *   "parked": ["Refactor auth module"],
+ *   "notes": "Remember to update changelog"
+ * }'
+ */
+export function createDailyPlan(plan: DailyPlan): string
+
+/**
+ * Read the daily plan file content.
+ * Returns raw markdown content, not parsed structure.
+ *
+ * @returns Plan file content as string, or null if file doesn't exist
+ *
+ * @example
+ * const content = readDailyPlan();
+ * if (content) {
+ *   const { focus, events } = parsePlanMarkdown(content);
+ * }
+ */
+export function readDailyPlan(): string | null
+```
+
+#### Parse Function (1 function)
+
+```typescript
+/**
+ * Parse plan markdown to extract focus and events.
+ * Looks for "## Fokus för dagen" and "## Dagens events" sections.
+ *
+ * Focus items: Numbered list (1. Item text)
+ * Events: Bulleted list with time (- HH:MM Event title)
+ *
+ * @param content - Plan markdown content
+ * @returns Parsed focus items and calendar events
+ *
+ * @example
+ * const { focus, events } = parsePlanMarkdown(planContent);
+ * // focus: ['Task 1', 'Task 2']
+ * // events: [{ time: '09:00', title: 'Meeting' }]
+ */
+export function parsePlanMarkdown(content: string): {
+  focus: string[];
+  events: PlanEvent[];
+}
+```
+
+#### Lifecycle Functions (2 functions)
+
+```typescript
+/**
+ * Clear the plan file content.
+ * Keeps file but removes all content (writes empty string).
+ * Called after archiving to daily log.
+ *
+ * @example
+ * // Via CLI (evening checkout):
+ * bun run .system/tools/aida-cli.ts plan clearPlan
+ */
+export function clearPlan(): void
+
+/**
+ * Archive plan to daily log and clear plan file.
+ *
+ * This is the evening checkout workflow:
+ * 1. Read current plan content
+ * 2. Parse focus and events sections
+ * 3. Regenerate journal markdown with plan data prepended
+ * 4. Clear plan file
+ *
+ * @param date - Date in YYYY-MM-DD format for the log file
+ * @returns Path to the updated log file
+ * @throws Error if plan has no content to archive
+ *
+ * @example
+ * // Via CLI (evening checkout):
+ * bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-17"
+ * // Archives focus/events to 0-JOURNAL/1-DAILY/2025-12-17.md
+ * // Clears 0-JOURNAL/PLAN.md
+ */
+export function archivePlanToLog(date: string): string
+```
+
 ---
 
 ## 8. Database Management CLI (`manage-db.ts`)
@@ -1596,6 +1923,7 @@ const checkins = entries.filter(e => e.entry_type === 'checkin');
 |------|---------|--------|
 | 2025-12-14 | 1.0 | Initial specification (outdated) |
 | 2025-12-14 | 2.0 | Complete rewrite - aligned with actual implementation |
+| 2025-12-17 | 2.1 | Added comprehensive API documentation for journalMd and plan modules (Section 7.5, 7.6) |
 
 ---
 
