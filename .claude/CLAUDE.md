@@ -143,99 +143,44 @@ AIDA/
 - Package management: `.system/package.json` (dependencies located in `.system/`)
 - Install dependencies: `cd .system && bun install`
 
-## ⚠️ CRITICAL DATABASE ACCESS RULE ⚠️
+## ⚠️ ANVÄND ALLTID SKILLS ⚠️
 
-**ALL database operations MUST use the `aida-cli.ts` tool**
+**KRITISKT: Flödet för all interaktion med AIDA:**
 
-**NEVER use:**
-- Direct SQL queries (`sqlite3 ...`)
-- Query modules directly (`bun run .system/tools/database/queries/tasks.ts`)
-- Temporary wrapper scripts
-
-**ONLY CORRECT APPROACH:**
-```bash
-# Use aida-cli.ts for ALL database operations
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+```
+Användare → Agent → Skill → aida-cli.ts → Databas
 ```
 
-**Available modules:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`, `profile`
+**GÖR ALDRIG direkta anrop** till `aida-cli.ts` eller databas-skript för dagliga uppgifter. Alla användarinteraktioner ska gå genom skills.
 
-**Common examples:**
-```bash
-# Get today's tasks
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+### Tillgängliga Skills
 
-# Get overdue tasks
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
+| Behov | Skill | Slash Command | Trigger Phrases |
+|-------|-------|---------------|-----------------|
+| Planera dagen | `daily-planning` | `/checkin` | "plan my day", "morning planning", "check in", "evening review" |
+| Fånga uppgifter | `task-capture` | `/capture` | "I need to...", "remind me", "jag måste...", "lägg till" |
+| Nästa steg/aktivering | `task-activation` | `/next` | "stuck", "can't start", "what should I do", "nästa steg" |
+| Översikt/workload | `status-overview` | `/overview` | "how am I doing", "workload", "role balance", "hur ligger jag till" |
+| Profiländringar | `profile-management` | - | "min profil", "uppdatera profil", "profile setup", "vem är jag", "granska observationer" |
+| Tid/datumtolkning | `time-info` | - | "imorgon", "nästa vecka", "påskafton" |
 
-# Get today's journal entries
-bun run .system/tools/aida-cli.ts journal getTodayEntries
+### Hur Skills Fungerar
 
-# Create journal entry (JSON argument - auto-regenerates markdown)
-bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning check-in"}'
+Varje skill:
+1. Har en tydlig YAML-beskrivning med trigger phrases (både svenska och engelska)
+2. Innehåller en strukturerad SOP (Standard Operating Procedure) med steg-för-steg workflow
+3. Använder `aida-cli.ts` för alla databasoperationer
+4. Har supporting documentation som förklarar exempel och användning
 
-# Get active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+**Skills finns i:** `.claude/skills/<skill-name>/`
 
-# Get week tasks (with date arguments)
-bun run .system/tools/aida-cli.ts tasks getWeekTasks "2025-12-09" "2025-12-15"
-
-# Create task
-bun run .system/tools/aida-cli.ts tasks createTask '{"title":"Task title","role_id":1}'
-
-# Set task status
-bun run .system/tools/aida-cli.ts tasks setTaskStatus 123 "done"
-
-# Regenerate journal markdown for a date
-bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"
-
-# Create daily plan
-bun run .system/tools/aida-cli.ts plan createDailyPlan '{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}'
-
-# Check if plan has content
-bun run .system/tools/aida-cli.ts plan planHasContent
-
-# Archive plan to log file
-bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-16"
-
-# Clear plan file
-bun run .system/tools/aida-cli.ts plan clearPlan
-
-# Get full profile
-bun run .system/tools/aida-cli.ts profile getProfile
-
-# Get profile section
-bun run .system/tools/aida-cli.ts profile getSection "identity"
-
-# Get specific attribute
-bun run .system/tools/aida-cli.ts profile getAttribute "identity.name"
-
-# Update profile attribute
-bun run .system/tools/aida-cli.ts profile updateAttribute "identity.name" '"Henrik"' "user" "Updated name"
-
-# Get current time period and energy level
-bun run .system/tools/aida-cli.ts profile getCurrentTimePeriod
-bun run .system/tools/aida-cli.ts profile getCurrentEnergyLevel
-
-# Get activities for energy level
-bun run .system/tools/aida-cli.ts profile getActivitiesForEnergy "high"
-
-# Learning observations
-bun run .system/tools/aida-cli.ts profile getObservations
-bun run .system/tools/aida-cli.ts profile addObservation '{"category":"energy","pattern":"Test pattern","evidence":[],"confidence":0.8,"status":"active"}'
-bun run .system/tools/aida-cli.ts profile applyObservationSuggestion "<observation-id>"
+**Exempel på skill-struktur:**
 ```
-
-**Available functions:**
-- **tasks**: 12 functions (getTaskById, getTodayTasks, getWeekTasks, getOverdueTasks, getStaleTasks, getTasksByRole, getTasksByProject, searchTasks, getTasksWithSubtasks, createTask, updateTask, setTaskStatus)
-- **roles**: 7 functions (getRoleById, getActiveRoles, getInactiveRoles, getRolesByType, createRole, updateRole, setRoleStatus)
-- **projects**: 10 functions (getProjectById, getAllProjects, getProjectsByRole, searchProjects, getProjectProgress, getPausedProjects, createProject, updateProject, setProjectStatus, updateFinishCriteria)
-- **journal**: 7 functions (getTodayEntries, getEntriesByTask, getEntriesByProject, getEntriesByRole, getEntriesByType, getEntriesByDateRange, createEntry)
-- **journalMd**: 8 functions (generateJournalMarkdown, writeJournalMarkdown, regenerateJournalMarkdown, generateJournalMarkdownWithPlan, regenerateJournalMarkdownWithPlan, parseJournalMarkdown, journalFileExists, getJournalFilePath)
-- **plan**: 7 functions (getPlanPath, planHasContent, createDailyPlan, readDailyPlan, parsePlanMarkdown, clearPlan, archivePlanToLog)
-- **profile**: 24 functions (getProfile, getSection, getAttribute, updateAttribute, appendToArray, logChange, validateProfile, hasRequiredFields, getCurrentTimePeriod, getCurrentEnergyLevel, getActivitiesForEnergy, initializeProfile, profileExists, getProfilePath, addObservation, updateObservation, getObservations, applyObservationSuggestion, recordSuggestion, updateSuggestionOutcome, getSuggestionAcceptanceRate)
-
-See `.system/architecture/system-architecture.md` for complete function signatures.
+.claude/skills/task-capture/
+├── SKILL.md              # YAML frontmatter + SOP
+├── EXAMPLES.md           # Konkreta användningsexempel
+└── SUPPORTING-DOCS.md    # Fördjupning och edge cases
+```
 
 ## Implementation Status
 
@@ -315,6 +260,27 @@ Keep these in mind when implementing:
 - Package management: `cd .system && bun install` (dependencies in `.system/`)
 - Run scripts with: `bun run .system/tools/<script.ts>`
 
+### CLI Reference (endast för utveckling)
+
+> **⚠️ OBS:** Denna sektion är ENDAST för utveckling av nya skills och skript.
+> **Agenten ska ALDRIG använda dessa kommandon direkt i daglig användning.**
+> Använd skills istället (se "ANVÄND ALLTID SKILLS" ovan).
+
+**Database CLI (`aida-cli.ts`):**
+```bash
+# Syntax
+bun run .system/tools/aida-cli.ts <module> <function> [args...]
+
+# Available modules: tasks, roles, projects, journal, journalMd, plan, profile
+```
+
+**CRITICAL:** All database operations MUST use `aida-cli.ts`, never:
+- Direct SQL queries (`sqlite3 ...`)
+- Query modules directly (`bun run .system/tools/database/queries/...`)
+- Temporary wrapper scripts
+
+**Complete function signatures:** See `.system/architecture/system-architecture.md`
+
 ### Git Branching Strategy
 
 **⚠️ CRITICAL: Branches ONLY for system changes**
@@ -330,8 +296,8 @@ Keep these in mind when implementing:
 - Commit PKM changes directly to main
 
 **After implementation:**
-- Offer to merge the branch to main
-- Offer to delete the branch after successful merge
+- **Offer** to merge the branch to main BUT NEVER NEVER merge it without user confirmation!
+- **Offer** to delete the branch after successful merge
 - Example: "Implementeringen är klar. Vill du att jag mergar branchen och tar bort den?"
 
 ### Code Documentation
