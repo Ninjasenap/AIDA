@@ -3,7 +3,8 @@
     "allow": [
       "Skill(*)",
       "Bash(bun run:*)",
-      "Read*"
+      "Read*",
+      "Skill(task-activation)"
     ]
   }
 }
