@@ -6,121 +6,44 @@
 
 AIDA is a cognitive augmentation system built on Claude Code, designed to function as an external working memory and executive support system for users with ADHD/AuDHD neurotypes.
 
-## Installation
-
-**Prerequisites:**
-- Bun runtime (v1.0+) - https://bun.sh
-
-**First-time setup:**
-
-```bash
-# Mac/Linux
-./install.sh
-
-# Windows (PowerShell)
-.\install.ps1
-```
-
-The install script will:
-1. Check for Bun installation
-2. Install npm dependencies (`cd .system && bun install`)
-3. Create user folders (0-INBOX, 0-JOURNAL with subfolders, 0-SHARED)
-4. Initialize the SQLite database
-
-**Note:** User folders (0-INBOX/, 0-JOURNAL/, 0-SHARED/, and role folders 01-*, 02-*) are gitignored and created by the install script.
-
-### Installation Modes
-
-AIDA supports two installation modes:
-
-**1. Legacy Mode (Default)**
-- All files in one directory
-- Suitable for single-machine setups
-- No configuration needed
-
-**2. Separated Mode (Recommended for OneDrive sync)**
-- System files (`.claude/`, `.system/`) in Git repository
-- PKM data in OneDrive (database, journals, profile)
-- Prevents Git conflicts from cloud sync
-- Configured via `.system/config/aida-paths.json`
-
-During installation, you'll be prompted to choose. For separated mode, provide your OneDrive path:
-```bash
-# Example paths:
-# Mac: ~/OneDrive/AIDA-PKM
-# Windows: %USERPROFILE%\OneDrive\AIDA-PKM
-```
-
-**Migrating existing installation:**
-```bash
-# Dry-run (shows planned operations)
-bun run .system/tools/migrate-to-separated.ts
-
-# Execute migration
-bun run .system/tools/migrate-to-separated.ts --execute
-```
-
 ## Repository Structure
 
+AIDA använder **separated mode**: systemfiler i LOCAL (Git), användardata i PKM (extern mapp).
+
+**Konfiguration:** `.system/config/aida-paths.json`
+
+### LOCAL (Git repo - AIDA-dev)
 ```
-AIDA/
+AIDA-dev/
 ├── .claude/              # Claude Code configuration
 │   ├── CLAUDE.md         # This file
-│   ├── agents/           # Subagent definitions
-│   │   ├── code-commenter.md         # Documentation comments (haiku)
-│   │   ├── documentation-retriever.md # Doc lookup (haiku)
-│   │   └── profile-learner.md        # Profile learning (haiku)
-│   ├── commands/         # Slash commands
-│   │   ├── checkin.md    # /checkin - Daily check-ins
-│   │   ├── capture.md    # /capture - Quick task capture
-│   │   ├── next.md       # /next - Next action suggestion
-│   │   └── overview.md   # /overview - Workload overview
-│   ├── skills/           # Auto-invoked skills
-│   │   ├── task-activation/   # Help START tasks (ADHD support)
-│   │   ├── task-capture/      # Quick task capture
-│   │   ├── daily-planning/    # Morning/midday/evening check-ins
-│   │   ├── status-overview/   # Workload visibility
-│   │   ├── time-info/         # Swedish date/time parsing
-│   │   └── profile-management/ # Profile setup and management
+│   ├── agents/           # Subagent definitions (3 st)
+│   ├── commands/         # Slash commands (4 st)
+│   ├── skills/           # Auto-invoked skills (6 st)
 │   └── settings.json     # Model configuration
-├── .system/              # AI-agnostic system data
-│   ├── architecture/     # Design specs and coding standards
-│   ├── config/           # Configuration (gitignored)
-│   │   ├── aida-paths.example.json  # Config template
-│   │   └── aida-paths.json          # Active config (machine-specific)
-│   ├── context/          # User profile data (→ PKM in separated mode)
-│   ├── data/             # Database and schema
-│   │   ├── aida.db       # SQLite database (→ PKM in separated mode)
-│   │   └── schema/       # SQL schema files
-│   ├── templates/        # Markdown templates for journals and plans
-│   │   ├── journal-log.md   # Template for daily journal log
-│   │   └── daily-plan.md    # Template for daily plan file
-│   ├── tools/            # Bun/TypeScript scripts
-│   │   ├── aida-cli.ts   # CLI for all database operations
-│   │   ├── database/     # Database layer
-│   │   │   ├── queries/  # Query functions (tasks, roles, projects, journal)
-│   │   │   ├── connection.ts
-│   │   │   ├── helpers.ts
-│   │   │   └── types.ts
-│   │   └── utilities/    # Helper utilities
-│   │       ├── paths.ts          # Path resolution (LOCAL/PKM separation)
-│   │       ├── time.ts           # Swedish date/time parsing
-│   │       ├── symbols.ts        # Status/type emoji mappings
-│   │       ├── templates.ts      # Template loader and renderer
-│   │       ├── journal-markdown.ts  # Journal markdown generation
-│   │       ├── daily-plan.ts     # Daily plan file management
-│   │       └── profile.ts        # Profile management and learning
-│   ├── bunfig.toml       # Bun configuration
-│   ├── package.json      # Dependencies (chrono-node, @types/bun)
-│   ├── bun.lock          # Lock file (gitignored)
-│   └── node_modules/     # Dependencies (gitignored)
+└── .system/              # System files
+    ├── architecture/     # Design specs
+    ├── config/           # aida-paths.json
+    ├── data/schema/      # SQL schema (NOT the database!)
+    ├── templates/        # Markdown templates
+    └── tools/            # Bun/TypeScript scripts (aida-cli.ts)
+```
+
+### PKM (extern mapp, t.ex. OneDrive)
+```
+AIDA-PKM/
+├── .aida/
+│   ├── data/aida.db      # SQLite database
+│   └── context/          # personal-profile.json
 ├── 0-INBOX/              # Capture bucket
-├── 0-JOURNAL/            # Journals (markdown)
-│   ├── 1-DAILY/          # Daily journal entries
-│   ├── 2-WEEKLY/         # Weekly reviews
-│   ├── 3-MONTHLY/        # Monthly reviews
-│   └── 4-YEARLY/         # Yearly reviews
-└── 0-SHARED/             # Cross-role shared resources
+├── 0-JOURNAL/            # Journals + PLAN.md
+│   ├── 1-DAILY/
+│   ├── 2-WEEKLY/
+│   ├── 3-MONTHLY/
+│   └── 4-YEARLY/
+├── 0-SHARED/             # Cross-role resources
+├── .obsidian/            # Obsidian vault config
+└── 01-*, 02-*, etc.      # Role folders
 ```
 
 ## Technology Stack
@@ -133,27 +56,32 @@ AIDA/
 | Documents | Markdown (Obsidian-compatible) |
 
 **Important locations:**
-- **Legacy mode:**
-  - Database: `.system/data/aida.db`
-  - Profile: `.system/context/personal-profile.json`
-- **Separated mode:**
-  - Config: `.system/config/aida-paths.json`
-  - Database: `<pkm>/.aida/data/aida.db`
-  - Profile: `<pkm>/.aida/context/personal-profile.json`
+- Config: `.system/config/aida-paths.json`
+- Database: `<pkm>/.aida/data/aida.db`
+- Profile: `<pkm>/.aida/context/personal-profile.json`
 - Package management: `.system/package.json` (dependencies located in `.system/`)
 - Install dependencies: `cd .system && bun install`
 
-## ⚠️ ANVÄND ALLTID SKILLS ⚠️
 
-**KRITISKT: Flödet för all interaktion med AIDA:**
+## Flödet för all interaktion med AIDA
 
 ```
-Användare → Agent → Skill → aida-cli.ts → Databas
+Användare → Main Agent → (Subagent) → Skill → aida-cli.ts → Databas
 ```
+## Subagents
+
+| Agent | Model | Tools | Purpose |
+|-------|-------|-------|---------|
+| code-commenter | haiku | Read, Edit | Add documentation comments to code files |
+| documentation-retriever | haiku | Read, Grep, Glob, WebSearch, WebFetch | Look up documentation facts |
+| profile-learner | haiku | Bash, Read | Analyze patterns and suggest profile updates |
+
 
 **GÖR ALDRIG direkta anrop** till `aida-cli.ts` eller databas-skript för dagliga uppgifter. Alla användarinteraktioner ska gå genom skills.
 
-### Tillgängliga Skills
+## Skills
+
+**⚠️ ANVÄND ALLTID SKILLS ⚠️**
 
 | Behov | Skill | Slash Command | Trigger Phrases |
 |-------|-------|---------------|-----------------|
@@ -164,57 +92,6 @@ Användare → Agent → Skill → aida-cli.ts → Databas
 | Profiländringar | `profile-management` | - | "min profil", "uppdatera profil", "profile setup", "vem är jag", "granska observationer" |
 | Tid/datumtolkning | `time-info` | - | "imorgon", "nästa vecka", "påskafton" |
 
-### Hur Skills Fungerar
-
-Varje skill:
-1. Har en tydlig YAML-beskrivning med trigger phrases (både svenska och engelska)
-2. Innehåller en strukturerad SOP (Standard Operating Procedure) med steg-för-steg workflow
-3. Använder `aida-cli.ts` för alla databasoperationer
-4. Har supporting documentation som förklarar exempel och användning
-
-**Skills finns i:** `.claude/skills/<skill-name>/`
-
-**Exempel på skill-struktur:**
-```
-.claude/skills/task-capture/
-├── SKILL.md              # YAML frontmatter + SOP
-├── EXAMPLES.md           # Konkreta användningsexempel
-└── SUPPORTING-DOCS.md    # Fördjupning och edge cases
-```
-
-## Implementation Status
-
-### Fully Implemented ✅
-- Directory structure and organization
-- Architecture documentation (agent, system, solution)
-- Database schema (4 tables, 6 views, indexes, triggers)
-- Database connection singleton with WAL mode
-- Type definitions for all entities
-- Helper utilities (grouping, parsing, date calculations)
-- **36 query functions** across 4 modules (tasks, roles, projects, journal)
-- **Journal markdown generation** (8 functions: generate, write, regenerate, generateWithPlan, regenerateWithPlan, parse, check, get path)
-- **Daily plan file management** (7 functions: get path, check content, create, read, parse, clear, archive)
-- **Profile management** (24 functions: read, write, validate, time/energy, learning observations, feedback history)
-- **Template system** (Mustache-style rendering for journals and plans)
-- **Auto-regeneration** of journal markdown on createEntry with focus/calendar preservation
-- CLI tool (`aida-cli.ts`) with 7 modules (tasks, roles, projects, journal, journalMd, plan, profile)
-- Database management tool (init/delete/reset)
-- Comprehensive test suite with demo data (including 35 profile tests)
-- Symbol/emoji mappings for statuses
-- Swedish time parsing utility
-- **6 skills** with supporting documentation
-- **4 commands** linked to skills
-- **3 subagents** (code-commenter, documentation-retriever, profile-learner)
-
-### Ready for Use
-- `/checkin` - Context-aware daily check-in (morning/midday/evening)
-- `/next` - Get next action with activation support
-- `/capture [text]` - Quick task capture
-- `/overview [role]` - Workload overview
-
-### Planned
-- Hook configurations (SessionStart, PostToolUse)
-
 ## Commands
 
 | Command | Purpose | Invokes Skill |
@@ -224,32 +101,14 @@ Varje skill:
 | `/capture [text]` | Quick task capture with minimal friction | task-capture |
 | `/overview [role]` | Workload overview for role(s) | status-overview |
 
-## Skills (Auto-Invoked)
 
-| Skill | Purpose | Trigger Phrases |
-|-------|---------|-----------------|
-| task-activation | Help START tasks (ADHD support) | "stuck", "can't start", "what should I do", "nästa steg" |
-| task-capture | Quick task capture | "I need to...", "remind me", "jag måste...", "lägg till" |
-| daily-planning | Daily check-ins | "plan my day", "morning planning", "check in", "evening review" |
-| status-overview | Workload visibility | "how am I doing", "workload", "role balance", "hur ligger jag till" |
-| time-info | Swedish date/time parsing | "imorgon", "nästa vecka", "påskafton" |
-| profile-management | Profile setup and updates | "min profil", "uppdatera profil", "profile setup", "vem är jag", "granska observationer" |
+## Implementation Status
 
-## Subagents
+**Operativt:** Database layer, 6 skills, 4 commands, 3 subagents
 
-| Agent | Model | Tools | Purpose |
-|-------|-------|-------|---------|
-| code-commenter | haiku | Read, Edit | Add documentation comments to code files |
-| documentation-retriever | haiku | Read, Grep, Glob, WebSearch, WebFetch | Look up documentation facts |
-| profile-learner | haiku | Bash, Read | Analyze patterns and suggest profile updates |
+**Planerat:** Hook configurations
 
-## Design Principles
-
-Keep these in mind when implementing:
-1. **Activation over perfection** - Help START, not just plan
-2. **One thing at a time** - Never overwhelm with options
-3. **Energy-aware** - Match tasks to current capacity
-4. **Non-judgmental** - Support without guilt
+**Detaljer:** Se `.system/architecture/system-architecture.md`
 
 ## Development Guidelines
 
@@ -258,47 +117,18 @@ Keep these in mind when implementing:
 - **Always use TypeScript** for all scripts and tools
 - Scripts location: `.system/tools/`
 - Package management: `cd .system && bun install` (dependencies in `.system/`)
-- Run scripts with: `bun run .system/tools/<script.ts>`
-
-### CLI Reference (endast för utveckling)
-
-> **⚠️ OBS:** Denna sektion är ENDAST för utveckling av nya skills och skript.
-> **Agenten ska ALDRIG använda dessa kommandon direkt i daglig användning.**
-> Använd skills istället (se "ANVÄND ALLTID SKILLS" ovan).
-
-**Database CLI (`aida-cli.ts`):**
-```bash
-# Syntax
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
-
-# Available modules: tasks, roles, projects, journal, journalMd, plan, profile
-```
-
-**CRITICAL:** All database operations MUST use `aida-cli.ts`, never:
-- Direct SQL queries (`sqlite3 ...`)
-- Query modules directly (`bun run .system/tools/database/queries/...`)
-- Temporary wrapper scripts
-
-**Complete function signatures:** See `.system/architecture/system-architecture.md`
+- CLI-referens för utveckling: Se `.system/architecture/system-architecture.md`
 
 ### Git Branching Strategy
 
-**⚠️ CRITICAL: Branches ONLY for system changes**
+**Branches ENDAST för systemändringar** (`.claude/` eller `.system/`):
+- Skapa branch EFTER planering, FÖRE implementation
+- Namnkonvention: `feat/beskrivning` eller `fix/beskrivning`
+- Committa till aktuell branch
+- Merga ALDRIG branches själv!
 
-**When to create a branch:**
-- **System changes** (files in `.claude/` or `.system/`)
-- Create branch AFTER planning is complete, BEFORE implementation starts
-- Branch naming: `feat/description` or `fix/description`
-
-**When to ABSOLUTELY NOT create a branch:**
-- **PKM changes** (all other folders: `0-INBOX/`, `0-JOURNAL/`, `0-SHARED/`, role folders `01-*`, `02-*`)
-- User's personal knowledge management data should NEVER be on branches
-- Commit PKM changes directly to main
-
-**After implementation:**
-- **Offer** to merge the branch to main BUT NEVER NEVER merge it without user confirmation!
-- **Offer** to delete the branch after successful merge
-- Example: "Implementeringen är klar. Vill du att jag mergar branchen och tar bort den?"
+**ALDRIG branches för PKM-data** (`0-INBOX/`, `0-JOURNAL/`, `0-SHARED/`, roll-mappar):
+- Committa PKM-ändringar direkt till main
 
 ### Code Documentation
 - **Always use `@agent-code-commenter`** after creating script files or test files
@@ -307,24 +137,12 @@ bun run .system/tools/aida-cli.ts <module> <function> [args...]
 
 ### Testing Strategy
 
-**Test-first approach:**
-1. Create test scenarios BEFORE implementing functionality
-2. Tests go in `.system/tools/__tests__/` or module-specific `__tests__/` directories
-3. Use `bun:test` for all tests
-
-**Demo data handling:**
-- Before each test run: Reset database and populate with demo data
-- After test run: **Keep demo data** (do not clean up)
-- This allows inspection of tables and data between test runs
-
-**Test execution:**
-```bash
-# Run from .system directory (where package.json is located)
-cd .system && bun test
-
-# Or run specific test file
-cd .system && bun test tools/utilities/__tests__/time.test.ts
-```
+**Test-first approach (TDD):**
+1. Write tests before implementing functionality
+2. Use `bun:test` for all tests
+3. Tests in `.system/tools/__tests__/`
+4. Keep demo data after test runs for inspection
+5. Run tests: `cd .system && bun test`
 
 ## Development Notes
 
