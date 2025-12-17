@@ -67,8 +67,51 @@ fi
 cd ..
 echo ""
 
+# Check for config file and offer to create separated setup
+echo -e "${BLUE}[3/4] Checking AIDA configuration...${NC}"
+if [ ! -f ".system/config/aida-paths.json" ]; then
+    echo "No configuration found."
+    echo ""
+    echo "AIDA can run in two modes:"
+    echo "  1. Legacy mode: All files in this directory (current behavior)"
+    echo "  2. Separated mode: System files here, data in OneDrive (recommended for sync)"
+    echo ""
+    read -p "Create separated setup? (y/n): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo ""
+        read -p "Enter OneDrive PKM path (e.g., ~/OneDrive/AIDA-PKM): " PKM_PATH
+
+        # Expand tilde to home directory
+        PKM_PATH="${PKM_PATH/#\~/$HOME}"
+
+        # Create config directory
+        mkdir -p .system/config
+
+        # Create config file
+        cat > .system/config/aida-paths.json << EOF
+{
+  "_meta": {
+    "version": "1.0"
+  },
+  "paths": {
+    "pkm_root": "$PKM_PATH",
+    "local_root": "$(pwd)"
+  }
+}
+EOF
+
+        echo -e "${GREEN}✓ Config created${NC}"
+        echo "  PKM data will be stored in: $PKM_PATH"
+        echo "  System files remain in: $(pwd)"
+    else
+        echo -e "${YELLOW}ℹ Running in legacy mode (all files in same directory)${NC}"
+    fi
+fi
+echo ""
+
 # Run setup script
-echo -e "${BLUE}[3/3] Running setup script...${NC}"
+echo -e "${BLUE}[4/4] Running setup script...${NC}"
 if bun run .system/tools/setup.ts; then
     echo -e "${GREEN}✓ Setup completed successfully${NC}"
 else

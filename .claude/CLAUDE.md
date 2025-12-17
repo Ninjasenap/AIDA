@@ -29,6 +29,37 @@ The install script will:
 
 **Note:** User folders (0-INBOX/, 0-JOURNAL/, 0-SHARED/, and role folders 01-*, 02-*) are gitignored and created by the install script.
 
+### Installation Modes
+
+AIDA supports two installation modes:
+
+**1. Legacy Mode (Default)**
+- All files in one directory
+- Suitable for single-machine setups
+- No configuration needed
+
+**2. Separated Mode (Recommended for OneDrive sync)**
+- System files (`.claude/`, `.system/`) in Git repository
+- PKM data in OneDrive (database, journals, profile)
+- Prevents Git conflicts from cloud sync
+- Configured via `.system/config/aida-paths.json`
+
+During installation, you'll be prompted to choose. For separated mode, provide your OneDrive path:
+```bash
+# Example paths:
+# Mac: ~/OneDrive/AIDA-PKM
+# Windows: %USERPROFILE%\OneDrive\AIDA-PKM
+```
+
+**Migrating existing installation:**
+```bash
+# Dry-run (shows planned operations)
+bun run .system/tools/migrate-to-separated.ts
+
+# Execute migration
+bun run .system/tools/migrate-to-separated.ts --execute
+```
+
 ## Repository Structure
 
 ```
@@ -54,8 +85,13 @@ AIDA/
 │   └── settings.json     # Model configuration
 ├── .system/              # AI-agnostic system data
 │   ├── architecture/     # Design specs and coding standards
-│   ├── context/          # User profile data
-│   ├── data/             # SQLite database (aida.db)
+│   ├── config/           # Configuration (gitignored)
+│   │   ├── aida-paths.example.json  # Config template
+│   │   └── aida-paths.json          # Active config (machine-specific)
+│   ├── context/          # User profile data (→ PKM in separated mode)
+│   ├── data/             # Database and schema
+│   │   ├── aida.db       # SQLite database (→ PKM in separated mode)
+│   │   └── schema/       # SQL schema files
 │   ├── templates/        # Markdown templates for journals and plans
 │   │   ├── journal-log.md   # Template for daily journal log
 │   │   └── daily-plan.md    # Template for daily plan file
@@ -67,6 +103,7 @@ AIDA/
 │   │   │   ├── helpers.ts
 │   │   │   └── types.ts
 │   │   └── utilities/    # Helper utilities
+│   │       ├── paths.ts          # Path resolution (LOCAL/PKM separation)
 │   │       ├── time.ts           # Swedish date/time parsing
 │   │       ├── symbols.ts        # Status/type emoji mappings
 │   │       ├── templates.ts      # Template loader and renderer
@@ -96,7 +133,13 @@ AIDA/
 | Documents | Markdown (Obsidian-compatible) |
 
 **Important locations:**
-- Database: `.system/data/aida.db`
+- **Legacy mode:**
+  - Database: `.system/data/aida.db`
+  - Profile: `.system/context/personal-profile.json`
+- **Separated mode:**
+  - Config: `.system/config/aida-paths.json`
+  - Database: `<pkm>/.aida/data/aida.db`
+  - Profile: `<pkm>/.aida/context/personal-profile.json`
 - Package management: `.system/package.json` (dependencies located in `.system/`)
 - Install dependencies: `cd .system && bun install`
 

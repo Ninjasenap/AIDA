@@ -63,8 +63,55 @@ try {
 Pop-Location
 Write-Host ""
 
+# Check for config file and offer to create separated setup
+Write-Host "[3/4] Checking AIDA configuration..." -ForegroundColor Blue
+if (-not (Test-Path ".system\config\aida-paths.json")) {
+    Write-Host "No configuration found."
+    Write-Host ""
+    Write-Host "AIDA can run in two modes:"
+    Write-Host "  1. Legacy mode: All files in this directory (current behavior)"
+    Write-Host "  2. Separated mode: System files here, data in OneDrive (recommended for sync)"
+    Write-Host ""
+
+    $response = Read-Host "Create separated setup? (y/n)"
+
+    if ($response -eq "y" -or $response -eq "Y") {
+        Write-Host ""
+        $pkmPath = Read-Host "Enter OneDrive PKM path (e.g., $env:USERPROFILE\OneDrive\AIDA-PKM)"
+
+        # Expand environment variables
+        $pkmPath = [System.Environment]::ExpandEnvironmentVariables($pkmPath)
+        $localRoot = (Get-Location).Path
+
+        # Create config directory
+        New-Item -ItemType Directory -Force -Path ".system\config" | Out-Null
+
+        # Create config file
+        $configContent = @"
+{
+  "_meta": {
+    "version": "1.0"
+  },
+  "paths": {
+    "pkm_root": "$($pkmPath -replace '\\', '\\\\')",
+    "local_root": "$($localRoot -replace '\\', '\\\\')"
+  }
+}
+"@
+
+        $configContent | Out-File -FilePath ".system\config\aida-paths.json" -Encoding UTF8
+
+        Write-Host "✓ Config created" -ForegroundColor Green
+        Write-Host "  PKM data will be stored in: $pkmPath"
+        Write-Host "  System files remain in: $localRoot"
+    } else {
+        Write-Host "ℹ Running in legacy mode (all files in same directory)" -ForegroundColor Yellow
+    }
+}
+Write-Host ""
+
 # Run setup script
-Write-Host "[3/3] Running setup script..." -ForegroundColor Blue
+Write-Host "[4/4] Running setup script..." -ForegroundColor Blue
 try {
     bun run .system/tools/setup.ts
     Write-Host "✓ Setup completed successfully" -ForegroundColor Green
