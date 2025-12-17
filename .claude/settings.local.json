@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(*)",
+      "Bash(bun run:*)",
+      "Read*"
+    ]
+  }
+}

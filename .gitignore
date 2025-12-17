@@ -91,3 +91,5 @@ personal-profile.json
 # User folders (created by install script)
 # This includes: 0-INBOX/, 0-JOURNAL/, 0-SHARED/, and role folders like 01-*, 02-*
 [0-9]*/
+.obsidian/workspace*.json
+.obsidian/appearance.json

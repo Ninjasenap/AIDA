@@ -1,0 +1,19 @@
+{
+  "alwaysUpdateLinks": true,
+  "promptDelete": false,
+  "propertiesInDocument": "hidden",
+  "showLineNumber": false,
+  "showIndentGuide": true,
+  "newFileLocation": "current",
+  "showUnsupportedFiles": true,
+  "attachmentFolderPath": "./0-SHARED/Obsidian_attachments",
+  "uriCallbacks": true,
+  "showInlineTitle": false,
+  "readableLineLength": false,
+  "pdfExportSettings": {
+    "pageSize": "A4",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 100
+  }
+}
