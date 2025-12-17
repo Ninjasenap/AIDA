@@ -20,8 +20,9 @@
  *   - roles: Role management (7 functions)
  *   - projects: Project management (10 functions)
  *   - journal: Journal entries (7 functions)
- *   - journalMd: Journal markdown generation (5 functions)
- *   - plan: Daily plan file management (6 functions)
+ *   - journalMd: Journal markdown generation (8 functions)
+ *   - plan: Daily plan file management (7 functions)
+ *   - profile: Profile management (24 functions)
  *
  * Arguments:
  *   - JSON strings are automatically parsed: '{"key":"value"}' → object
@@ -39,15 +40,16 @@ import * as projects from './database/queries/projects';
 import * as journal from './database/queries/journal';
 import * as journalMd from './utilities/journal-markdown';
 import * as plan from './utilities/daily-plan';
+import * as profile from './utilities/profile';
 
-const modules = { tasks, roles, projects, journal, journalMd, plan };
+const modules = { tasks, roles, projects, journal, journalMd, plan, profile };
 
 const [module, func, ...args] = process.argv.slice(2);
 
 if (!module || !func) {
   console.log('Usage: aida-cli <module> <function> [args...]');
   console.log('');
-  console.log('Modules: tasks, roles, projects, journal, journalMd, plan');
+  console.log('Modules: tasks, roles, projects, journal, journalMd, plan, profile');
   console.log('');
   console.log('Examples:');
   console.log('  bun run .system/tools/aida-cli.ts tasks getTodayTasks');

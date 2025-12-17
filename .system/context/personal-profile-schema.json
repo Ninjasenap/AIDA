@@ -544,6 +544,185 @@
           }
         }
       }
+    },
+    "learning_observations": {
+      "type": "object",
+      "description": "Patterns AIDA has observed about the user over time",
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "AIDA learns patterns from journal entries and task completion to improve suggestions"
+        },
+        "observations": {
+          "type": "array",
+          "description": "Individual observations with evidence and confidence scores",
+          "items": {
+            "type": "object",
+            "required": ["id", "category", "pattern", "confidence", "first_observed", "status"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the observation (UUID)"
+              },
+              "category": {
+                "type": "string",
+                "enum": ["energy", "time_preference", "role_focus", "task_completion", "work_style", "communication", "other"],
+                "description": "Category of the observed pattern"
+              },
+              "pattern": {
+                "type": "string",
+                "description": "Human-readable description of the observed pattern"
+              },
+              "evidence": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Specific examples that support this observation"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Confidence level (0.0-1.0) based on evidence count and consistency"
+              },
+              "first_observed": {
+                "type": "string",
+                "description": "ISO 8601 date when pattern was first noticed"
+              },
+              "last_confirmed": {
+                "type": "string",
+                "description": "ISO 8601 date when pattern was last confirmed"
+              },
+              "suggested_update": {
+                "type": "object",
+                "description": "Suggested profile change based on this observation",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "Dot-notation path to update (e.g., 'energy_pattern.high.activities.deep_work.preferred_time')"
+                  },
+                  "value": {
+                    "description": "Suggested new value"
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "description": "Why this change is suggested"
+                  }
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": ["active", "applied", "dismissed"],
+                "description": "Current status: active (pending), applied (integrated), dismissed (rejected by user)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "feedback_history": {
+      "type": "object",
+      "description": "History of AIDA's suggestions and user responses for learning preferences",
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Track what types of suggestions work well for this user"
+        },
+        "suggestions": {
+          "type": "array",
+          "description": "Individual suggestions made by AIDA",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "suggestion", "timestamp", "outcome"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the suggestion"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["task_suggestion", "energy_match", "role_assignment", "time_recommendation", "profile_update", "activation_technique"],
+                "description": "Type of suggestion made"
+              },
+              "suggestion": {
+                "type": "string",
+                "description": "What was suggested"
+              },
+              "context": {
+                "type": "string",
+                "description": "Context when suggestion was made (time, energy level, current work, etc.)"
+              },
+              "timestamp": {
+                "type": "string",
+                "description": "ISO 8601 datetime when suggestion was made"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": ["accepted", "modified", "rejected", "ignored", "pending"],
+                "description": "User's response to the suggestion"
+              },
+              "user_feedback": {
+                "type": "string",
+                "description": "Optional user explanation for their choice"
+              },
+              "related_observation_id": {
+                "type": "string",
+                "description": "Links to learning_observations entry if suggestion was based on an observation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "update_log": {
+      "type": "object",
+      "description": "Audit log of all profile changes for transparency and rollback capability",
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Complete history of profile modifications"
+        },
+        "entries": {
+          "type": "array",
+          "description": "Individual update log entries",
+          "items": {
+            "type": "object",
+            "required": ["id", "timestamp", "path", "source"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the log entry"
+              },
+              "timestamp": {
+                "type": "string",
+                "description": "ISO 8601 datetime of the change"
+              },
+              "path": {
+                "type": "string",
+                "description": "Dot-notation path that was changed"
+              },
+              "old_value": {
+                "description": "Previous value (null if new field)"
+              },
+              "new_value": {
+                "description": "New value after change"
+              },
+              "source": {
+                "type": "string",
+                "enum": ["user", "auto_learn", "setup_wizard", "import"],
+                "description": "How the change was initiated"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why the change was made"
+              },
+              "related_observation_id": {
+                "type": "string",
+                "description": "Links to learning_observations if change was auto-learned"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": ["identity", "time_definitions", "energy_pattern", "roles"]

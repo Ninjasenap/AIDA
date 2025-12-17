@@ -366,5 +366,20 @@
         "description": "Medlem sedan 2020"
       }
     ]
+  },
+
+  "learning_observations": {
+    "_comment": "AIDA:s observationer om användarmönster - fylls i automatiskt över tid",
+    "observations": []
+  },
+
+  "feedback_history": {
+    "_comment": "Historik över AIDA:s förslag och användarens respons - fylls i automatiskt",
+    "suggestions": []
+  },
+
+  "update_log": {
+    "_comment": "Granskningslogg för alla profiländringar - fylls i automatiskt",
+    "entries": []
   }
 }

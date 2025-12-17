@@ -37,7 +37,8 @@ AIDA/
 │   ├── CLAUDE.md         # This file
 │   ├── agents/           # Subagent definitions
 │   │   ├── code-commenter.md         # Documentation comments (haiku)
-│   │   └── documentation-retriever.md # Doc lookup (haiku)
+│   │   ├── documentation-retriever.md # Doc lookup (haiku)
+│   │   └── profile-learner.md        # Profile learning (haiku)
 │   ├── commands/         # Slash commands
 │   │   ├── checkin.md    # /checkin - Daily check-ins
 │   │   ├── capture.md    # /capture - Quick task capture
@@ -48,7 +49,8 @@ AIDA/
 │   │   ├── task-capture/      # Quick task capture
 │   │   ├── daily-planning/    # Morning/midday/evening check-ins
 │   │   ├── status-overview/   # Workload visibility
-│   │   └── time-info/         # Swedish date/time parsing
+│   │   ├── time-info/         # Swedish date/time parsing
+│   │   └── profile-management/ # Profile setup and management
 │   └── settings.json     # Model configuration
 ├── .system/              # AI-agnostic system data
 │   ├── architecture/     # Design specs and coding standards
@@ -69,7 +71,8 @@ AIDA/
 │   │       ├── symbols.ts        # Status/type emoji mappings
 │   │       ├── templates.ts      # Template loader and renderer
 │   │       ├── journal-markdown.ts  # Journal markdown generation
-│   │       └── daily-plan.ts     # Daily plan file management
+│   │       ├── daily-plan.ts     # Daily plan file management
+│   │       └── profile.ts        # Profile management and learning
 │   ├── bunfig.toml       # Bun configuration
 │   ├── package.json      # Dependencies (chrono-node, @types/bun)
 │   ├── bun.lock          # Lock file (gitignored)
@@ -112,7 +115,7 @@ AIDA/
 bun run .system/tools/aida-cli.ts <module> <function> [args...]
 ```
 
-**Available modules:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`
+**Available modules:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`, `profile`
 
 **Common examples:**
 ```bash
@@ -154,6 +157,30 @@ bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-16"
 
 # Clear plan file
 bun run .system/tools/aida-cli.ts plan clearPlan
+
+# Get full profile
+bun run .system/tools/aida-cli.ts profile getProfile
+
+# Get profile section
+bun run .system/tools/aida-cli.ts profile getSection "identity"
+
+# Get specific attribute
+bun run .system/tools/aida-cli.ts profile getAttribute "identity.name"
+
+# Update profile attribute
+bun run .system/tools/aida-cli.ts profile updateAttribute "identity.name" '"Henrik"' "user" "Updated name"
+
+# Get current time period and energy level
+bun run .system/tools/aida-cli.ts profile getCurrentTimePeriod
+bun run .system/tools/aida-cli.ts profile getCurrentEnergyLevel
+
+# Get activities for energy level
+bun run .system/tools/aida-cli.ts profile getActivitiesForEnergy "high"
+
+# Learning observations
+bun run .system/tools/aida-cli.ts profile getObservations
+bun run .system/tools/aida-cli.ts profile addObservation '{"category":"energy","pattern":"Test pattern","evidence":[],"confidence":0.8,"status":"active"}'
+bun run .system/tools/aida-cli.ts profile applyObservationSuggestion "<observation-id>"
 ```
 
 **Available functions:**
@@ -163,6 +190,7 @@ bun run .system/tools/aida-cli.ts plan clearPlan
 - **journal**: 7 functions (getTodayEntries, getEntriesByTask, getEntriesByProject, getEntriesByRole, getEntriesByType, getEntriesByDateRange, createEntry)
 - **journalMd**: 8 functions (generateJournalMarkdown, writeJournalMarkdown, regenerateJournalMarkdown, generateJournalMarkdownWithPlan, regenerateJournalMarkdownWithPlan, parseJournalMarkdown, journalFileExists, getJournalFilePath)
 - **plan**: 7 functions (getPlanPath, planHasContent, createDailyPlan, readDailyPlan, parsePlanMarkdown, clearPlan, archivePlanToLog)
+- **profile**: 24 functions (getProfile, getSection, getAttribute, updateAttribute, appendToArray, logChange, validateProfile, hasRequiredFields, getCurrentTimePeriod, getCurrentEnergyLevel, getActivitiesForEnergy, initializeProfile, profileExists, getProfilePath, addObservation, updateObservation, getObservations, applyObservationSuggestion, recordSuggestion, updateSuggestionOutcome, getSuggestionAcceptanceRate)
 
 See `.system/architecture/system-architecture.md` for complete function signatures.
 
@@ -178,16 +206,17 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 - **36 query functions** across 4 modules (tasks, roles, projects, journal)
 - **Journal markdown generation** (8 functions: generate, write, regenerate, generateWithPlan, regenerateWithPlan, parse, check, get path)
 - **Daily plan file management** (7 functions: get path, check content, create, read, parse, clear, archive)
+- **Profile management** (24 functions: read, write, validate, time/energy, learning observations, feedback history)
 - **Template system** (Mustache-style rendering for journals and plans)
 - **Auto-regeneration** of journal markdown on createEntry with focus/calendar preservation
-- CLI tool (`aida-cli.ts`) with 6 modules (tasks, roles, projects, journal, journalMd, plan)
+- CLI tool (`aida-cli.ts`) with 7 modules (tasks, roles, projects, journal, journalMd, plan, profile)
 - Database management tool (init/delete/reset)
-- Comprehensive test suite with demo data
+- Comprehensive test suite with demo data (including 35 profile tests)
 - Symbol/emoji mappings for statuses
 - Swedish time parsing utility
-- **5 skills** with supporting documentation
+- **6 skills** with supporting documentation
 - **4 commands** linked to skills
-- **2 subagents** (code-commenter, documentation-retriever)
+- **3 subagents** (code-commenter, documentation-retriever, profile-learner)
 
 ### Ready for Use
 - `/checkin` - Context-aware daily check-in (morning/midday/evening)
@@ -216,6 +245,7 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 | daily-planning | Daily check-ins | "plan my day", "morning planning", "check in", "evening review" |
 | status-overview | Workload visibility | "how am I doing", "workload", "role balance", "hur ligger jag till" |
 | time-info | Swedish date/time parsing | "imorgon", "nästa vecka", "påskafton" |
+| profile-management | Profile setup and updates | "min profil", "uppdatera profil", "profile setup", "vem är jag", "granska observationer" |
 
 ## Subagents
 
@@ -223,6 +253,7 @@ See `.system/architecture/system-architecture.md` for complete function signatur
 |-------|-------|-------|---------|
 | code-commenter | haiku | Read, Edit | Add documentation comments to code files |
 | documentation-retriever | haiku | Read, Grep, Glob, WebSearch, WebFetch | Look up documentation facts |
+| profile-learner | haiku | Bash, Read | Analyze patterns and suggest profile updates |
 
 ## Design Principles
 
