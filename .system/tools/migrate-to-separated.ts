@@ -63,13 +63,28 @@ const SYSTEM_DATA_TO_MIGRATE = [
 // ============================================================================
 
 /**
- * Prompts user for input
+ * Prompts user for input (synchronous)
  */
 function prompt(question: string): string {
-  const buf = new Uint8Array(1024);
   process.stdout.write(question);
-  const n = Bun.stdin.readSync(buf);
-  return new TextDecoder().decode(buf.slice(0, n)).trim();
+
+  // Use Bun's console stdin reading
+  const stdin = Bun.file('/dev/stdin');
+  const reader = stdin.stream().getReader();
+
+  // For now, we'll use a simpler approach with process.stdin
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise<string>((resolve) => {
+    rl.question('', (answer: string) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
 }
 
 /**
@@ -323,92 +338,101 @@ function executeMigration(operations: MigrationOperation[], pkmRoot: string): bo
 // MAIN
 // ============================================================================
 
-console.log('');
-console.log('╔═════════════════════════════════════════════════════════════════════════════╗');
-console.log('║           AIDA MIGRATION - Separate LOCAL and PKM                          ║');
-console.log('╚═════════════════════════════════════════════════════════════════════════════╝');
-console.log('');
-
-// Check if already separated
-const config = getConfig();
-if (config !== null) {
-  console.log('❌ Already separated!');
+async function main() {
   console.log('');
-  console.log('Current configuration:');
-  console.log(`  PKM root: ${config.paths.pkm_root}`);
-  console.log(`  Local root: ${config.paths.local_root}`);
-  console.log('');
-  console.log('To re-migrate, delete .system/config/aida-paths.json first.');
-  process.exit(1);
-}
-
-// Ask for PKM path
-console.log('This script will migrate your AIDA data from legacy mode to separated mode.');
-console.log('');
-console.log('System files will remain in: ' + LOCAL_ROOT);
-console.log('PKM data will be moved to your specified OneDrive location.');
-console.log('');
-
-const pkmPathInput = prompt('Enter OneDrive PKM path (e.g., ~/OneDrive/AIDA-PKM): ');
-if (!pkmPathInput) {
-  console.log('❌ No path provided. Aborting.');
-  process.exit(1);
-}
-
-const pkmRoot = expandPath(pkmPathInput);
-console.log('');
-console.log(`Expanded path: ${pkmRoot}`);
-console.log('');
-
-// Plan migration
-console.log('📋 Planning migration...');
-console.log('');
-
-const operations = planMigration(pkmRoot);
-
-console.log('Planned operations:');
-console.log('');
-
-for (const op of operations) {
-  const icon = op.type.startsWith('delete') ? '🗑️' :
-               op.type.startsWith('copy') ? '📦' :
-               op.type === 'create_config' ? '⚙️' : '📁';
-  console.log(`  ${icon} ${op.description}`);
-}
-
-console.log('');
-console.log(`Total operations: ${operations.length}`);
-console.log('');
-
-// Execute or show instructions
-if (EXECUTE_MODE) {
-  console.log('🚀 Executing migration...');
+  console.log('╔═════════════════════════════════════════════════════════════════════════════╗');
+  console.log('║           AIDA MIGRATION - Separate LOCAL and PKM                          ║');
+  console.log('╚═════════════════════════════════════════════════════════════════════════════╝');
   console.log('');
 
-  const success = executeMigration(operations, pkmRoot);
-
-  if (success) {
+  // Check if already separated
+  const config = getConfig();
+  if (config !== null) {
+    console.log('❌ Already separated!');
     console.log('');
-    console.log('✅ Migration completed successfully!');
+    console.log('Current configuration:');
+    console.log(`  PKM root: ${config.paths.pkm_root}`);
+    console.log(`  Local root: ${config.paths.local_root}`);
     console.log('');
-    console.log('Next steps:');
-    console.log('  1. Verify that your data is in: ' + pkmRoot);
-    console.log('  2. Test the system with: bun run .system/tools/aida-cli.ts tasks getTodayTasks');
-    console.log('  3. If everything works, the old files have been removed from LOCAL');
-    console.log('');
-  } else {
-    console.log('');
-    console.log('❌ Migration failed!');
-    console.log('');
-    console.log('Your data has NOT been deleted. Please fix the error and try again.');
+    console.log('To re-migrate, delete .system/config/aida-paths.json first.');
     process.exit(1);
   }
-} else {
-  console.log('⚠️  DRY-RUN MODE');
+
+  // Ask for PKM path
+  console.log('This script will migrate your AIDA data from legacy mode to separated mode.');
   console.log('');
-  console.log('This was a dry-run. No files were modified.');
+  console.log('System files will remain in: ' + LOCAL_ROOT);
+  console.log('PKM data will be moved to your specified OneDrive location.');
   console.log('');
-  console.log('To execute the migration, run:');
-  console.log('  bun run .system/tools/migrate-to-separated.ts --execute');
+
+  const pkmPathInput = await prompt('Enter OneDrive PKM path (e.g., ~/OneDrive/AIDA-PKM): ');
+  if (!pkmPathInput) {
+    console.log('❌ No path provided. Aborting.');
+    process.exit(1);
+  }
+
+  const pkmRoot = expandPath(pkmPathInput);
   console.log('');
+  console.log(`Expanded path: ${pkmRoot}`);
+  console.log('');
+
+  // Plan migration
+  console.log('📋 Planning migration...');
+  console.log('');
+
+  const operations = planMigration(pkmRoot);
+
+  console.log('Planned operations:');
+  console.log('');
+
+  for (const op of operations) {
+    const icon = op.type.startsWith('delete') ? '🗑️' :
+                 op.type.startsWith('copy') ? '📦' :
+                 op.type === 'create_config' ? '⚙️' : '📁';
+    console.log(`  ${icon} ${op.description}`);
+  }
+
+  console.log('');
+  console.log(`Total operations: ${operations.length}`);
+  console.log('');
+
+  // Execute or show instructions
+  if (EXECUTE_MODE) {
+    console.log('🚀 Executing migration...');
+    console.log('');
+
+    const success = executeMigration(operations, pkmRoot);
+
+    if (success) {
+      console.log('');
+      console.log('✅ Migration completed successfully!');
+      console.log('');
+      console.log('Next steps:');
+      console.log('  1. Verify that your data is in: ' + pkmRoot);
+      console.log('  2. Test the system with: bun run .system/tools/aida-cli.ts tasks getTodayTasks');
+      console.log('  3. If everything works, the old files have been removed from LOCAL');
+      console.log('');
+    } else {
+      console.log('');
+      console.log('❌ Migration failed!');
+      console.log('');
+      console.log('Your data has NOT been deleted. Please fix the error and try again.');
+      process.exit(1);
+    }
+  } else {
+    console.log('⚠️  DRY-RUN MODE');
+    console.log('');
+    console.log('This was a dry-run. No files were modified.');
+    console.log('');
+    console.log('To execute the migration, run:');
+    console.log('  bun run .system/tools/migrate-to-separated.ts --execute');
+    console.log('');
+  }
+
+  process.exit(0);
 }
+
+main().catch((error) => {
+  console.error('Error:', error);
+  process.exit(1);
+});
