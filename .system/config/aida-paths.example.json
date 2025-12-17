@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "AIDA path configuration - separates LOCAL (Git) from PKM (OneDrive) folders"
+  },
+  "paths": {
+    "pkm_root": "~/OneDrive/AIDA-PKM",
+    "local_root": "~/repos/aida"
+  },
+  "_comments": {
+    "pkm_root": "OneDrive folder for personal knowledge management data (journals, tasks, database)",
+    "local_root": "Local Git repository root (system files, templates, code)",
+    "tilde_expansion": "Use ~ for home directory on both Windows (%USERPROFILE%) and Unix ($HOME)",
+    "absolute_paths": "Or use absolute paths like /Users/henrik/OneDrive/AIDA-PKM or C:\\Users\\Henrik\\OneDrive\\AIDA-PKM"
+  }
+}

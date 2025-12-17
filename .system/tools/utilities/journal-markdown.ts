@@ -11,13 +11,12 @@ import type { JournalEntryFull } from '../database/types';
 import { getEntriesByDateRange } from '../database/queries/journal.js';
 import { getEntryTypeSymbol } from './symbols.js';
 import { loadTemplate, renderTemplate, formatSwedishDate } from './templates.js';
+import { getDailyJournalDir } from './paths';
 
 /**
  * Path to the daily journals directory
- * Uses import.meta.dir for stable path resolution regardless of working directory
  */
-const PROJECT_ROOT = join(import.meta.dir, '../../..');
-const DAILY_JOURNAL_DIR = join(PROJECT_ROOT, '0-JOURNAL', '1-DAILY');
+const DAILY_JOURNAL_DIR = getDailyJournalDir();
 
 /**
  * Ensure the daily journal directory exists

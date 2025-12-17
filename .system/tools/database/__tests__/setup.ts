@@ -12,13 +12,13 @@
 import { beforeAll, afterAll } from 'bun:test';
 import { getDatabase, closeDatabase } from '../connection';
 import { execSync } from 'child_process';
-import { join } from 'path';
+import { getLocalRoot } from '../../utilities/paths';
 
 // =============================================================================
 // TEST LIFECYCLE HOOKS
 // =============================================================================
 
-const PROJECT_ROOT = join(import.meta.dir, '../../../..');
+const PROJECT_ROOT = getLocalRoot();
 
 // Flag to ensure setup runs only once across all test files
 let isSetupComplete = false;

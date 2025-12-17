@@ -6,14 +6,13 @@
  */
 
 import { Database } from 'bun:sqlite';
-import { join } from 'path';
+import { getDatabasePath } from '../utilities/paths';
 
 // =============================================================================
 // DATABASE PATH CONFIGURATION
 // =============================================================================
 
-const PROJECT_ROOT = join(import.meta.dir, '../../..');
-const DB_PATH = join(PROJECT_ROOT, '.system/data/aida.db');
+const DB_PATH = getDatabasePath();
 
 // =============================================================================
 // SINGLETON DATABASE CONNECTION

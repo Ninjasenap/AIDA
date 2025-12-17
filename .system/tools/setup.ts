@@ -32,7 +32,8 @@ DEPENDENCIES:
 
 import { Database } from 'bun:sqlite';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { getPkmRoot, getDatabasePath, getSchemaPath, getPlanFilePath, getAidaDir, getProfilePath } from './utilities/paths';
 
 /**
 ─────────────────────────────────────────────────────────────────────────────
@@ -41,22 +42,22 @@ CONFIGURATION CONSTANTS
 */
 
 /**
- * Project root directory (resolved from import.meta.dir)
+ * PKM root directory (where user data is stored)
  * @type {string}
  */
-const PROJECT_ROOT = join(import.meta.dir, '../..');
+const PKM_ROOT = getPkmRoot();
 
 /**
  * Path to the main AIDA SQLite database file
  * @type {string}
  */
-const DB_PATH = join(PROJECT_ROOT, '.system/data/aida.db');
+const DB_PATH = getDatabasePath();
 
 /**
  * Path to the database schema SQL file
  * @type {string}
  */
-const SCHEMA_PATH = join(PROJECT_ROOT, '.system/data/schema/db_schema.sql');
+const SCHEMA_PATH = getSchemaPath();
 
 /**
  * Default folders to create during setup
@@ -119,8 +120,25 @@ function createFolders(): void {
   let createdCount = 0;
   let skippedCount = 0;
 
+  // First, create .aida directory structure for PKM data
+  const aidaDataDir = dirname(DB_PATH);
+  const aidaContextDir = dirname(getProfilePath());
+
+  for (const dir of [aidaDataDir, aidaContextDir]) {
+    if (!existsSync(dir)) {
+      try {
+        mkdirSync(dir, { recursive: true });
+        console.log(`   ✓ Created: ${dir}`);
+        createdCount++;
+      } catch (error) {
+        console.error(`   ✗ Failed to create ${dir}:`, error);
+      }
+    }
+  }
+
+  // Then create user-facing PKM folders
   for (const folder of DEFAULT_FOLDERS) {
-    const fullPath = join(PROJECT_ROOT, folder);
+    const fullPath = join(PKM_ROOT, folder);
     const displayName = FOLDER_EMOJI_MAP[folder] || folder;
 
     if (existsSync(fullPath)) {
@@ -156,7 +174,7 @@ function createFolders(): void {
 function createPlanFile(): void {
   console.log('\n📄 Creating PLAN.md file...');
 
-  const planPath = join(PROJECT_ROOT, '0-JOURNAL', 'PLAN.md');
+  const planPath = getPlanFilePath();
 
   if (existsSync(planPath)) {
     console.log('   ℹ️  PLAN.md already exists');

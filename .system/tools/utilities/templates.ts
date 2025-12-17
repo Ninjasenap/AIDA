@@ -8,13 +8,12 @@
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { SWEDISH_MONTHS, SWEDISH_WEEKDAYS } from './time.js';
+import { getTemplatesDir } from './paths';
 
 /**
  * Path to the templates directory
- * Uses import.meta.dir for stable path resolution regardless of working directory
  */
-const PROJECT_ROOT = join(import.meta.dir, '../../..');
-const TEMPLATES_DIR = join(PROJECT_ROOT, '.system', 'templates');
+const TEMPLATES_DIR = getTemplatesDir();
 
 /**
  * Template names available in the system

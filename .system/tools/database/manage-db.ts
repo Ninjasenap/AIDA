@@ -32,7 +32,7 @@ DEPENDENCIES:
 
 import { Database } from 'bun:sqlite';
 import { existsSync, unlinkSync } from 'fs';
-import { join } from 'path';
+import { getDatabasePath, getSchemaPath, getLocalRoot } from '../utilities/paths';
 
 /**
 ─────────────────────────────────────────────────────────────────────────────
@@ -41,25 +41,23 @@ CONFIGURATION CONSTANTS
 */
 
 /**
- * Project root directory (resolved from import.meta.dir)
+ * Local root directory (Git repository root)
  * @type {string}
  */
-const PROJECT_ROOT = join(import.meta.dir, '../../..');
+const LOCAL_ROOT = getLocalRoot();
 
 /**
  * Path to the main AIDA SQLite database file
- * Located at: .system/data/aida.db
  * @type {string}
  */
-const DB_PATH = join(PROJECT_ROOT, '.system/data/aida.db');
+const DB_PATH = getDatabasePath();
 
 /**
  * Path to the database schema SQL file
- * Located at: .system/data/schema/db_schema.sql
  * Contains all table, view, index, and trigger definitions
  * @type {string}
  */
-const SCHEMA_PATH = join(PROJECT_ROOT, '.system/data/schema/db_schema.sql');
+const SCHEMA_PATH = getSchemaPath();
 
 /**
  * Path to the Write-Ahead Logging (WAL) file
@@ -110,7 +108,7 @@ function deleteDatabase(): void {
     if (existsSync(file)) {
       try {
         unlinkSync(file);
-        console.log(`   ✓ Deleted: ${file.replace(PROJECT_ROOT, '')}`);
+        console.log(`   ✓ Deleted: ${file.replace(LOCAL_ROOT, '')}`);
         deletedCount++;
       } catch (error) {
         console.error(`   ✗ Failed to delete ${file}:`, error);
@@ -165,8 +163,8 @@ async function initializeDatabase(): Promise<void> {
     // Create/open database
     const db = new Database(DB_PATH, { create: true });
 
-    console.log(`   ℹ️  Database: ${DB_PATH.replace(PROJECT_ROOT, '')}`);
-    console.log(`   ℹ️  Schema: ${SCHEMA_PATH.replace(PROJECT_ROOT, '')}`);
+    console.log(`   ℹ️  Database: ${DB_PATH.replace(LOCAL_ROOT, '')}`);
+    console.log(`   ℹ️  Schema: ${SCHEMA_PATH.replace(LOCAL_ROOT, '')}`);
 
     // Execute schema
     db.exec(schemaSQL);
@@ -296,10 +294,10 @@ EXAMPLES:
   bun run .system/tools/database/manage-db.ts reset
 
 SCHEMA LOCATION:
-  ${SCHEMA_PATH.replace(PROJECT_ROOT, '')}
+  ${SCHEMA_PATH.replace(LOCAL_ROOT, '')}
 
 DATABASE LOCATION:
-  ${DB_PATH.replace(PROJECT_ROOT, '')}
+  ${DB_PATH.replace(LOCAL_ROOT, '')}
 
 ╔═════════════════════════════════════════════════════════════════════════════╗
 `);

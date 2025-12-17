@@ -7,16 +7,15 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
 import { randomUUID } from 'crypto';
+import { getProfilePath as _getProfilePath, getContextDir as _getContextDir } from './paths';
 
 // ============================================================================
 // PATHS
 // ============================================================================
 
-const PROJECT_ROOT = join(import.meta.dir, '../../..');
-const PROFILE_PATH = join(PROJECT_ROOT, '.system', 'context', 'personal-profile.json');
-const CONTEXT_DIR = join(PROJECT_ROOT, '.system', 'context');
+const PROFILE_PATH = _getProfilePath();
+const CONTEXT_DIR = _getContextDir();
 
 // ============================================================================
 // TYPE DEFINITIONS

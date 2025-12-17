@@ -8,14 +8,13 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { loadTemplate, renderTemplate, formatSwedishDate } from './templates.js';
+import { getPlanFilePath, getJournalDir } from './paths';
 
 /**
  * Paths to plan file and journal directory
- * Uses import.meta.dir for stable path resolution regardless of working directory
  */
-const PROJECT_ROOT = join(import.meta.dir, '../../..');
-const PLAN_FILE_PATH = join(PROJECT_ROOT, '0-JOURNAL', 'PLAN.md');
-const JOURNAL_DIR = join(PROJECT_ROOT, '0-JOURNAL');
+const PLAN_FILE_PATH = getPlanFilePath();
+const JOURNAL_DIR = getJournalDir();
 
 /**
  * Event item for the daily plan
