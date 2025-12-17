@@ -28,9 +28,12 @@ import { regenerateJournalMarkdown } from '../../utilities/journal-markdown.js';
 import type {
   JournalEntry,
   JournalEntryFull,
-  EntryType,
   CreateEntryInput,
 } from '../types';
+
+import type {
+  EntryType,
+} from '../../utilities/symbols';
 
 // =============================================================================
 // JOURNAL QUERIES - READ

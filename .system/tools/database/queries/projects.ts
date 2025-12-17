@@ -28,11 +28,13 @@ import {
 import type {
   Project,
   ProjectFull,
-  ProjectStatus,
   CreateProjectInput,
   UpdateProjectInput,
   FinishCriterion,
 } from '../types';
+import type {
+  ProjectStatus
+} from '../../utilities/symbols';
 
 // =============================================================================
 // PROJECT QUERIES - READ

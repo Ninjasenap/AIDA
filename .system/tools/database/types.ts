@@ -15,6 +15,15 @@ import type {
   EntryType,
 } from '../utilities/symbols';
 
+// Re-export symbol-derived enums for downstream consumers
+export type {
+  TaskStatus,
+  ProjectStatus,
+  RoleStatus,
+  RoleType,
+  EntryType,
+} from '../utilities/symbols';
+
 // =============================================================================
 // BASE ENTITY INTERFACES (match database tables exactly)
 // =============================================================================
