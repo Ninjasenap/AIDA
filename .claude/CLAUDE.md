@@ -59,8 +59,6 @@ AIDA använder **separated mode**: systemfiler i LOCAL (Git), användardata i PK
 - Config: `.system/config/aida-paths.json`
 - Database: `<pkm>/.aida/data/aida.db`
 - Profile: `<pkm>/.aida/context/personal-profile.json`
-- Package management: `.system/package.json` (dependencies located in `.system/`)
-- Install dependencies: `cd .system && bun install`
 
 
 ## Flödet för all interaktion med AIDA
@@ -108,7 +106,7 @@ Användare → Main Agent → (Subagent) → Skill → aida-cli.ts → Databas
 
 **Planerat:** Hook configurations
 
-**Detaljer:** Se `.system/architecture/system-architecture.md`
+**Detaljer:** Se `.system/architecture/INDEX.md`
 
 ## Development Guidelines
 
@@ -117,7 +115,7 @@ Användare → Main Agent → (Subagent) → Skill → aida-cli.ts → Databas
 - **Always use TypeScript** for all scripts and tools
 - Scripts location: `.system/tools/`
 - Package management: `cd .system && bun install` (dependencies in `.system/`)
-- CLI-referens för utveckling: Se `.system/architecture/system-architecture.md`
+- CLI-referens för utveckling: Se `.system/architecture/query-reference.md`
 
 ### Git Branching Strategy
 
@@ -158,9 +156,16 @@ Användare → Main Agent → (Subagent) → Skill → aida-cli.ts → Databas
 
 ## Architecture Reference
 
-Detailed specifications in `.system/architecture/`:
-- `agent-architecture.md` - Agent hierarchy, skills, commands, hooks design
-- `solution-architecture.md` - Integration patterns, data flows
-- `system-architecture.md` - Database schema, TypeScript interfaces
-- `personal-assistant-requirements.md` - Functional requirements
-- `personal-assistant-capabilities-spec.md` - Capability specifications
+Start from **`.system/architecture/INDEX.md`** - navigation map for all docs.
+
+| Topic | File |
+|-------|------|
+| Capability model | `capabilities.md` |
+| Database schema | `database-schema.md` |
+| Query functions | `query-reference.md` |
+| Daily workflows | `workflows/daily-planning.md` |
+| Task capture | `workflows/task-capture.md` |
+| Activation support | `workflows/task-activation.md` |
+| Obsidian integration | `integration/obsidian.md` |
+| Journal system | `integration/journal-system.md` |
+| Code documentation | `code-standards.md` |
