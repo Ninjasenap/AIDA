@@ -19,7 +19,8 @@
 # STEPS:
 #   1. Check if Bun is installed
 #   2. Install npm dependencies (in .system/ directory)
-#   3. Run the TypeScript setup script to create folders and initialize database
+#   3. Configure paths (PKM data location and local system files)
+#   4. Run the TypeScript setup script to create folders and initialize database
 #
 ################################################################################
 
@@ -40,7 +41,7 @@ echo "╚═══════════════════════�
 echo -e "${NC}"
 
 # Check if Bun is installed
-echo -e "${BLUE}[1/3] Checking for Bun runtime...${NC}"
+echo -e "${BLUE}[1/4] Checking for Bun runtime...${NC}"
 if ! command -v bun &> /dev/null; then
     echo -e "${RED}✗ Bun is not installed${NC}"
     echo ""
@@ -56,7 +57,7 @@ echo -e "${GREEN}✓ Bun found (version ${BUN_VERSION})${NC}"
 echo ""
 
 # Install dependencies
-echo -e "${BLUE}[2/3] Installing dependencies...${NC}"
+echo -e "${BLUE}[2/4] Installing dependencies...${NC}"
 cd .system
 if bun install; then
     echo -e "${GREEN}✓ Dependencies installed${NC}"
@@ -67,29 +68,23 @@ fi
 cd ..
 echo ""
 
-# Check for config file and offer to create separated setup
-echo -e "${BLUE}[3/4] Checking AIDA configuration...${NC}"
+# Create configuration
+echo -e "${BLUE}[3/4] Configuring AIDA paths...${NC}"
 if [ ! -f ".system/config/aida-paths.json" ]; then
-    echo "No configuration found."
+    echo "AIDA uses separated folder structure:"
+    echo "  • System files: This directory (Git repo)"
+    echo "  • PKM data: External folder (e.g., OneDrive)"
     echo ""
-    echo "AIDA can run in two modes:"
-    echo "  1. Legacy mode: All files in this directory (current behavior)"
-    echo "  2. Separated mode: System files here, data in OneDrive (recommended for sync)"
-    echo ""
-    read -p "Create separated setup? (y/n): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo ""
-        read -p "Enter OneDrive PKM path (e.g., ~/OneDrive/AIDA-PKM): " PKM_PATH
+    read -p "Enter PKM data path (e.g., ~/OneDrive/AIDA-PKM): " PKM_PATH
 
-        # Expand tilde to home directory
-        PKM_PATH="${PKM_PATH/#\~/$HOME}"
+    # Expand tilde to home directory
+    PKM_PATH="${PKM_PATH/#\~/$HOME}"
 
-        # Create config directory
-        mkdir -p .system/config
+    # Create config directory
+    mkdir -p .system/config
 
-        # Create config file
-        cat > .system/config/aida-paths.json << EOF
+    # Create config file
+    cat > .system/config/aida-paths.json << EOF
 {
   "_meta": {
     "version": "1.0"
@@ -101,12 +96,11 @@ if [ ! -f ".system/config/aida-paths.json" ]; then
 }
 EOF
 
-        echo -e "${GREEN}✓ Config created${NC}"
-        echo "  PKM data will be stored in: $PKM_PATH"
-        echo "  System files remain in: $(pwd)"
-    else
-        echo -e "${YELLOW}ℹ Running in legacy mode (all files in same directory)${NC}"
-    fi
+    echo -e "${GREEN}✓ Config created${NC}"
+    echo "  PKM data will be stored in: $PKM_PATH"
+    echo "  System files remain in: $(pwd)"
+else
+    echo -e "${GREEN}✓ Configuration already exists${NC}"
 fi
 echo ""
 

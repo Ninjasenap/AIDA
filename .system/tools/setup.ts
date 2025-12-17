@@ -33,7 +33,7 @@ DEPENDENCIES:
 import { Database } from 'bun:sqlite';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
-import { getPkmRoot, getDatabasePath, getSchemaPath, getPlanFilePath, getAidaDir, getProfilePath } from './utilities/paths';
+import { getPkmRoot, getDatabasePath, getSchemaPath, getPlanFilePath, getAidaDir, getProfilePath, getLocalRoot } from './utilities/paths';
 
 /**
 ─────────────────────────────────────────────────────────────────────────────
@@ -58,6 +58,12 @@ const DB_PATH = getDatabasePath();
  * @type {string}
  */
 const SCHEMA_PATH = getSchemaPath();
+
+/**
+ * Local root directory (where system files are stored)
+ * @type {string}
+ */
+const LOCAL_ROOT = getLocalRoot();
 
 /**
  * Default folders to create during setup
@@ -224,7 +230,7 @@ async function initializeDatabase(): Promise<void> {
 
   // Check if database already exists
   if (existsSync(DB_PATH)) {
-    console.log(`   ℹ️  Database already exists: ${DB_PATH.replace(PROJECT_ROOT, '')}`);
+    console.log(`   ℹ️  Database already exists: ${DB_PATH.replace(LOCAL_ROOT, '')}`);
     console.log('   ℹ️  Skipping database initialization');
     console.log('   ℹ️  To reinitialize, run: bun run .system/tools/database/manage-db.ts reset');
     return;
@@ -237,8 +243,8 @@ async function initializeDatabase(): Promise<void> {
     // Create database
     const db = new Database(DB_PATH, { create: true });
 
-    console.log(`   ℹ️  Database: ${DB_PATH.replace(PROJECT_ROOT, '')}`);
-    console.log(`   ℹ️  Schema: ${SCHEMA_PATH.replace(PROJECT_ROOT, '')}`);
+    console.log(`   ℹ️  Database: ${DB_PATH.replace(LOCAL_ROOT, '')}`);
+    console.log(`   ℹ️  Schema: ${SCHEMA_PATH.replace(LOCAL_ROOT, '')}`);
 
     // Execute schema
     db.exec(schemaSQL);

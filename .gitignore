@@ -4,9 +4,6 @@
 .LSOverride
 ._*
 
-# Thumbnails
-._*
-
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
@@ -84,16 +81,3 @@ logs/
 # Personal profile
 personal-profile.json
 
-# SQLite database files (keep .db, ignore WAL)
-*.db-wal
-*.db-shm
-
-# SQLite database (user data)
-.system/data/*.db
-
-# User folders (created by install script)
-# This includes: 0-INBOX/, 0-JOURNAL/, 0-SHARED/, and role folders like 01-*, 02-*
-[0-9]*/
-.obsidian/workspace*.json
-.obsidian/appearance.json
-.obsidian/bookmarks.json
