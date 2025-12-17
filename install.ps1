@@ -18,7 +18,7 @@
 #
 # STEPS:
 #   1. Check if Bun is installed
-#   2. Install npm dependencies (in .system\ directory)
+#   2. Install npm dependencies (at root level)
 #   3. Configure paths (PKM data location and local system files)
 #   4. Run the TypeScript setup script to create folders and initialize database
 #
@@ -52,21 +52,18 @@ Write-Host ""
 
 # Install dependencies
 Write-Host "[2/4] Installing dependencies..." -ForegroundColor Blue
-Push-Location .system
 try {
     bun install
     Write-Host "✓ Dependencies installed" -ForegroundColor Green
 } catch {
     Write-Host "✗ Failed to install dependencies" -ForegroundColor Red
-    Pop-Location
     exit 1
 }
-Pop-Location
 Write-Host ""
 
 # Create configuration
 Write-Host "[3/4] Configuring AIDA paths..." -ForegroundColor Blue
-if (-not (Test-Path ".system\config\aida-paths.json")) {
+if (-not (Test-Path "config\aida-paths.json")) {
     Write-Host "AIDA uses separated folder structure:"
     Write-Host "  • System files: This directory (Git repo)"
     Write-Host "  • PKM data: External folder (e.g., OneDrive)"
@@ -78,7 +75,7 @@ if (-not (Test-Path ".system\config\aida-paths.json")) {
     $localRoot = (Get-Location).Path
 
     # Create config directory
-    New-Item -ItemType Directory -Force -Path ".system\config" | Out-Null
+    New-Item -ItemType Directory -Force -Path "config" | Out-Null
 
     # Create config file
     $configContent = @"
@@ -93,7 +90,7 @@ if (-not (Test-Path ".system\config\aida-paths.json")) {
 }
 "@
 
-    $configContent | Out-File -FilePath ".system\config\aida-paths.json" -Encoding UTF8
+    $configContent | Out-File -FilePath "config\aida-paths.json" -Encoding UTF8
 
     Write-Host "✓ Config created" -ForegroundColor Green
     Write-Host "  PKM data will be stored in: $pkmPath"
@@ -106,7 +103,7 @@ Write-Host ""
 # Run setup script
 Write-Host "[4/4] Running setup script..." -ForegroundColor Blue
 try {
-    bun run .system/tools/setup.ts
+    bun run src/setup.ts
     Write-Host "✓ Setup completed successfully" -ForegroundColor Green
 } catch {
     Write-Host "✗ Setup failed" -ForegroundColor Red

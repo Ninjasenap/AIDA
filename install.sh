@@ -18,7 +18,7 @@
 #
 # STEPS:
 #   1. Check if Bun is installed
-#   2. Install npm dependencies (in .system/ directory)
+#   2. Install npm dependencies (at root level)
 #   3. Configure paths (PKM data location and local system files)
 #   4. Run the TypeScript setup script to create folders and initialize database
 #
@@ -58,19 +58,17 @@ echo ""
 
 # Install dependencies
 echo -e "${BLUE}[2/4] Installing dependencies...${NC}"
-cd .system
 if bun install; then
     echo -e "${GREEN}✓ Dependencies installed${NC}"
 else
     echo -e "${RED}✗ Failed to install dependencies${NC}"
     exit 1
 fi
-cd ..
 echo ""
 
 # Create configuration
 echo -e "${BLUE}[3/4] Configuring AIDA paths...${NC}"
-if [ ! -f ".system/config/aida-paths.json" ]; then
+if [ ! -f "config/aida-paths.json" ]; then
     echo "AIDA uses separated folder structure:"
     echo "  • System files: This directory (Git repo)"
     echo "  • PKM data: External folder (e.g., OneDrive)"
@@ -81,10 +79,10 @@ if [ ! -f ".system/config/aida-paths.json" ]; then
     PKM_PATH="${PKM_PATH/#\~/$HOME}"
 
     # Create config directory
-    mkdir -p .system/config
+    mkdir -p config
 
     # Create config file
-    cat > .system/config/aida-paths.json << EOF
+    cat > config/aida-paths.json << EOF
 {
   "_meta": {
     "version": "1.0"
@@ -106,7 +104,7 @@ echo ""
 
 # Run setup script
 echo -e "${BLUE}[4/4] Running setup script...${NC}"
-if bun run .system/tools/setup.ts; then
+if bun run src/setup.ts; then
     echo -e "${GREEN}✓ Setup completed successfully${NC}"
 else
     echo -e "${RED}✗ Setup failed${NC}"
