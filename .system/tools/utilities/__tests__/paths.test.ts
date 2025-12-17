@@ -29,11 +29,11 @@ describe('paths.ts', () => {
   let originalConfigExists = false;
   let originalConfigContent: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Spara befintlig config om den finns
     if (existsSync(CONFIG_PATH)) {
       originalConfigExists = true;
-      originalConfigContent = Bun.file(CONFIG_PATH).text();
+      originalConfigContent = await Bun.file(CONFIG_PATH).text();
     }
 
     // Rensa cache
