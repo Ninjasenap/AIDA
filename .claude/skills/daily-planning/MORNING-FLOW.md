@@ -11,10 +11,10 @@
 
 ```bash
 # CORRECT pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # NEVER use query modules directly:
-bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
+bun run src/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
 ```
 
 ---
@@ -29,7 +29,7 @@ bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
 
 **Query time context:**
 ```bash
-bun run .system/tools/utilities/time.ts getTimeInfo
+bun run src/utilities/time.ts getTimeInfo
 ```
 Returns JSON with current time including `hour`, `minute`, `date`, `weekday`, etc.
 
@@ -39,13 +39,13 @@ Returns JSON with current time including `hour`, `minute`, `date`, `weekday`, et
 
 ```bash
 # Get today's tasks (grouped by role)
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 
 # Get overdue tasks
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
 
 # Get active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 ```
 
 ### 3. Ask for Scheduled Events
@@ -137,7 +137,7 @@ Vill du prioritera den först, eller ska vi lägga om den till senare idag?
 
 **⚠️ Check first:** Before creating a new plan, check if PLAN.md has content:
 ```bash
-bun run .system/tools/aida-cli.ts plan planHasContent
+bun run src/aida-cli.ts plan planHasContent
 ```
 
 If it returns `true`, warn the user that yesterday's plan wasn't archived:
@@ -147,7 +147,7 @@ If it returns `true`, warn the user that yesterday's plan wasn't archived:
 
 **Create plan via CLI:**
 ```bash
-bun run .system/tools/aida-cli.ts plan createDailyPlan '{
+bun run src/aida-cli.ts plan createDailyPlan '{
   "date": "2025-12-16",
   "events": [
     {"time": "09:00", "title": "Team standup"},
@@ -191,14 +191,14 @@ _Space for notes during the day_
 
 **Timestamp format:**
 - Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
-- Get current time: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Get current time: `bun run src/utilities/time.ts getTimeInfo`
 - Extract `date` and `time` fields from JSON output, combine as: `{date}T{time}:00`
 - Example: `2025-12-16T08:30:00`
 - Or omit timestamp to use server time automatically
 
 **Via script:**
 ```bash
-bun run .system/tools/aida-cli.ts journal createEntry '{
+bun run src/aida-cli.ts journal createEntry '{
   "entry_type": "checkin",
   "content": "Morgonplanering: Fokus på [task 1], [task 2], [task 3]",
   "timestamp": "2025-12-16T08:30:00"

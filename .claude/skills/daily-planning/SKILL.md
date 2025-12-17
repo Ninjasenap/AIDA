@@ -19,7 +19,7 @@ Provides context-aware daily check-ins that adapt based on time of day, existing
 
 - **ALL database operations MUST use `aida-cli.ts`** - See "How to Query Database" section below
 - **NEVER use direct SQL queries**
-- **NEVER run query modules directly** (e.g., `bun run .system/tools/database/queries/tasks.ts`)
+- **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
 - **Use Swedish** for user-facing output (questions, confirmations, summaries)
 - **Always use** `getTimeInfo()` for date/time context
 - **Read user profile** from `.system/context/personal-profile.json` via template variables
@@ -30,10 +30,10 @@ Provides context-aware daily check-ins that adapt based on time of day, existing
 
 ```bash
 # CORRECT - Always use this pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # WRONG - NEVER do this:
-bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ NO!
+bun run src/database/queries/tasks.ts getTodayTasks  # ❌ NO!
 sqlite3 .system/data/aida.db "SELECT..."                       # ❌ NO!
 ```
 
@@ -42,19 +42,19 @@ sqlite3 .system/data/aida.db "SELECT..."                       # ❌ NO!
 **Example queries you will need:**
 ```bash
 # Get today's tasks
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 
 # Get overdue tasks
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
 
 # Get today's journal entries
-bun run .system/tools/aida-cli.ts journal getTodayEntries
+bun run src/aida-cli.ts journal getTodayEntries
 
 # Create journal entry (with JSON argument)
-bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning planning"}'
+bun run src/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning planning"}'
 
 # Get active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 ```
 
 ## Workflow
@@ -63,14 +63,14 @@ bun run .system/tools/aida-cli.ts roles getActiveRoles
 
 **Get current time via bash:**
 ```bash
-bun run .system/tools/utilities/time.ts getTimeInfo
+bun run src/utilities/time.ts getTimeInfo
 ```
 
 This returns JSON with current time info including `hour`, `minute`, `date`, `weekday`, etc.
 
 Check:
 - Current time (from `hour` field in JSON output)
-- Whether daily plan file exists (check via `bun run .system/tools/aida-cli.ts plan planHasContent`)
+- Whether daily plan file exists (check via `bun run src/aida-cli.ts plan planHasContent`)
 - Whether morning check-in has happened (query today's journal entries for type='checkin')
 
 **Flow Selection Priority (first match wins):**

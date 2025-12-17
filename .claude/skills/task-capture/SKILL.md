@@ -19,7 +19,7 @@ Provides minimal-friction task capture that processes natural language input int
 
 - **ALL database operations MUST use `aida-cli.ts`** - See "How to Query Database" section below
 - **NEVER use direct SQL queries**
-- **NEVER run query modules directly** (e.g., `bun run .system/tools/database/queries/tasks.ts`)
+- **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
 - **Use Swedish** for user-facing output
 - **SPEED is key** - Capture first, refine later
 - **Ask ONLY if role is ambiguous** - Don't over-ask, infer when possible
@@ -30,10 +30,10 @@ Provides minimal-friction task capture that processes natural language input int
 
 ```bash
 # CORRECT - Always use this pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # WRONG - NEVER do this:
-bun run .system/tools/database/queries/tasks.ts createTask '...'  # ❌ NO!
+bun run src/database/queries/tasks.ts createTask '...'  # ❌ NO!
 sqlite3 .system/data/aida.db "INSERT INTO..."                     # ❌ NO!
 ```
 
@@ -41,19 +41,19 @@ sqlite3 .system/data/aida.db "INSERT INTO..."                     # ❌ NO!
 
 ```bash
 # Create a new task
-bun run .system/tools/aida-cli.ts tasks createTask '{"title":"Task title","role_id":1}'
+bun run src/aida-cli.ts tasks createTask '{"title":"Task title","role_id":1}'
 
 # Search for existing tasks (to avoid duplicates)
-bun run .system/tools/aida-cli.ts tasks searchTasks "keyword"
+bun run src/aida-cli.ts tasks searchTasks "keyword"
 
 # Get active roles (for role selection)
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # Search projects (for project association)
-bun run .system/tools/aida-cli.ts projects searchProjects "keyword"
+bun run src/aida-cli.ts projects searchProjects "keyword"
 
 # Create journal entry (to log the capture)
-bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Captured: [task title]"}'
+bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Captured: [task title]"}'
 ```
 
 ## Workflow
@@ -91,7 +91,7 @@ Vilken roll gäller detta?
 ### 3. Create Task
 
 ```bash
-bun run .system/tools/aida-cli.ts tasks createTask '{
+bun run src/aida-cli.ts tasks createTask '{
   "title": "[parsed title]",
   "role_id": [inferred or selected role id],
   "deadline": "[parsed date or null]",
@@ -104,7 +104,7 @@ bun run .system/tools/aida-cli.ts tasks createTask '{
 ### 4. Create Journal Entry
 
 ```bash
-bun run .system/tools/aida-cli.ts journal createEntry '{
+bun run src/aida-cli.ts journal createEntry '{
   "entry_type": "task",
   "content": "Fångade: [task title]",
   "related_task_id": [created task id]

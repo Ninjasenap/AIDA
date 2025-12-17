@@ -297,8 +297,8 @@ describe('paths.ts', () => {
       const templatesDir = getTemplatesDir();
       const schemaPath = getSchemaPath();
 
-      expect(templatesDir).toBe('/test/local/.system/templates');
-      expect(schemaPath).toBe('/test/local/.system/data/schema/db_schema.sql');
+      expect(templatesDir).toBe('/test/local/templates');
+      expect(schemaPath).toBe('/test/local/data/schema/db_schema.sql');
     });
   });
 

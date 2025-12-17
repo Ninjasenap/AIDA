@@ -19,14 +19,14 @@ Show summary across ALL roles:
 
 ```bash
 # Get all roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # For each role
-bun run .system/tools/aida-cli.ts tasks getTasksByRole [id]
+bun run src/aida-cli.ts tasks getTasksByRole [id]
 
 # Get attention items
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
-bun run .system/tools/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getStaleTasks
 ```
 
 ### Role-Specific (with argument)
@@ -38,17 +38,17 @@ Show detailed status for ONE role:
 
 ```bash
 # Get role tasks
-bun run .system/tools/aida-cli.ts tasks getTasksByRole [id]
+bun run src/aida-cli.ts tasks getTasksByRole [id]
 
 # Get role projects
-bun run .system/tools/aida-cli.ts projects getProjectsByRole [id]
+bun run src/aida-cli.ts projects getProjectsByRole [id]
 ```
 
 ## CRITICAL
 
 **All database operations via `aida-cli.ts`:**
 ```bash
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 ```
 
 **NEVER use query modules directly!**

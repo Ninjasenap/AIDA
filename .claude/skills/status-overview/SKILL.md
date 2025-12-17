@@ -30,32 +30,32 @@ Provides clear visibility into workload across roles and projects. Helps users u
 
 ```bash
 # CORRECT - Always use this pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # WRONG - NEVER do this:
-bun run .system/tools/database/queries/roles.ts getActiveRoles  # ❌ NO!
+bun run src/database/queries/roles.ts getActiveRoles  # ❌ NO!
 ```
 
 **Queries you will need:**
 
 ```bash
 # Get all active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # Get specific role details
-bun run .system/tools/aida-cli.ts roles getRoleById 1
+bun run src/aida-cli.ts roles getRoleById 1
 
 # Get tasks by role
-bun run .system/tools/aida-cli.ts tasks getTasksByRole 1
+bun run src/aida-cli.ts tasks getTasksByRole 1
 
 # Get overdue tasks
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
 
 # Get stale tasks
-bun run .system/tools/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getStaleTasks
 
 # Get projects by role
-bun run .system/tools/aida-cli.ts projects getProjectsByRole 1
+bun run src/aida-cli.ts projects getProjectsByRole 1
 ```
 
 ## Workflow
@@ -73,14 +73,14 @@ bun run .system/tools/aida-cli.ts projects getProjectsByRole 1
 
 ```bash
 # Get roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # For each role, get task counts
-bun run .system/tools/aida-cli.ts tasks getTasksByRole [role_id]
+bun run src/aida-cli.ts tasks getTasksByRole [role_id]
 
 # Get attention items
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
-bun run .system/tools/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getStaleTasks
 ```
 
 ### Mode 2: Role-Specific Overview
@@ -96,13 +96,13 @@ bun run .system/tools/aida-cli.ts tasks getStaleTasks
 
 ```bash
 # Get role details
-bun run .system/tools/aida-cli.ts roles getRoleById [id]
+bun run src/aida-cli.ts roles getRoleById [id]
 
 # Get role tasks
-bun run .system/tools/aida-cli.ts tasks getTasksByRole [id]
+bun run src/aida-cli.ts tasks getTasksByRole [id]
 
 # Get role projects
-bun run .system/tools/aida-cli.ts projects getProjectsByRole [id]
+bun run src/aida-cli.ts projects getProjectsByRole [id]
 ```
 
 ## Supporting Documentation

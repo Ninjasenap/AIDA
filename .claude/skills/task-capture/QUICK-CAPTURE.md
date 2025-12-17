@@ -11,10 +11,10 @@
 
 ```bash
 # CORRECT pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # NEVER use query modules directly:
-bun run .system/tools/database/queries/tasks.ts  # ❌ WRONG!
+bun run src/database/queries/tasks.ts  # ❌ WRONG!
 ```
 
 ---
@@ -46,7 +46,7 @@ Något mer?
 **Database calls:**
 ```bash
 # 1. Create the task
-bun run .system/tools/aida-cli.ts tasks createTask '{
+bun run src/aida-cli.ts tasks createTask '{
   "title": "Ringa banken",
   "role_id": 2,
   "deadline": "2025-12-15",
@@ -54,7 +54,7 @@ bun run .system/tools/aida-cli.ts tasks createTask '{
 }'
 
 # 2. Log the capture
-bun run .system/tools/aida-cli.ts journal createEntry '{
+bun run src/aida-cli.ts journal createEntry '{
   "entry_type": "task",
   "content": "Fångade: Ringa banken",
   "related_task_id": [new task id]
@@ -220,7 +220,7 @@ Försök med: "Jag måste [göra något specifikt]"
 
 Before creating, optionally check for similar tasks:
 ```bash
-bun run .system/tools/aida-cli.ts tasks searchTasks "ringa banken"
+bun run src/aida-cli.ts tasks searchTasks "ringa banken"
 ```
 
 If similar exists:
@@ -240,8 +240,8 @@ Skapa ny ändå, eller menade du den här?
 When possible, run queries in parallel:
 ```bash
 # Run these simultaneously:
-bun run .system/tools/aida-cli.ts roles getActiveRoles &
-bun run .system/tools/aida-cli.ts tasks searchTasks "keyword" &
+bun run src/aida-cli.ts roles getActiveRoles &
+bun run src/aida-cli.ts tasks searchTasks "keyword" &
 wait
 ```
 

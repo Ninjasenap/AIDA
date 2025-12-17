@@ -11,10 +11,10 @@
 
 ```bash
 # CORRECT pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # NEVER use query modules directly:
-bun run .system/tools/database/queries/tasks.ts  # ❌ WRONG!
+bun run src/database/queries/tasks.ts  # ❌ WRONG!
 ```
 
 ---
@@ -198,7 +198,7 @@ Clean up title:
 ### Query for Project Matching
 
 ```bash
-bun run .system/tools/aida-cli.ts projects searchProjects "keyword"
+bun run src/aida-cli.ts projects searchProjects "keyword"
 ```
 
 ---

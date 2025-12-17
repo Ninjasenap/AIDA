@@ -31,26 +31,26 @@ Provides activation support to help users START tasks, not just plan them. Addre
 
 ```bash
 # CORRECT - Always use this pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # WRONG - NEVER do this:
-bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ NO!
+bun run src/database/queries/tasks.ts getTodayTasks  # ❌ NO!
 ```
 
 **Queries you will need:**
 
 ```bash
 # Get today's tasks (for suggestions)
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 
 # Get a specific task
-bun run .system/tools/aida-cli.ts tasks getTaskById 123
+bun run src/aida-cli.ts tasks getTaskById 123
 
 # Update task status (to 'active' when starting)
-bun run .system/tools/aida-cli.ts tasks setTaskStatus 123 "active"
+bun run src/aida-cli.ts tasks setTaskStatus 123 "active"
 
 # Log activation attempt
-bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Började med: [task]"}'
+bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Började med: [task]"}'
 ```
 
 ## Workflow
@@ -69,7 +69,7 @@ See [OVERWHELM-RESPONSE.md](OVERWHELM-RESPONSE.md) for state-specific responses.
 ### 2. Get Available Tasks
 
 ```bash
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 ```
 
 ### 3. Select Best Task
@@ -110,8 +110,8 @@ Ska vi köra?
 
 When user starts:
 ```bash
-bun run .system/tools/aida-cli.ts tasks setTaskStatus [id] "active"
-bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Aktiverade: [task title]"}'
+bun run src/aida-cli.ts tasks setTaskStatus [id] "active"
+bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Aktiverade: [task title]"}'
 ```
 
 ## Supporting Documentation

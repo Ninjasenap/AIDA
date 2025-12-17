@@ -20,8 +20,8 @@ Invoke the **task-capture skill** to capture a new task.
 
 3. **CRITICAL:** All database operations via `aida-cli.ts`:
    ```bash
-   bun run .system/tools/aida-cli.ts tasks createTask '{"title":"...","role_id":...}'
-   bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"task","content":"..."}'
+   bun run src/aida-cli.ts tasks createTask '{"title":"...","role_id":...}'
+   bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"..."}'
    ```
 
 4. Respond in Swedish with quick confirmation.

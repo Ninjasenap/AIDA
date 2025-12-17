@@ -8,7 +8,7 @@
  *   bun run .claude/skills/time-info/get-time.ts "påskafton nästa år"
  */
 
-import { getTimeInfo } from '../../../.system/tools/utilities/time';
+import { getTimeInfo } from '../../../src/utilities/time';
 
 const input = process.argv[2];
 

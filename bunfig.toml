@@ -1,0 +1,10 @@
+# Bun configuration for AIDA project
+# Standard root-level package management
+
+[install]
+packageManager = "bun"
+
+# Note: All commands run from project root:
+# - bun install: bun install
+# - bun run script: bun run src/script.ts
+# - bun test: bun test

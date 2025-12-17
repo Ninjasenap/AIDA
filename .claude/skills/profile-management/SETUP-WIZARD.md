@@ -134,7 +134,7 @@ Ska jag skapa profilen? (ja/nej)
 
 **Vid ja**:
 ```bash
-bun run .system/tools/aida-cli.ts profile initializeProfile '{"name":"[Namn]",...}'
+bun run src/aida-cli.ts profile initializeProfile '{"name":"[Namn]",...}'
 ```
 
 **Bekräftelse**:

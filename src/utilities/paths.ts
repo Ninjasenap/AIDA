@@ -69,8 +69,8 @@ export function expandPath(path: string): string {
  * @returns Absolut sökväg till config-filen
  */
 export function getConfigPath(): string {
-  const PROJECT_ROOT = join(import.meta.dir, '../../..');
-  return join(PROJECT_ROOT, '.system/config/aida-paths.json');
+  const PROJECT_ROOT = join(import.meta.dir, '../..');
+  return join(PROJECT_ROOT, 'config/aida-paths.json');
 }
 
 /**
@@ -130,7 +130,7 @@ export function getLocalRoot(): string {
 
   if (config === null) {
     // Legacy mode: använd project root
-    localRootCache = join(import.meta.dir, '../../..');
+    localRootCache = join(import.meta.dir, '../..');
   } else {
     // Separated mode: läs från config
     localRootCache = expandPath(config.paths.local_root);
@@ -265,7 +265,7 @@ export function getSharedDir(): string {
  * @returns Absolut sökväg till .system/templates/
  */
 export function getTemplatesDir(): string {
-  return join(getLocalRoot(), '.system/templates');
+  return join(getLocalRoot(), 'templates');
 }
 
 /**
@@ -274,5 +274,5 @@ export function getTemplatesDir(): string {
  * @returns Absolut sökväg till .system/data/schema/db_schema.sql
  */
 export function getSchemaPath(): string {
-  return join(getLocalRoot(), '.system/data/schema/db_schema.sql');
+  return join(getLocalRoot(), 'data/schema/db_schema.sql');
 }

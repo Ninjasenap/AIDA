@@ -39,8 +39,8 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# Node modules (Bun dependencies in .system/)
-.system/node_modules/
+# Node modules
+node_modules/
 bun.lock
 npm-debug.log*
 yarn-debug.log*
@@ -76,7 +76,7 @@ logs/
 .claude/transcripts/
 
 # AIDA config (machine-specific paths)
-.system/config/aida-paths.json
+config/aida-paths.json
 
 # Personal profile
 personal-profile.json

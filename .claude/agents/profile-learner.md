@@ -53,7 +53,7 @@ Silently observe user patterns and suggest profile improvements through evidence
 ```bash
 END_DATE=$(date +%Y-%m-%d)
 START_DATE=$(date -v-14d +%Y-%m-%d)
-bun run .system/tools/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$END_DATE"
+bun run src/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$END_DATE"
 ```
 
 **Look for**:
@@ -69,7 +69,7 @@ bun run .system/tools/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$
 
 **Example observation**:
 ```bash
-bun run .system/tools/aida-cli.ts profile addObservation '{
+bun run src/aida-cli.ts profile addObservation '{
   "category": "energy",
   "pattern": "Rapporterar låg energi 75% av eftermiddagarna (14:00-17:00)",
   "evidence": [
@@ -94,7 +94,7 @@ bun run .system/tools/aida-cli.ts profile addObservation '{
 ```bash
 START_DATE=$(date -v-14d +%Y-%m-%d)
 END_DATE=$(date +%Y-%m-%d)
-bun run .system/tools/aida-cli.ts tasks getWeekTasks "$START_DATE" "$END_DATE"
+bun run src/aida-cli.ts tasks getWeekTasks "$START_DATE" "$END_DATE"
 ```
 
 **Look for**:
@@ -108,7 +108,7 @@ bun run .system/tools/aida-cli.ts tasks getWeekTasks "$START_DATE" "$END_DATE"
 
 **Example**:
 ```bash
-bun run .system/tools/aida-cli.ts profile addObservation '{
+bun run src/aida-cli.ts profile addObservation '{
   "category": "time_preference",
   "pattern": "Slutför 80% av deep work-uppgifter mellan 06:00-09:00",
   "evidence": [
@@ -132,10 +132,10 @@ bun run .system/tools/aida-cli.ts profile addObservation '{
 **Query tasks by role**:
 ```bash
 # Get all active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # For each role, get task counts
-bun run .system/tools/aida-cli.ts tasks getTasksByRole "[role_id]" false
+bun run src/aida-cli.ts tasks getTasksByRole "[role_id]" false
 ```
 
 **Look for**:
@@ -151,7 +151,7 @@ bun run .system/tools/aida-cli.ts tasks getTasksByRole "[role_id]" false
 
 **Example**:
 ```bash
-bun run .system/tools/aida-cli.ts profile addObservation '{
+bun run src/aida-cli.ts profile addObservation '{
   "category": "role_focus",
   "pattern": "90% av uppgifter i Developer-rollen (36 av 40 tasks)",
   "evidence": [
@@ -173,7 +173,7 @@ bun run .system/tools/aida-cli.ts profile addObservation '{
 
 **Query journal entries** (look for patterns in free text):
 ```bash
-bun run .system/tools/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$END_DATE"
+bun run src/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$END_DATE"
 ```
 
 **Look for recurring phrases indicating**:
@@ -189,7 +189,7 @@ bun run .system/tools/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$
 
 **Example**:
 ```bash
-bun run .system/tools/aida-cli.ts profile addObservation '{
+bun run src/aida-cli.ts profile addObservation '{
   "category": "work_style",
   "pattern": "Nämner 'body doubling' i 7 av 12 produktiva dagar",
   "evidence": [
@@ -211,7 +211,7 @@ bun run .system/tools/aida-cli.ts profile addObservation '{
 
 **Read profile feedback history**:
 ```bash
-bun run .system/tools/aida-cli.ts profile getAttribute "feedback_history.suggestions"
+bun run src/aida-cli.ts profile getAttribute "feedback_history.suggestions"
 ```
 
 **Look for**:
@@ -227,7 +227,7 @@ bun run .system/tools/aida-cli.ts profile getAttribute "feedback_history.suggest
 
 **Example**:
 ```bash
-bun run .system/tools/aida-cli.ts profile addObservation '{
+bun run src/aida-cli.ts profile addObservation '{
   "category": "other",
   "pattern": "Avvisar 80% av task_suggestion för 'afternoon' tid",
   "evidence": [

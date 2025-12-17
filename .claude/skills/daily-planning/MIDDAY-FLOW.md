@@ -11,10 +11,10 @@
 
 ```bash
 # CORRECT pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # NEVER use query modules directly:
-bun run .system/tools/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
+bun run src/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
 ```
 
 ---
@@ -48,7 +48,7 @@ Extract:
 **Run scripts:**
 ```bash
 # Get today's completed tasks
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 
 # Filter for status='done' since morning check-in
 # (Compare timestamps with morning journal entry)
@@ -129,14 +129,14 @@ Låter det bra?
 
 **Timestamp format:**
 - Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
-- Get current time: `bun run .system/tools/utilities/time.ts getTimeInfo`
+- Get current time: `bun run src/utilities/time.ts getTimeInfo`
 - Extract `date` and `time` fields from JSON output, combine as: `{date}T{time}:00`
 - Example: `2025-12-16T12:30:00`
 - Or omit timestamp to use server time automatically
 
 **Create new entry:**
 ```bash
-bun run .system/tools/aida-cli.ts journal createEntry '{
+bun run src/aida-cli.ts journal createEntry '{
   "entry_type": "checkin",
   "content": "Middag check-in: [progress summary]. Justerade prioriteter: [new focus]",
   "timestamp": "2025-12-16T12:30:00"
