@@ -1,8 +1,27 @@
 ---
 name: profile-learner
-description: Background learning agent that observes patterns from journal entries, task completion, and user behavior. Suggests profile updates based on evidence. Runs periodically during evening check-ins or when user asks "vad har du lärt dig om mig?". NOT on every interaction - only when sufficient new data exists.
+description: |
+  Analyzes user patterns from journal data, task history, and behaviors to build deeper understanding over time. This agent does NOT run on every interaction - only when sufficient new data exists or user explicitly asks.
+
+  PURPOSE: Identify energy patterns, work time preferences, role focus, and work style through evidence-based analysis. Creates observations with suggested profile updates that the user can review and approve.
+
+  WHEN TO INVOKE THIS AGENT:
+  - When user asks "vad har du lärt dig om mig?", "what have you learned about me?"
+  - When user says "granska observationer", "review observations"
+  - During evening check-in (after day's data is complete)
+  - During weekly planning when 20+ new journal entries or tasks exist
+
+  EXAMPLES:
+  - User: "Vad har du lärt dig om mig?" → Invoke profile-learner
+  - User: "What have you learned about me?" → Invoke profile-learner
+  - User: "Har du sett några mönster i mitt arbete?" → Invoke profile-learner
+  - User: "What patterns have you noticed?" → Invoke profile-learner
+  - User: "Review observations" → Invoke profile-learner
+
+  DO NOT USE for: view profile, update profile, profile setup (use profile-management skill instead)
 model: haiku
 tools: Bash, Read
+skills: profile-management
 ---
 
 # Profile Learning Agent

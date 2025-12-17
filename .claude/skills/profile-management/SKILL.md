@@ -19,6 +19,27 @@ Provides interactive profile management including:
 
 - **Auto-triggers**: "min profil", "uppdatera profil", "profile setup", "who am I", "vem är jag", "inställningar", "preferences", "visa profil", "ändra profil"
 
+## Relationship to profile-learner Agent
+
+**profile-management skill** = view/update profile (user-triggered, direct)
+**profile-learner agent** = analyze patterns and create observations (background analysis)
+
+**Use @agent-profile-learner** when user says:
+- "vad har du lärt dig om mig?" (What have you learned about me?)
+- "what have you learned about me?"
+- "granska observationer" (review observations)
+- "review observations"
+- "har du sett några mönster?" (have you seen any patterns?)
+- "what patterns have you noticed?"
+
+**Use this skill directly** when user says:
+- "visa min profil" (show my profile)
+- "uppdatera profil" (update profile)
+- "profile setup"
+- "min profil" (my profile)
+
+When the profile-learner agent runs, this skill is auto-loaded to display results.
+
 ## Critical Rules
 
 - **ALL profile operations MUST use `aida-cli.ts`** with the `profile` module
