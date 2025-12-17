@@ -29,11 +29,11 @@ describe('paths.ts', () => {
   let originalConfigExists = false;
   let originalConfigContent: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Spara befintlig config om den finns
     if (existsSync(CONFIG_PATH)) {
       originalConfigExists = true;
-      originalConfigContent = Bun.file(CONFIG_PATH).text();
+      originalConfigContent = await Bun.file(CONFIG_PATH).text();
     }
 
     // Rensa cache
@@ -297,8 +297,8 @@ describe('paths.ts', () => {
       const templatesDir = getTemplatesDir();
       const schemaPath = getSchemaPath();
 
-      expect(templatesDir).toBe('/test/local/.system/templates');
-      expect(schemaPath).toBe('/test/local/.system/data/schema/db_schema.sql');
+      expect(templatesDir).toBe('/test/local/templates');
+      expect(schemaPath).toBe('/test/local/data/schema/db_schema.sql');
     });
   });
 

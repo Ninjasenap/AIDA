@@ -22,7 +22,7 @@ Automatically invoke this skill when:
 Call the TypeScript utility function:
 
 ```bash
-bun run .system/tools/utilities/time.ts getTimeInfo "<date expression>"
+bun run src/utilities/time.ts getTimeInfo "<date expression>"
 ```
 
 Or use it programmatically in TypeScript:

@@ -11,7 +11,7 @@
 
 ```bash
 # CORRECT pattern:
-bun run .system/tools/aida-cli.ts <module> <function> [args...]
+bun run src/aida-cli.ts <module> <function> [args...]
 
 # NEVER use query modules directly!
 ```

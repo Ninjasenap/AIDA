@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "bun test",
-    "test:time": "bun test .system/tools/utilities/__tests__/time.test.ts"
+    "test:time": "bun test src/utilities/__tests__/time.test.ts"
   },
   "dependencies": {
     "chrono-node": "^2.7.0"

@@ -19,11 +19,11 @@ Guide för att granska och applicera AIDA:s inlärda mönster.
 
 ```bash
 # Alla observationer
-bun run .system/tools/aida-cli.ts profile getObservations
+bun run src/aida-cli.ts profile getObservations
 
 # Filtrera per kategori
-bun run .system/tools/aida-cli.ts profile getObservations "energy"
-bun run .system/tools/aida-cli.ts profile getObservations "role_focus"
+bun run src/aida-cli.ts profile getObservations "energy"
+bun run src/aida-cli.ts profile getObservations "role_focus"
 ```
 
 ## Visningsformat
@@ -105,7 +105,7 @@ Bekräfta? (ja/nej)
 
 **Vid ja**:
 ```bash
-bun run .system/tools/aida-cli.ts profile applyObservationSuggestion "[observation.id]"
+bun run src/aida-cli.ts profile applyObservationSuggestion "[observation.id]"
 ```
 
 **Bekräftelse**:
@@ -128,13 +128,13 @@ Okej, varför vill du avvisa denna observation?
 
 **Uppdatera observation**:
 ```bash
-bun run .system/tools/aida-cli.ts profile updateObservation "[observation.id]" '{"status":"dismissed"}'
+bun run src/aida-cli.ts profile updateObservation "[observation.id]" '{"status":"dismissed"}'
 ```
 
 **Logga feedback** (om given):
 ```bash
 # Spara som feedback entry kopplad till observationen
-bun run .system/tools/aida-cli.ts profile recordSuggestion '{"type":"profile_update","suggestion":"[pattern]","outcome":"rejected","user_feedback":"[feedback]","related_observation_id":"[observation.id]"}'
+bun run src/aida-cli.ts profile recordSuggestion '{"type":"profile_update","suggestion":"[pattern]","outcome":"rejected","user_feedback":"[feedback]","related_observation_id":"[observation.id]"}'
 ```
 
 **Bekräftelse**:
@@ -346,7 +346,7 @@ Bekräfta? (ja/nej)
 
 **AIDA**:
 ```bash
-bun run .system/tools/aida-cli.ts profile applyObservationSuggestion "[obs-id]"
+bun run src/aida-cli.ts profile applyObservationSuggestion "[obs-id]"
 ```
 
 ```

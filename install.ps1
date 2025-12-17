@@ -18,8 +18,9 @@
 #
 # STEPS:
 #   1. Check if Bun is installed
-#   2. Install npm dependencies (in .system\ directory)
-#   3. Run the TypeScript setup script to create folders and initialize database
+#   2. Install npm dependencies (at root level)
+#   3. Configure paths (PKM data location and local system files)
+#   4. Run the TypeScript setup script to create folders and initialize database
 #
 ################################################################################
 
@@ -34,7 +35,7 @@ Write-Host "╚═════════════════════�
 Write-Host ""
 
 # Check if Bun is installed
-Write-Host "[1/3] Checking for Bun runtime..." -ForegroundColor Blue
+Write-Host "[1/4] Checking for Bun runtime..." -ForegroundColor Blue
 try {
     $bunVersion = bun --version
     Write-Host "✓ Bun found (version $bunVersion)" -ForegroundColor Green
@@ -50,44 +51,34 @@ try {
 Write-Host ""
 
 # Install dependencies
-Write-Host "[2/3] Installing dependencies..." -ForegroundColor Blue
-Push-Location .system
+Write-Host "[2/4] Installing dependencies..." -ForegroundColor Blue
 try {
     bun install
     Write-Host "✓ Dependencies installed" -ForegroundColor Green
 } catch {
     Write-Host "✗ Failed to install dependencies" -ForegroundColor Red
-    Pop-Location
     exit 1
 }
-Pop-Location
 Write-Host ""
 
-# Check for config file and offer to create separated setup
-Write-Host "[3/4] Checking AIDA configuration..." -ForegroundColor Blue
-if (-not (Test-Path ".system\config\aida-paths.json")) {
-    Write-Host "No configuration found."
+# Create configuration
+Write-Host "[3/4] Configuring AIDA paths..." -ForegroundColor Blue
+if (-not (Test-Path "config\aida-paths.json")) {
+    Write-Host "AIDA uses separated folder structure:"
+    Write-Host "  • System files: This directory (Git repo)"
+    Write-Host "  • PKM data: External folder (e.g., OneDrive)"
     Write-Host ""
-    Write-Host "AIDA can run in two modes:"
-    Write-Host "  1. Legacy mode: All files in this directory (current behavior)"
-    Write-Host "  2. Separated mode: System files here, data in OneDrive (recommended for sync)"
-    Write-Host ""
+    $pkmPath = Read-Host "Enter PKM data path (e.g., $env:USERPROFILE\OneDrive\AIDA-PKM)"
 
-    $response = Read-Host "Create separated setup? (y/n)"
+    # Expand environment variables
+    $pkmPath = [System.Environment]::ExpandEnvironmentVariables($pkmPath)
+    $localRoot = (Get-Location).Path
 
-    if ($response -eq "y" -or $response -eq "Y") {
-        Write-Host ""
-        $pkmPath = Read-Host "Enter OneDrive PKM path (e.g., $env:USERPROFILE\OneDrive\AIDA-PKM)"
+    # Create config directory
+    New-Item -ItemType Directory -Force -Path "config" | Out-Null
 
-        # Expand environment variables
-        $pkmPath = [System.Environment]::ExpandEnvironmentVariables($pkmPath)
-        $localRoot = (Get-Location).Path
-
-        # Create config directory
-        New-Item -ItemType Directory -Force -Path ".system\config" | Out-Null
-
-        # Create config file
-        $configContent = @"
+    # Create config file
+    $configContent = @"
 {
   "_meta": {
     "version": "1.0"
@@ -99,21 +90,20 @@ if (-not (Test-Path ".system\config\aida-paths.json")) {
 }
 "@
 
-        $configContent | Out-File -FilePath ".system\config\aida-paths.json" -Encoding UTF8
+    $configContent | Out-File -FilePath "config\aida-paths.json" -Encoding UTF8
 
-        Write-Host "✓ Config created" -ForegroundColor Green
-        Write-Host "  PKM data will be stored in: $pkmPath"
-        Write-Host "  System files remain in: $localRoot"
-    } else {
-        Write-Host "ℹ Running in legacy mode (all files in same directory)" -ForegroundColor Yellow
-    }
+    Write-Host "✓ Config created" -ForegroundColor Green
+    Write-Host "  PKM data will be stored in: $pkmPath"
+    Write-Host "  System files remain in: $localRoot"
+} else {
+    Write-Host "✓ Configuration already exists" -ForegroundColor Green
 }
 Write-Host ""
 
 # Run setup script
 Write-Host "[4/4] Running setup script..." -ForegroundColor Blue
 try {
-    bun run .system/tools/setup.ts
+    bun run src/setup.ts
     Write-Host "✓ Setup completed successfully" -ForegroundColor Green
 } catch {
     Write-Host "✗ Setup failed" -ForegroundColor Red

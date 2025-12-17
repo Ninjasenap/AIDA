@@ -11,7 +11,7 @@
 
 ```bash
 # Get today's tasks
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 
 # NEVER use query modules directly!
 ```
@@ -37,7 +37,7 @@ Read from user profile (`.system/context/personal-profile.json`):
 ### Step 2: Get Current Time
 
 ```bash
-bun run .system/tools/utilities/time.ts
+bun run src/utilities/time.ts
 ```
 
 ### Step 3: Determine Default Energy
@@ -131,7 +131,7 @@ bun run .system/tools/utilities/time.ts
 
 ### Step 1: Get Tasks
 ```bash
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts tasks getTodayTasks
 ```
 
 ### Step 2: Filter by Energy Match
@@ -307,7 +307,7 @@ cat .system/context/personal-profile.json | jq '.energy_pattern'
 ### Time Check
 
 ```bash
-bun run .system/tools/utilities/time.ts
+bun run src/utilities/time.ts
 # Returns: { hour: 14, minute: 30, ... }
 ```
 

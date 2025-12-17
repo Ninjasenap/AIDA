@@ -11,10 +11,10 @@
 
 ```bash
 # Get active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # Get tasks by role
-bun run .system/tools/aida-cli.ts tasks getTasksByRole [role_id]
+bun run src/aida-cli.ts tasks getTasksByRole [role_id]
 
 # NEVER use query modules directly!
 ```
@@ -50,7 +50,7 @@ User defines target balance in `.system/context/personal-profile.json`:
 
 For each active role:
 ```bash
-bun run .system/tools/aida-cli.ts tasks getTasksByRole [id]
+bun run src/aida-cli.ts tasks getTasksByRole [id]
 ```
 
 Count **active tasks** (not done/cancelled):

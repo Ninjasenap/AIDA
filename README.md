@@ -50,14 +50,14 @@ Once installed, use these commands:
 ## Architecture
 
 - **Runtime:** Bun with native SQLite support
-- **Database:** SQLite with WAL mode (`.system/data/aida.db`)
+- **Database:** SQLite with WAL mode
 - **Interface:** Claude Code CLI
 - **Documents:** Markdown (Obsidian-compatible)
 
 ## Documentation
 
 - **`.claude/CLAUDE.md`** - Main system documentation
-- **`.system/architecture/`** - Design specifications
+- **`docs/`** - Design specifications
   - `solution-architecture.md` - Integration patterns, data flows
   - `system-architecture.md` - Database schema, TypeScript interfaces
   - `agent-architecture.md` - Agent hierarchy, skills, commands
@@ -67,12 +67,12 @@ Once installed, use these commands:
 All database operations use the CLI tool:
 ```bash
 # Query the database
-bun run .system/tools/aida-cli.ts tasks getTodayTasks
-bun run .system/tools/aida-cli.ts journal getTodayEntries
+bun run src/aida-cli.ts tasks getTodayTasks
+bun run src/aida-cli.ts journal getTodayEntries
 
 # Database management
-bun run .system/tools/database/manage-db.ts init    # Initialize
-bun run .system/tools/database/manage-db.ts reset   # Reset
+bun run src/database/manage-db.ts init    # Initialize
+bun run src/database/manage-db.ts reset   # Reset
 ```
 
 ## Design Principles
@@ -84,4 +84,4 @@ bun run .system/tools/database/manage-db.ts reset   # Reset
 
 ---
 
-For detailed documentation, see `.system/architecture/`
+For detailed documentation, see `docs/`

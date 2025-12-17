@@ -18,7 +18,7 @@ Help user START tasks with activation support. Focuses on ONE thing at a time.
 
 2. **Get available tasks:**
    ```bash
-   bun run .system/tools/aida-cli.ts tasks getTodayTasks
+   bun run src/aida-cli.ts tasks getTodayTasks
    ```
 
 3. **Select best match** based on:
@@ -34,8 +34,8 @@ Help user START tasks with activation support. Focuses on ONE thing at a time.
 
 5. **CRITICAL:** All database operations via `aida-cli.ts`:
    ```bash
-   bun run .system/tools/aida-cli.ts tasks getTodayTasks
-   bun run .system/tools/aida-cli.ts tasks setTaskStatus 123 "active"
+   bun run src/aida-cli.ts tasks getTodayTasks
+   bun run src/aida-cli.ts tasks setTaskStatus 123 "active"
    ```
 
 6. Respond in Swedish.

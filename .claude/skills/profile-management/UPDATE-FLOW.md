@@ -29,7 +29,7 @@ Vad vill du uppdatera i din profil?
 Innan du ber om uppdatering, visa alltid nuvarande värde:
 
 ```bash
-bun run .system/tools/aida-cli.ts profile getAttribute "[path]"
+bun run src/aida-cli.ts profile getAttribute "[path]"
 ```
 
 ```
@@ -67,7 +67,7 @@ Ska jag spara denna ändring? (ja/nej)
 ### Steg 5: Uppdatera och logga
 
 ```bash
-bun run .system/tools/aida-cli.ts profile updateAttribute "[path]" '"[value]"' "user" "[reason]"
+bun run src/aida-cli.ts profile updateAttribute "[path]" '"[value]"' "user" "[reason]"
 ```
 
 ```
@@ -96,7 +96,7 @@ Bekräfta? (ja/nej)
 
 **CLI**:
 ```bash
-bun run .system/tools/aida-cli.ts profile updateAttribute "identity.name" '"[Nytt Namn]"' "user" "User requested name change"
+bun run src/aida-cli.ts profile updateAttribute "identity.name" '"[Nytt Namn]"' "user" "User requested name change"
 ```
 
 ### Uppdatera Tidsdefinition
@@ -122,7 +122,7 @@ Bekräfta? (ja/nej)
 
 **CLI**:
 ```bash
-bun run .system/tools/aida-cli.ts profile updateAttribute "time_definitions.morning.start" '"07:00"' "user" "User adjusted morning start time"
+bun run src/aida-cli.ts profile updateAttribute "time_definitions.morning.start" '"07:00"' "user" "User adjusted morning start time"
 ```
 
 ### Lägga till Ny Roll
@@ -173,11 +173,11 @@ Ska jag lägga till den? (ja/nej)
 **CLI** (hitta nästa lediga ID först):
 ```bash
 # Hämta befintliga roller
-bun run .system/tools/aida-cli.ts profile getSection "roles"
+bun run src/aida-cli.ts profile getSection "roles"
 
 # Bestäm nästa ID (max ID + 1)
 # Lägg till ny roll
-bun run .system/tools/aida-cli.ts profile updateAttribute "roles.[next_id]" '{"id":[next_id],"label":"[Roll-namn]","type":"[typ]","description":"[beskrivning]","status":"active","balance_target":25}' "user" "User added new role"
+bun run src/aida-cli.ts profile updateAttribute "roles.[next_id]" '{"id":[next_id],"label":"[Roll-namn]","type":"[typ]","description":"[beskrivning]","status":"active","balance_target":25}' "user" "User added new role"
 ```
 
 ### Uppdatera Energiaktivitet
@@ -219,18 +219,18 @@ Vid uppdatering av array-fält (strengths, challenges, values, etc.):
 
 **Lägga till**:
 ```bash
-bun run .system/tools/aida-cli.ts profile appendToArray "[path]" '[{item}]' "user"
+bun run src/aida-cli.ts profile appendToArray "[path]" '[{item}]' "user"
 ```
 
 **Ta bort** (kräver omskrivning av hela arrayen):
 ```bash
 # 1. Hämta array
-bun run .system/tools/aida-cli.ts profile getAttribute "[path]"
+bun run src/aida-cli.ts profile getAttribute "[path]"
 
 # 2. Ta bort item från array (i kod/script)
 
 # 3. Skriv tillbaka array
-bun run .system/tools/aida-cli.ts profile updateAttribute "[path]" '[updated_array]' "user" "User removed item"
+bun run src/aida-cli.ts profile updateAttribute "[path]" '[updated_array]' "user" "User removed item"
 ```
 
 ## Konfliktshantering
@@ -305,7 +305,7 @@ Ska jag spara? (ja/nej)
 
 **AIDA**:
 ```bash
-bun run .system/tools/aida-cli.ts profile updateAttribute "time_definitions.morning.start" '"07:30"' "user" "User adjusted morning start time to match their schedule"
+bun run src/aida-cli.ts profile updateAttribute "time_definitions.morning.start" '"07:30"' "user" "User adjusted morning start time to match their schedule"
 ```
 
 ```

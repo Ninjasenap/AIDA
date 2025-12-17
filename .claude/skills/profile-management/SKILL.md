@@ -55,39 +55,39 @@ When the profile-learner agent runs, this skill is auto-loaded to display result
 
 ```bash
 # Get full profile
-bun run .system/tools/aida-cli.ts profile getProfile
+bun run src/aida-cli.ts profile getProfile
 
 # Get specific section
-bun run .system/tools/aida-cli.ts profile getSection "identity"
-bun run .system/tools/aida-cli.ts profile getSection "energy_pattern"
-bun run .system/tools/aida-cli.ts profile getSection "neurotype"
+bun run src/aida-cli.ts profile getSection "identity"
+bun run src/aida-cli.ts profile getSection "energy_pattern"
+bun run src/aida-cli.ts profile getSection "neurotype"
 
 # Get nested attribute
-bun run .system/tools/aida-cli.ts profile getAttribute "identity.name"
-bun run .system/tools/aida-cli.ts profile getAttribute "neurotype.challenges"
-bun run .system/tools/aida-cli.ts profile getAttribute "roles.1.label"
+bun run src/aida-cli.ts profile getAttribute "identity.name"
+bun run src/aida-cli.ts profile getAttribute "neurotype.challenges"
+bun run src/aida-cli.ts profile getAttribute "roles.1.label"
 
 # Update attribute
-bun run .system/tools/aida-cli.ts profile updateAttribute "identity.location.city" '"Stockholm"' "user" "User moved to Stockholm"
+bun run src/aida-cli.ts profile updateAttribute "identity.location.city" '"Stockholm"' "user" "User moved to Stockholm"
 
 # Get current time period and energy
-bun run .system/tools/aida-cli.ts profile getCurrentTimePeriod
-bun run .system/tools/aida-cli.ts profile getCurrentEnergyLevel
-bun run .system/tools/aida-cli.ts profile getActivitiesForEnergy "high"
+bun run src/aida-cli.ts profile getCurrentTimePeriod
+bun run src/aida-cli.ts profile getCurrentEnergyLevel
+bun run src/aida-cli.ts profile getActivitiesForEnergy "high"
 
 # Initialize new profile
-bun run .system/tools/aida-cli.ts profile initializeProfile '{"name":"Henrik"}'
+bun run src/aida-cli.ts profile initializeProfile '{"name":"Henrik"}'
 
 # Check if profile exists
-bun run .system/tools/aida-cli.ts profile profileExists
+bun run src/aida-cli.ts profile profileExists
 
 # Learning observations
-bun run .system/tools/aida-cli.ts profile getObservations
-bun run .system/tools/aida-cli.ts profile getObservations "energy"
-bun run .system/tools/aida-cli.ts profile applyObservationSuggestion "<observation-id>"
+bun run src/aida-cli.ts profile getObservations
+bun run src/aida-cli.ts profile getObservations "energy"
+bun run src/aida-cli.ts profile applyObservationSuggestion "<observation-id>"
 
 # Feedback history
-bun run .system/tools/aida-cli.ts profile getSuggestionAcceptanceRate "task_suggestion"
+bun run src/aida-cli.ts profile getSuggestionAcceptanceRate "task_suggestion"
 ```
 
 ## Workflows

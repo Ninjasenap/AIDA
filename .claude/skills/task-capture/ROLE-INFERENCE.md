@@ -11,10 +11,10 @@
 
 ```bash
 # Get all active roles
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 
 # NEVER use query modules directly!
-bun run .system/tools/database/queries/roles.ts  # ❌ WRONG!
+bun run src/database/queries/roles.ts  # ❌ WRONG!
 ```
 
 ---
@@ -113,7 +113,7 @@ bun run .system/tools/database/queries/roles.ts  # ❌ WRONG!
 
 ```bash
 # Search for project match
-bun run .system/tools/aida-cli.ts projects searchProjects "AIDA"
+bun run src/aida-cli.ts projects searchProjects "AIDA"
 
 # Response includes role_id:
 {
@@ -278,7 +278,7 @@ Vilken roll gäller detta?
 
 At skill start, fetch roles once:
 ```bash
-bun run .system/tools/aida-cli.ts roles getActiveRoles
+bun run src/aida-cli.ts roles getActiveRoles
 ```
 
 Store in memory for quick lookup during inference.

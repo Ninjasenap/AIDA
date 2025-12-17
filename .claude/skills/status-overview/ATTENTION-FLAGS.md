@@ -11,10 +11,10 @@
 
 ```bash
 # Get overdue tasks
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
 
 # Get stale tasks
-bun run .system/tools/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getStaleTasks
 
 # NEVER use query modules directly!
 ```
@@ -29,7 +29,7 @@ bun run .system/tools/aida-cli.ts tasks getStaleTasks
 
 **Query:**
 ```bash
-bun run .system/tools/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getOverdueTasks
 ```
 
 **Severity Levels:**
@@ -61,7 +61,7 @@ bun run .system/tools/aida-cli.ts tasks getOverdueTasks
 
 **Query:**
 ```bash
-bun run .system/tools/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getStaleTasks
 ```
 
 **Thresholds:**
