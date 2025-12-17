@@ -12,9 +12,9 @@ AIDA använder **separated mode**: systemfiler i LOCAL (Git), användardata i PK
 
 **Konfiguration:** `.system/config/aida-paths.json`
 
-### LOCAL (Git repo - AIDA-dev)
+### SYSTEM FILES / Git repo
 ```
-AIDA-dev/
+[AIDA]/
 ├── .claude/              # Claude Code configuration
 │   ├── CLAUDE.md         # This file
 │   ├── agents/           # Subagent definitions (3 st)
@@ -31,7 +31,7 @@ AIDA-dev/
 
 ### PKM (extern mapp, t.ex. OneDrive)
 ```
-AIDA-PKM/
+[AIDA-PKM]/
 ├── .aida/
 │   ├── data/aida.db      # SQLite database
 │   └── context/          # personal-profile.json
@@ -122,6 +122,7 @@ Användare → Main Agent → (Subagent) → Skill → aida-cli.ts → Databas
 ### Git Branching Strategy
 
 **Branches ENDAST för systemändringar** (`.claude/` eller `.system/`):
+- Arbete sker i branches gjorda på Dev branch. Main branch är skyddad.
 - Skapa branch EFTER planering, FÖRE implementation
 - Namnkonvention: `feat/beskrivning` eller `fix/beskrivning`
 - Committa till aktuell branch
