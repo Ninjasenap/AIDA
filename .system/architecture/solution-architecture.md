@@ -411,13 +411,13 @@ ROOT/
 |   +-- reviews/                # Periodic reviews
 +-- 0-SHARED/                   # Cross-role resources
 |
-+-- A01-{role.label}/           # Role 1 (from {{user.roles.1}})
++-- 01-{role.label}/           # Role 1 (from {{user.roles.1}})
 |   +-- 01-NOTES/               # Working notes
 |   +-- 02-RESOURCES/           # Reference materials
 |   +-- P001-{project}/         # Active projects
 |   +-- P002-{project}/
 |
-+-- A02-{role.label}/           # Role 2 (from {{user.roles.2}})
++-- 02-{role.label}/           # Role 2 (from {{user.roles.2}})
 |   +-- [same structure]
 |
 +-- [... A03-A10 as defined in profile]
