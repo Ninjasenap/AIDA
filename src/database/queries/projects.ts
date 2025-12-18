@@ -68,36 +68,50 @@ export function getProjectById(id: number): ProjectFull | null {
 /**
  * Retrieves all projects, grouped by status.
  *
- * Fetches projects from the v_projects_full view and groups them into a Map
- * keyed by project status. By default excludes completed projects; pass
- * `includeCompleted: true` to include them. Results are ordered by status
- * and creation timestamp.
+ * Fetches all projects from the v_projects_full view and groups them into a Map
+ * keyed by project status. Returns projects in all statuses (active, on_hold,
+ * completed, cancelled). Results are ordered by status and creation timestamp.
  *
- * @param options - Optional query configuration
- * @param options.includeCompleted - If true, includes 'completed' and 'cancelled' projects
- *                                    Default: false (returns only 'active' and 'on_hold')
  * @returns Map with ProjectStatus keys and arrays of ProjectFull values, grouped by status
  *
  * @example
  * const projectsByStatus = getAllProjects();
  * const activeProjects = projectsByStatus.get('active') || [];
- *
- * const allProjects = getAllProjects({ includeCompleted: true });
+ * const completedProjects = projectsByStatus.get('completed') || [];
  */
-export function getAllProjects(options?: {
-  includeCompleted?: boolean;
-}): Map<ProjectStatus, ProjectFull[]> {
+export function getAllProjects(): Map<ProjectStatus, ProjectFull[]> {
   const db = getDatabase();
 
-  let query = 'SELECT * FROM v_projects_full';
-  if (!options?.includeCompleted) {
-    query += " WHERE status IN ('active', 'on_hold')";
-  }
-  query += ' ORDER BY status, created_at';
-
-  const projects = db.query(query).all() as ProjectFull[];
+  const projects = db
+    .query('SELECT * FROM v_projects_full ORDER BY status, created_at')
+    .all() as ProjectFull[];
 
   return groupBy(projects, (p) => p.status);
+}
+
+/**
+ * Retrieves all active projects.
+ *
+ * Fetches only projects with 'active' status from the v_projects_full view.
+ * Results are ordered by creation timestamp. Use this function when you need
+ * only currently active projects (not on_hold, completed, or cancelled).
+ *
+ * @returns Array of ProjectFull objects with status='active', ordered by creation date
+ *
+ * @example
+ * const activeProjects = getActiveProjects();
+ * activeProjects.forEach(p => console.log(p.name, p.total_tasks));
+ */
+export function getActiveProjects(): ProjectFull[] {
+  const db = getDatabase();
+
+  const projects = db
+    .query(
+      "SELECT * FROM v_projects_full WHERE status = 'active' ORDER BY created_at"
+    )
+    .all() as ProjectFull[];
+
+  return projects;
 }
 
 /**

@@ -37,7 +37,7 @@ Read from user profile (`.system/context/personal-profile.json`):
 ### Step 2: Get Current Time
 
 ```bash
-bun run src/utilities/time.ts
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 ### Step 3: Determine Default Energy
@@ -307,7 +307,7 @@ cat .system/context/personal-profile.json | jq '.energy_pattern'
 ### Time Check
 
 ```bash
-bun run src/utilities/time.ts
+bun run src/aida-cli.ts time getTimeInfo
 # Returns: { hour: 14, minute: 30, ... }
 ```
 

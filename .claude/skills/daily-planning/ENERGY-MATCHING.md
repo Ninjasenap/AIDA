@@ -127,7 +127,7 @@ From `personal-profile.json`:
 ### Step 1: Get Current Time
 
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 Parse the JSON output to extract `hour` and `minute` fields.

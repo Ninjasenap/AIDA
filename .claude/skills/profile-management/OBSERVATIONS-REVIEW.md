@@ -1,12 +1,18 @@
 # Learning Observations Review
 
+> **Invocation Context:** This workflow is invoked BY the profile-learner agent after pattern analysis, not directly by user triggers. The agent analyzes data, creates/updates observations, then invokes this skill to display results and handle user actions.
+
 Guide för att granska och applicera AIDA:s inlärda mönster.
 
 ## När ska denna workflow användas
 
-- När användaren säger "granska observationer", "vad har du lärt dig", "visa inlärning"
-- Proaktivt efter kvällscheck-in om det finns aktiva observations
-- När användaren visar profil och det finns > 0 aktiva observations
+**Primarily invoked by profile-learner agent** after:
+- User says "vad har du lärt dig om mig?" or "granska observationer" (agent analyzes first, then calls this skill)
+- Evening check-in completes (agent analyzes day's data if new observations exist)
+
+**Direct skill triggers** (without agent analysis):
+- "visa inlärning" - Display existing observations without new analysis
+- When viewing profile and active observations exist - Offer to review
 
 ## Grundprinciper
 

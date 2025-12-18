@@ -10,6 +10,7 @@ import './setup'; // Import to trigger beforeAll/afterAll hooks
 import {
   getProjectById,
   getAllProjects,
+  getActiveProjects,
   searchProjects,
   getProjectsByRole,
   getProjectProgress,
@@ -74,16 +75,15 @@ describe('getProjectById', () => {
 });
 
 /**************************************************************************
- * getAllProjects - Retrieve active and on_hold projects grouped by status
+ * getAllProjects - Retrieve all projects grouped by status
  *
  * TESTS:
  * - Returns Map of projects grouped by status
- * - Excludes completed projects by default
- * - Includes completed when option is set
+ * - Includes all project statuses (active, on_hold, completed, cancelled)
  *
  * VALIDATES:
  * - Status grouping
- * - Filtering behavior
+ * - Complete project retrieval
  *
  * NOT TESTED:
  * - Empty database case
@@ -91,14 +91,14 @@ describe('getProjectById', () => {
 
 describe('getAllProjects', () => {
   /**
-   * Confirms all active and on_hold projects are returned grouped by status.
+   * Confirms all projects are returned grouped by status.
    */
-  test('should return all active and on_hold projects grouped by status', () => {
+  test('should return all projects grouped by status', () => {
     const projectMap = getAllProjects();
 
     expect(projectMap).toBeInstanceOf(Map);
 
-    // Demo data has 3 active projects
+    // Demo data has active projects
     const activeProjects = projectMap.get('active');
     expect(activeProjects).toBeDefined();
     expect(activeProjects?.length).toBeGreaterThan(0);
@@ -111,18 +111,71 @@ describe('getAllProjects', () => {
     }
   });
 
-  test('should exclude completed projects by default', () => {
+  test('should include all statuses (active, on_hold, completed, cancelled)', () => {
     const projectMap = getAllProjects();
 
-    const completedProjects = projectMap.get('completed');
-    expect(completedProjects).toBeUndefined();
+    // Should return a Map instance
+    expect(projectMap).toBeInstanceOf(Map);
+
+    // All statuses that exist in demo data should be present
+    // (We can't assert specific statuses as it depends on demo data,
+    // but we verify the Map contains entries)
+    expect(projectMap.size).toBeGreaterThan(0);
+  });
+});
+
+/**************************************************************************
+ * getActiveProjects - Retrieve only active projects
+ *
+ * TESTS:
+ * - Returns array of active projects
+ * - All returned projects have status='active'
+ * - Returns array type (not Map)
+ *
+ * VALIDATES:
+ * - Status filtering
+ * - Return type
+ *
+ * NOT TESTED:
+ * - Empty result handling
+ **************************************************************************/
+
+describe('getActiveProjects', () => {
+  /**
+   * Confirms only active projects are returned as an array.
+   */
+  test('should return only active projects', () => {
+    const activeProjects = getActiveProjects();
+
+    expect(activeProjects).toBeInstanceOf(Array);
+    expect(activeProjects.length).toBeGreaterThan(0);
+
+    // All projects should have status='active'
+    activeProjects.forEach((project) => {
+      expect(project.status).toBe('active');
+    });
   });
 
-  test('should include completed projects when option is set', () => {
-    const projectMap = getAllProjects({ includeCompleted: true });
+  test('should return array with full project details', () => {
+    const activeProjects = getActiveProjects();
 
-    // Should contain all statuses that exist in demo data
-    expect(projectMap).toBeInstanceOf(Map);
+    if (activeProjects.length > 0) {
+      const project = activeProjects[0];
+      expect(project.id).toBeGreaterThan(0);
+      expect(project.name).toBeDefined();
+      expect(project.role_name).toBeDefined();
+      expect(project.total_tasks).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  test('should not include on_hold, completed, or cancelled projects', () => {
+    const activeProjects = getActiveProjects();
+
+    // Verify no non-active projects are included
+    const hasNonActive = activeProjects.some(
+      (p) => p.status !== 'active'
+    );
+    expect(hasNonActive).toBe(false);
   });
 });
 

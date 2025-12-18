@@ -6,7 +6,7 @@
 
 | Topic | File | Keywords |
 |-------|------|----------|
-| What AIDA can do | `capabilities.md` | capabilities, features, layers, activation, support |
+| What AIDA can do | `system-capabilities.md` | capabilities, features, session, task, energy, support |
 | Database tables | `database-schema.md` | schema, tables, tasks, roles, projects, journal, SQL |
 | Query functions | `query-reference.md` | functions, API, queries, getTaskById, createTask |
 | Daily check-ins | `workflows/daily-planning.md` | checkin, morning, evening, planning, energy |
@@ -20,16 +20,14 @@
 
 ## File Descriptions
 
-### capabilities.md
+### system-capabilities.md
 **Answers:** What can AIDA do? What features exist? What is the capability architecture?
 
-Contains the 4-layer capability model:
-- Layer 1: Foundational (memory, user model, temporal intelligence)
-- Layer 2: Operational (task management, scheduling, communication)
-- Layer 3: Integrative (cross-domain synthesis, work-life balance)
-- Layer 4: Emergent (strategic guidance, wisdom accumulation)
+Contains the practical 6-category capability model:
+- Core Capabilities: Session Management, Task Management, Information Management
+- Support Systems: Energy & Context, Safety & Boundaries, Integration
 
-Also includes anti-patterns to avoid and interaction patterns.
+Also includes anti-patterns to avoid, neurotype adaptations, and tone guidelines.
 
 ### database-schema.md
 **Answers:** What tables exist? What are the column definitions? What indexes and views are available?
