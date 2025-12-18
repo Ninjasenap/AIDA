@@ -89,7 +89,7 @@ bun run src/aida-cli.ts roles getActiveRoles
 
 **Get current time via bash:**
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 This returns JSON with current time info including `hour`, `minute`, `date`, `weekday`, `weekOfYear`, etc.

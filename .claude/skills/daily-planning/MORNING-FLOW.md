@@ -29,7 +29,7 @@ bun run src/database/queries/tasks.ts getTodayTasks  # ❌ WRONG!
 
 **Query time context:**
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 Returns JSON with current time including `hour`, `minute`, `date`, `weekday`, etc.
 
@@ -192,9 +192,9 @@ _Space for notes during the day_
 **⚠️ TIMESTAMP-REGEL (KRITISK):**
 Omit ALDRIG timestamp - det ger fel tidszon (UTC istället för lokal)!
 
-**Hämta alltid tid via time-info först:**
+**Hämta alltid tid via time module först:**
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 **Bygg timestamp från output:**

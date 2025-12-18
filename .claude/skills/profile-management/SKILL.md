@@ -1,6 +1,6 @@
 ---
 name: profile-management
-description: Interactive profile setup and management. Use when user wants to view, update, or set up their profile. Auto-triggers on phrases like "min profil", "uppdatera profil", "profile setup", "who am I", "vem är jag", "inställningar", "preferences", "visa profil".
+description: Interactive profile setup and management. Use when user wants to view, update, or set up their profile. Auto-triggers on phrases like "min profil", "uppdatera profil", "ändra profil", "profile setup", "inställningar", "preferences".
 allowed-tools: Bash, Read, Write
 ---
 
@@ -17,28 +17,43 @@ Provides interactive profile management including:
 
 ## Triggers
 
-- **Auto-triggers**: "min profil", "uppdatera profil", "profile setup", "who am I", "vem är jag", "inställningar", "preferences", "visa profil", "ändra profil"
+- **Auto-triggers**: "min profil", "uppdatera profil", "ändra profil", "profile setup", "inställningar", "preferences"
+- **NOT auto-triggered**: "visa profil" (direct CLI query), observation-related phrases (route to profile-learner agent)
 
 ## Relationship to profile-learner Agent
 
-**profile-management skill** = view/update profile (user-triggered, direct)
-**profile-learner agent** = analyze patterns and create observations (background analysis)
+This skill has a clear integration with the profile-learner agent:
 
-**Use @agent-profile-learner** when user says:
+**profile-management skill** = View/update profile (user-initiated CRUD operations)
+**profile-learner agent** = Analyze patterns, create observations (background analysis)
+
+### Routing Flow for Observation-Related Requests
+
+```
+User: "vad har du lärt dig om mig?" / "granska observationer"
+  ↓
+Main agent routes to @agent-profile-learner
+  ↓
+Agent analyzes data, creates/updates observations
+  ↓
+Agent invokes this skill (via skills: profile-management)
+  ↓
+OBSERVATIONS-REVIEW.md displays results
+```
+
+**Phrases that route to profile-learner agent first:**
 - "vad har du lärt dig om mig?" (What have you learned about me?)
-- "what have you learned about me?"
 - "granska observationer" (review observations)
-- "review observations"
 - "har du sett några mönster?" (have you seen any patterns?)
-- "what patterns have you noticed?"
 
-**Use this skill directly** when user says:
-- "visa min profil" (show my profile)
-- "uppdatera profil" (update profile)
-- "profile setup"
+**Phrases that trigger this skill directly:**
 - "min profil" (my profile)
+- "uppdatera profil" / "ändra profil" (update profile)
+- "profile setup"
+- "inställningar" / "preferences"
 
-When the profile-learner agent runs, this skill is auto-loaded to display results.
+**Phrases that use direct CLI query (not this skill):**
+- "visa min profil" → `profile getFullProfile`
 
 ## Critical Rules
 

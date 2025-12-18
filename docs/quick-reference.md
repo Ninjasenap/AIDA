@@ -118,6 +118,32 @@ bun run src/aida-cli.ts journal createEntry "{\"entry_type\":\"checkin\",\"conte
 | **Record suggestion** | `profile recordSuggestion '{...}'` | FeedbackEntry | Track AI suggestions |
 | Get acceptance rate | `profile getSuggestionAcceptanceRate task_suggestion` | number \| null | 0.0-1.0 |
 
+## Time
+
+| Operation | CLI Command | Returns | Notes |
+|-----------|-------------|---------|-------|
+| Get current time | `time getTimeInfo` | TimeInfo | All date/time fields |
+| Parse expression | `time getTimeInfo "imorgon"` | TimeInfo | Swedish + ISO formats |
+| Parse time | `time getTimeInfo "halv tre"` | TimeInfo | Swedish time expressions |
+| Parse combined | `time getTimeInfo "imorgon klockan 15.30"` | TimeInfo | Date + time |
+
+**TimeInfo structure:**
+```typescript
+{
+  date: string | null,           // ISO date (YYYY-MM-DD)
+  time: string | null,           // HH:mm format
+  weekOfYear: string | null,     // ISO week (YYYY-W##)
+  monthOfYear: string | null,    // 01-12
+  monthName: string | null,      // Swedish (januari, februari, etc.)
+  dayOfYear: number | null,      // 1-366
+  dayOfMonth: number | null,     // 1-31
+  weekdayName: string | null,    // Swedish (måndag, tisdag, etc.)
+  timeUntilNextYear: string | null,  // Human-readable countdown
+  daysUntil: string | null,      // Time difference from now
+  timestamp: number | null       // Unix timestamp
+}
+```
+
 ## Entry Types (for journal.createEntry)
 
 Valid `entry_type` values:

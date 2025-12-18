@@ -17,7 +17,7 @@ description: |
   - User: "Review observations" → Invoke profile-learner
 model: haiku
 tools: Bash, Read
-skills: profile-management, time-info
+skills: profile-management
 ---
 
 # Profile Learning Agent
@@ -82,10 +82,10 @@ Silently observe user patterns and suggest profile improvements through evidence
 
 **Query recent check-ins** (last 14 days):
 ```bash
-# Hämta dagens datum via time-info
-END_DATE=$(bun run src/utilities/time.ts getTimeInfo | jq -r '.date')
+# Hämta dagens datum via time module
+END_DATE=$(bun run src/aida-cli.ts time getTimeInfo | jq -r '.date')
 # Beräkna 14 dagar sedan
-START_DATE=$(bun run src/utilities/time.ts getTimeInfo "för 14 dagar sedan" | jq -r '.date')
+START_DATE=$(bun run src/aida-cli.ts time getTimeInfo "för 14 dagar sedan" | jq -r '.date')
 bun run src/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$END_DATE"
 ```
 
@@ -125,10 +125,10 @@ bun run src/aida-cli.ts profile addObservation '{
 
 **Query completed tasks** (last 14 days):
 ```bash
-# Hämta dagens datum via time-info
-END_DATE=$(bun run src/utilities/time.ts getTimeInfo | jq -r '.date')
+# Hämta dagens datum via time module
+END_DATE=$(bun run src/aida-cli.ts time getTimeInfo | jq -r '.date')
 # Beräkna 14 dagar sedan
-START_DATE=$(bun run src/utilities/time.ts getTimeInfo "för 14 dagar sedan" | jq -r '.date')
+START_DATE=$(bun run src/aida-cli.ts time getTimeInfo "för 14 dagar sedan" | jq -r '.date')
 bun run src/aida-cli.ts tasks getWeekTasks "$START_DATE" "$END_DATE"
 ```
 
@@ -320,6 +320,17 @@ This agent outputs to the profile's `learning_observations` section via CLI.
 **Logged** - All observations are timestamped and attributed.
 **Reviewable** - User can review via profile-management skill.
 
+### Invoking the profile-management Skill
+
+After creating or updating observations, this agent invokes the profile-management skill to display results:
+
+**How to invoke:** Since this agent has `skills: profile-management` in its frontmatter, the skill is automatically available. Simply reference the skill in your response to trigger its OBSERVATIONS-REVIEW workflow.
+
+**When to invoke:**
+- After user explicitly asks "vad har du lärt dig om mig?" or "granska observationer"
+- After evening check-in if new observations were created and user agrees to review
+- After analyzing patterns and creating observations that user should see
+
 ## Important Constraints
 
 - **Auto-apply only high-confidence** - Direct profile updates allowed only for confidence ≥ 0.8, otherwise create observations
@@ -369,13 +380,17 @@ Current data: [counts]
 "AIDA har gjort 2 nya observationer om dina arbetsmönster.
 Vill du granska dem? (ja/nej)"
 
-[If user says yes, invoke profile-management skill with observation review workflow]
+[If user says yes:]
+*Reference profile-management skill to trigger OBSERVATIONS-REVIEW workflow*
+*Skill displays observations and handles user actions (apply/dismiss/keep)*
 ```
 
 **When user asks explicitly**:
 ```
 User: "Vad har du lärt dig om mig?"
 
-*Invoke profile-learner agent*
-*Then invoke profile-management skill to display observations*
+*Main agent invokes profile-learner agent*
+*Agent analyzes data, creates/updates observations*
+*Agent references profile-management skill*
+*Skill displays observations via OBSERVATIONS-REVIEW workflow*
 ```

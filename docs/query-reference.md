@@ -17,6 +17,7 @@ Access via CLI: `bun run src/aida-cli.ts <module> <function> [args...]`
 - **journalMd** - Journal markdown generation (8 functions)
 - **plan** - Daily plan file management (7 functions)
 - **profile** - Profile management (21 functions)
+- **time** - Time parsing and utilities (1 function)
 
 ---
 
@@ -573,6 +574,65 @@ function updateSuggestionOutcome(
  * Get suggestion acceptance rate for a type.
  */
 function getSuggestionAcceptanceRate(type: SuggestionType): number | null
+```
+
+---
+
+## Time Queries (1 function)
+
+**Location:** `src/utilities/time.ts`
+
+### getTimeInfo
+
+Parse Swedish and English date/time expressions.
+
+**Signature:**
+```typescript
+async function getTimeInfo(input?: string): Promise<TimeInfo>
+```
+
+**Parameters:**
+- `input` (optional) - Date/time expression. If omitted, returns current time.
+
+**Returns:** `TimeInfo` object with all fields populated based on parsed input.
+
+**Supported formats:**
+- ISO dates: `2025-12-25`, `2025-12-25T14:30`
+- Swedish relative: `idag`, `imorgon`, `i förrgår`, `nästa vecka`, `om 3 dagar`
+- Swedish times: `klockan 15.30`, `halv tre`, `kvart över två`
+- Combined: `imorgon klockan 15.30`
+- Holidays: `påskafton`, `midsommarafton 2026`
+
+**Examples:**
+```bash
+# Current time
+bun run src/aida-cli.ts time getTimeInfo
+
+# Parse Swedish expression
+bun run src/aida-cli.ts time getTimeInfo "imorgon"
+
+# Parse time
+bun run src/aida-cli.ts time getTimeInfo "halv tre"
+
+# Combined
+bun run src/aida-cli.ts time getTimeInfo "nästa tisdag klockan 14.00"
+```
+
+**TimeInfo structure:**
+```typescript
+interface TimeInfo {
+  date: string | null;              // ISO date (YYYY-MM-DD)
+  time: string | null;              // HH:mm format
+  weekOfYear: string | null;        // ISO week (YYYY-W##)
+  monthOfYear: string | null;       // 01-12
+  monthName: string | null;         // Swedish (januari, etc.)
+  dayOfYear: number | null;         // 1-366
+  dayOfMonth: number | null;        // 1-31
+  weekdayName: string | null;       // Swedish (måndag, etc.)
+  timeUntilNextYear: string | null; // Human-readable countdown
+  daysUntil: string | null;         // Time difference from now
+  timestamp: number | null;         // Unix timestamp
+}
 ```
 
 ---

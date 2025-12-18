@@ -129,9 +129,9 @@ Accept short answers:
 **⚠️ TIMESTAMP-REGEL (KRITISK):**
 Omit ALDRIG timestamp - det ger fel tidszon (UTC istället för lokal)!
 
-**Hämta alltid tid via time-info först:**
+**Hämta alltid tid via time module först:**
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 **Bygg timestamp från output:**

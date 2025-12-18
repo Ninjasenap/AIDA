@@ -67,10 +67,9 @@ Before finalizing title, extract temporal expressions:
 | "efter nyår" | January 2 |
 
 **Use getTimeInfo() for parsing:**
-```typescript
-import { getTimeInfo } from '.system/tools/utilities/time.ts';
-const parsed = await getTimeInfo('nästa tisdag');
-// Returns: { date: "2025-12-17", ... }
+```bash
+bun run src/aida-cli.ts time getTimeInfo "nästa tisdag"
+# Returns: { "date": "2025-12-17", ... }
 ```
 
 **Example:**

@@ -41,9 +41,10 @@ import * as journal from './database/queries/journal';
 import * as journalMd from './utilities/journal-markdown';
 import * as plan from './utilities/daily-plan';
 import * as profile from './utilities/profile';
+import * as time from './utilities/time';
 import { serializeWithMaps } from './utilities/json-serialization';
 
-const modules = { tasks, roles, projects, journal, journalMd, plan, profile };
+const modules = { tasks, roles, projects, journal, journalMd, plan, profile, time };
 
 const [module, func, ...args] = process.argv.slice(2);
 

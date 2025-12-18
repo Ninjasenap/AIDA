@@ -15,7 +15,7 @@ Help users reflect on the past week's accomplishments, identify patterns, and ce
 ### 1. Get Time Context
 
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 Extract from JSON response:
@@ -239,4 +239,4 @@ Vill du planera för nästa vecka ändå?
 | Get journal entries | `bun run src/aida-cli.ts journal getEntriesByDateRange "2025-12-16" "2025-12-22"` |
 | Get roles | `bun run src/aida-cli.ts roles getActiveRoles` |
 | Create review entry | `bun run src/aida-cli.ts journal createEntry '{...}'` |
-| Get time info | `bun run src/utilities/time.ts getTimeInfo` |
+| Get time info | `bun run src/aida-cli.ts time getTimeInfo` |

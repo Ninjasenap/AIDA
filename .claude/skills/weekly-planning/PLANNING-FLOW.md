@@ -16,7 +16,7 @@ Help users plan the upcoming week with realistic focus areas based on energy pat
 ### 1. Get Time Context
 
 ```bash
-bun run src/utilities/time.ts getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo
 ```
 
 Extract from JSON response:
@@ -305,7 +305,7 @@ Håller du med?
 | Get week tasks | `bun run src/aida-cli.ts tasks getWeekTasks "2025-12-23" "2025-12-29"` |
 | Get roles | `bun run src/aida-cli.ts roles getActiveRoles` |
 | Create plan entry | `bun run src/aida-cli.ts journal createEntry '{...}'` |
-| Get time info | `bun run src/utilities/time.ts getTimeInfo` |
+| Get time info | `bun run src/aida-cli.ts time getTimeInfo` |
 
 ## Integration Notes
 

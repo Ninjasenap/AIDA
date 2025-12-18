@@ -220,43 +220,7 @@ profile-management:
   # NOTE: "visa min profil" → direct query (see below)
   # NOTE: "granska observationer" → profile-learner AGENT (see below)
 
-time-info:
-  swedish:
-    - "vad var det för datum"
-    - "vilken dag"
-    - "när är"
-    - "förra"
-    - "i förrgår"
-    - "imorgon"
-    - "i övermorgon"
-    - "nästa vecka"
-    - "förra veckan"
-    - "vilken vecka"
-    - "vad är klockan"
-    - "hur länge till"
-  english:
-    - "what's the date"
-    - "what day"
-    - "when is"
-    - "last"
-    - "day before yesterday"
-    - "tomorrow"
-    - "day after tomorrow"
-    - "next week"
-    - "last week"
-  # Examples: "i förrgår", "nästa vecka", "påskafton", "halv tre"
 ```
-
-**⚠️ CRITICAL: TIME-INFO SKILL USAGE ⚠️**
-
-**ALWAYS use the time-info skill when ANY of these apply:**
-- User asks about dates ("vad var det för datum", "vilken dag")
-- User asks about times ("vad är klockan", "hur länge till")
-- User mentions Swedish time expressions ("imorgon", "i förrgår", "nästa vecka", "halv tre", "påskafton")
-- You need to parse or format date/time for ANY purpose
-- Scheduling, deadlines, or calendar operations
-
-**NO EXCEPTIONS:** Never calculate dates/times manually. Always delegate to time-info skill.
 
 ### Direct Queries (No Skill Needed)
 
@@ -313,6 +277,8 @@ Requests requiring judgment, pattern recognition, or specialized analysis.
 | Documentation lookup | documentation-retriever | External API/lib questions | Query topic |
 
 **Action:** Use Task tool with subagent_type matching the agent name.
+
+**Note on profile-learner flow:** The profile-learner agent analyzes data and creates/updates observations, then invokes the profile-management skill (via `skills: profile-management` in agent config) to display results and handle user actions. This is the correct Agent → Skill integration pattern.
 
 ### Decision Point 4: Simple Data Queries
 
@@ -423,11 +389,10 @@ See the **Command & Skill Routing** section above for:
 - `status-overview` - Workload overview across roles/projects
 - `weekly-planning` - Weekly review and planning
 - `profile-management` - Profile CRUD operations (NOT pattern analysis)
-- `time-info` - **[ALWAYS USE]** Parse Swedish date/time expressions and answer ALL time-related questions
 
 ## Implementation Status
 
-**Operativt:** Database layer, 7 user-facing skills, 5 commands, 3 subagents
+**Operativt:** Database layer, 6 user-facing skills, 5 commands, 3 subagents
 
 **Planerat:** Hook configurations
 
@@ -441,6 +406,28 @@ See the **Command & Skill Routing** section above for:
 - Scripts location: `src/`
 - Package management: `bun install` at root (dependencies in root `node_modules/`)
 - CLI-referens för utveckling: Se `docs/query-reference.md`
+
+### Time Parsing Standard
+
+All date/time operations use the time module via CLI:
+```bash
+bun run src/aida-cli.ts time getTimeInfo
+bun run src/aida-cli.ts time getTimeInfo "imorgon klockan 15.30"
+```
+
+Returns TimeInfo: `date`, `time`, `weekOfYear`, `monthName`, `weekdayName`, `daysUntil`, `timestamp`.
+
+**When to use:**
+- Parsing Swedish time expressions (imorgon, nästa vecka, halv tre, påskafton)
+- Getting current time context for workflows
+- Calculating deadlines and scheduling
+- Any date/time operation
+
+**TypeScript import:**
+```typescript
+import { getTimeInfo } from './utilities/time';
+const timeInfo = await getTimeInfo('imorgon');
+```
 
 ### Git Branching Strategy
 

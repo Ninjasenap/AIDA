@@ -255,7 +255,6 @@ Each AIDA component has explicit tool usage contracts defining what operations a
 | **status-overview** | tasks, roles, projects, profile | - | - | All (read-only) |
 | **profile-management** | profile | Profile, observations | Profile | - |
 | **weekly-planning** | tasks, roles, journal, profile | Journal entries (weekly_*) | - | tasks, roles, profile |
-| **time-info** | (utilities only) | - | - | - |
 
 **Journal Entry Type Ownership:**
 - `checkin`, `reflection` → daily-planning
