@@ -74,6 +74,7 @@ logs/
 
 # Claude Code
 .claude/transcripts/
+.claude/settings.local.json
 
 # AIDA config (machine-specific paths)
 config/aida-paths.json

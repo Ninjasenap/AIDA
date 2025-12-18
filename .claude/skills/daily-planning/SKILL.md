@@ -4,95 +4,71 @@ description: Context-aware daily check-ins for morning planning, midday adjustme
 allowed-tools: Bash, Read, Write
 ---
 
-# Daily Planning Skill
+# Skill: daily-planning
 
 ## Purpose
 
 Provides context-aware daily check-ins that adapt based on time of day, existing plan, and user energy. Helps structure the day with minimal cognitive overhead through morning planning, midday adjustments, and evening reviews.
 
-## Triggers
+## Trigger Conditions
 
-- **Command**: `/checkin`
-- **Auto-triggers**: "plan my day", "morning planning", "morgonplanering", "let's check in", "how's my day going", "kolla läget", "evening review", "kvällsreflektion", "day review"
+- **Slash command:** `/checkin`
+- **Natural phrases:** ["plan my day", "morning planning", "morgonplanering", "let's check in", "how's my day going", "kolla läget", "evening review", "kvällsreflektion", "day review"]
+- **Auto-trigger:** Time-based (morning/midday/evening detection)
 
-## Critical Rules
+## Required Context (gather BEFORE starting workflow)
 
-- **ALL database operations MUST use `aida-cli.ts`** - See "How to Query Database" section below
-- **NEVER use direct SQL queries**
-- **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
-- **Use Swedish** for user-facing output (questions, confirmations, summaries)
-- **Always use** `getTimeInfo()` for date/time context
-- **Read user profile** from `.system/context/personal-profile.json` via template variables
+1. Time period via `profile getCurrentTimePeriod` → returns "morning"|"midday"|"evening"
+2. Plan exists via `plan planHasContent` → returns true|false
+3. Today's check-ins via `journal getTodayEntries` → filter for entry_type="checkin"
+4. Today's tasks via `tasks getTodayTasks` → returns Map<roleId, Task[]>
+5. Energy level via `profile getCurrentEnergyLevel` → returns "high"|"medium"|"low"
+6. Overdue tasks via `tasks getOverdueTasks` → returns Task[]
 
-## 🚨 How to Query Database
-
-**ONLY use the `aida-cli.ts` tool for ALL database operations:**
-
+**How to gather context:**
 ```bash
-# CORRECT - Always use this pattern:
-bun run src/aida-cli.ts <module> <function> [args...]
+# Get time period
+bun run src/aida-cli.ts profile getCurrentTimePeriod
 
-# WRONG - NEVER do this:
-bun run src/database/queries/tasks.ts getTodayTasks  # ❌ NO!
-sqlite3 .system/data/aida.db "SELECT..."                       # ❌ NO!
-```
-
-**Available modules:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`
-
-**Example queries you will need:**
-```bash
-# Get today's tasks
-bun run src/aida-cli.ts tasks getTodayTasks
-
-# Get overdue tasks
-bun run src/aida-cli.ts tasks getOverdueTasks
+# Check if plan exists
+bun run src/aida-cli.ts plan planHasContent
 
 # Get today's journal entries
 bun run src/aida-cli.ts journal getTodayEntries
 
-# Create journal entry (with JSON argument)
-bun run src/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning planning"}'
+# Get today's tasks
+bun run src/aida-cli.ts tasks getTodayTasks
 
-# Get active roles
-bun run src/aida-cli.ts roles getActiveRoles
+# Get current energy level
+bun run src/aida-cli.ts profile getCurrentEnergyLevel
+
+# Get overdue tasks
+bun run src/aida-cli.ts tasks getOverdueTasks
 ```
 
-## Workflow
+## Workflow Steps
 
-### 1. Determine Context
+### Flow Selection (first match wins)
 
-**Get current time via bash:**
-```bash
-bun run src/utilities/time.ts getTimeInfo
-```
+| Condition | Flow |
+|-----------|------|
+| time >= 18:00 AND plan exists AND has check-in | Evening |
+| time 11:00-17:59 AND plan exists | Midday |
+| Otherwise (morning OR no plan OR first check-in) | Morning |
 
-This returns JSON with current time info including `hour`, `minute`, `date`, `weekday`, etc.
-
-Check:
-- Current time (from `hour` field in JSON output)
-- Whether daily plan file exists (check via `bun run src/aida-cli.ts plan planHasContent`)
-- Whether morning check-in has happened (query today's journal entries for type='checkin')
-
-**Flow Selection Priority (first match wins):**
-
-1. **Evening** → Time >= 18:00 AND plan exists AND not first check-in of day
-2. **Midday** → Time 11:00-17:59 AND plan exists
-3. **Morning** → Time < 11:00 OR first check-in of day OR no plan exists
-
-### 2. Morning Check-in (first check-in of day)
+### Morning Flow
 
 See [MORNING-FLOW.md](MORNING-FLOW.md) for detailed procedure.
 
 **Summary:**
-1. Query today's tasks and overdue tasks
-2. Read user energy patterns from profile
-3. Ask user for todays schedueled events
-4. Suggest 1-3 focus items based on energy + priority
-5. Create daily plan markdown file
-6. Create journal entry (type='checkin')
-7. Provide first action suggestion
+1. Action: Display task summary by role
+2. Output: Energy-matched focus suggestions (1-3 items)
+3. Wait for: User confirms focus items and scheduled events
+4. Action: Create plan via `plan createDailyPlan {...}`
+5. Action: Log check-in via `journal createEntry {"entry_type":"checkin",...}`
+6. Output: First action suggestion
 
-### 3. Midday Check-in (plan exists, not first or last check-in)
+### Midday Flow
 
 See [MIDDAY-FLOW.md](MIDDAY-FLOW.md) for detailed procedure.
 
@@ -104,7 +80,7 @@ See [MIDDAY-FLOW.md](MIDDAY-FLOW.md) for detailed procedure.
 5. Update journal entry (type='checkin')
 6. Suggest next action
 
-### 4. Evening Review (not first checkin for today, time > 18:00 or user indicates end of day)
+### Evening Flow
 
 See [EVENING-FLOW.md](EVENING-FLOW.md) for detailed procedure.
 
@@ -112,23 +88,75 @@ See [EVENING-FLOW.md](EVENING-FLOW.md) for detailed procedure.
 1. Summarize day's accomplishments
 2. Note what rolled over (not completed)
 3. Create reflection journal entry (type='reflection')
-4. **DELETE daily plan file** (it's only for TODAY)
-5. Optionally prepare tomorrow's focus
+4. Archive plan to log via `plan archivePlanToLog`
+5. Clear daily plan via `plan clearDailyPlan`
+6. Optionally prepare tomorrow's focus
 
-## Query Scripts Available
+## Output Format
 
-**From `tasks.ts`:**
-- `getTodayTasks()` - Get all tasks relevant for today (grouped by role)
-- `getOverdueTasks()` - Get tasks past their deadline
-- `getTasksByRole(roleId, includeCompleted?)` - Get tasks for specific role
-- `getWeekTasks()` - Get tasks for the week (grouped by date)
+- **Language:** Swedish (default)
+- **Style:** Concise, encouraging, non-judgmental
+- **Focus items:** 1-3 maximum, never full task list
+- **Energy awareness:** Match suggestions to current energy level
 
-**From `journal.ts`:**
-- `getTodayEntries()` - Get all journal entries for today
-- `createEntry(input)` - Create new journal entry
+**Example morning output:**
+```
+God morgon! ☀️
 
-**From `roles.ts`:**
-- `getActiveRoles()` - Get all active roles
+Idag ser jag tre fokusområden baserat på din energi:
+
+1. **Färdigställ arkitekturdokumentation** (Developer)
+   - Hög energi på morgonen - perfekt för detta
+   - Deadline: idag
+
+2. **Team standup 09:00** (Work)
+   - Förberedelsetid: 10 minuter
+
+3. **Träning** (Personal)
+   - Schemalagt: 18:00
+
+Vad ska vi börja med först?
+```
+
+## Error Handling
+
+- **If `profile getCurrentTimePeriod` returns null:** Default to "morning" flow
+- **If `tasks getTodayTasks` returns empty:** Show message "Inga uppgifter för idag. Vill du lägga till någon?" and suggest task-capture
+- **If `plan planHasContent` fails:** Assume no plan exists, run Morning flow
+- **If `journal createEntry` fails:** Log error to console, continue workflow, inform user that logging failed but plan was created
+- **If no roles exist:** Guide user to profile-management skill to set up roles first
+- **If profile doesn't exist:** Guide user to profile-management skill with message "Du behöver först skapa en profil. Vill du göra det nu?"
+
+## Anti-patterns
+
+- **NEVER create tasks directly** - use task-capture skill
+- **NEVER modify task status** - use task-activation skill or let user do it
+- **NEVER show all tasks** - always filter to 1-3 focus items based on energy and priority
+- **NEVER skip energy matching** when suggesting tasks
+- **NEVER write directly to** `0-JOURNAL/1-DAILY/*.md` (auto-generated from database)
+- **NEVER delete data** - only archive or clear as specified in workflow
+- **NEVER use direct SQL** - always use aida-cli.ts
+- **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
+
+## Tool Contract
+
+**Allowed CLI Operations:**
+- **plan:** planHasContent, readDailyPlan, createDailyPlan, archivePlanToLog, clearDailyPlan
+- **tasks:** getTodayTasks, getOverdueTasks, getTaskById (READ ONLY)
+- **roles:** getActiveRoles, getRoleById (READ ONLY)
+- **journal:** getTodayEntries, createEntry (types: checkin, reflection)
+- **profile:** getCurrentTimePeriod, getCurrentEnergyLevel, getProfile (READ ONLY)
+
+**Forbidden Operations:**
+- Creating tasks (use task-capture skill)
+- Modifying task status (user action or task-activation skill)
+- Updating profile (use profile-management skill)
+- Deleting any data
+
+**File Access:**
+- **Read:** `0-JOURNAL/PLAN.md`, `personal-profile.json`
+- **Write:** `0-JOURNAL/PLAN.md` only (overwritten morning, cleared evening)
+- **Never write:** `0-JOURNAL/1-DAILY/*.md` (generated from database)
 
 ## Supporting Documentation
 
@@ -143,30 +171,3 @@ See [EVENING-FLOW.md](EVENING-FLOW.md) for detailed procedure.
 2. **One thing at a time** - Suggest 1-3 focus items max, never the full list
 3. **Energy-aware** - Match task suggestions to user's energy patterns
 4. **Non-judgmental** - Frame progress positively, deferrals as rescheduling
-
-## Example Invocation
-
-**User**: "God morgon! Vad ska jag fokusera på idag?"
-
-**Response**:
-```
-God morgon! ☀️
-
-Låt mig kolla läget för dagen...
-
-[Queries database via scripts]
-
-Idag ser jag tre fokusområden baserat på din energi:
-
-1. **Färdigställ arkitekturdokumentation** (Developer-rollen)
-   - Du har hög energi på morgonen - perfekt för detta
-   - Deadline: idag
-
-2. **Team standup 09:00** (Work-rollen)
-   - Förberedelsetid: 10 minuter
-
-3. **Träning** (Personal-rollen)
-   - Schemalagt: 18:00
-
-Vad ska vi börja med först? Jag föreslår arkitekturdokumentationen medan energin är hög.
-```

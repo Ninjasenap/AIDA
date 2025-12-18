@@ -4,138 +4,114 @@ description: Help user START tasks with activation support for ADHD. Use when us
 allowed-tools: Bash, Read
 ---
 
-# Task Activation Skill 🚀
+# Skill: task-activation
 
 ## Purpose
 
 Provides activation support to help users START tasks, not just plan them. Addresses executive function challenges by removing barriers to beginning. Based on ADHD-friendly techniques like the 5-minute rule and smallest-step extraction.
 
-## Triggers
+## Trigger Conditions
 
-- **Command**: `/next`
-- **Auto-triggers**: "I'm stuck", "can't get started", "overwhelmed", "what should I do", "next step", "where do I start", "jag fastnar", "kan inte börja", "vad ska jag göra", "nästa steg", "hjälp mig börja", "orkar inte", "vet inte var jag ska börja"
+- **Slash command:** `/next`
+- **Natural phrases:** ["I'm stuck", "can't get started", "overwhelmed", "what should I do", "next step", "where do I start", "jag fastnar", "kan inte börja", "vad ska jag göra", "nästa steg", "hjälp mig börja", "orkar inte", "vet inte var jag ska börja"]
+- **Auto-trigger:** When user expresses difficulty starting or choosing tasks
 
-## Critical Rules
+## Required Context (gather BEFORE starting workflow)
 
-- **ALL database operations MUST use `aida-cli.ts`** - See "How to Query Database" section below
-- **NEVER use direct SQL queries**
-- **NEVER run query modules directly**
-- **NEVER show full task list** - Suggest ONE thing at a time
-- **Use Swedish** for user-facing output
-- **Non-judgmental tone** - No guilt, no pressure
-- **Frame deferrals positively** - "Låt oss flytta den" not "Du missade"
+1. Today's tasks via `tasks getTodayTasks` → returns Map<roleId, Task[]> for selection
+2. Current energy level via `profile getCurrentEnergyLevel` → returns "high"|"medium"|"low" for matching
+3. Profile via `profile getProfile` → returns full profile for activation preferences and patterns
 
-## 🚨 How to Query Database
-
-**ONLY use the `aida-cli.ts` tool for ALL database operations:**
-
+**How to gather context:**
 ```bash
-# CORRECT - Always use this pattern:
-bun run src/aida-cli.ts <module> <function> [args...]
-
-# WRONG - NEVER do this:
-bun run src/database/queries/tasks.ts getTodayTasks  # ❌ NO!
-```
-
-**Queries you will need:**
-
-```bash
-# Get today's tasks (for suggestions)
+# Get today's tasks
 bun run src/aida-cli.ts tasks getTodayTasks
 
-# Get a specific task
-bun run src/aida-cli.ts tasks getTaskById 123
+# Get current energy level
+bun run src/aida-cli.ts profile getCurrentEnergyLevel
 
-# Update task status (to 'active' when starting)
-bun run src/aida-cli.ts tasks setTaskStatus 123 "active"
-
-# Log activation attempt
-bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Började med: [task]"}'
+# Get user profile (for activation preferences)
+bun run src/aida-cli.ts profile getProfile
 ```
 
-## Workflow
+## Workflow Steps
 
-### 1. Assess User State
+### Step 1: Assess User State
 
-**Detect from conversation:**
-- "Jag fastnar" → Stuck, needs smallest step
-- "Orkar inte" → Low energy, needs easy win
-- "För mycket" → Overwhelmed, needs ONE thing
-- "Vad ska jag göra?" → Choice paralysis, needs direction
-- No specific complaint → Just asking for next action
+- **Action:** Detect user's current state from conversation
+  - "Jag fastnar" → Stuck, needs smallest step
+  - "Orkar inte" → Low energy, needs easy win
+  - "För mycket" → Overwhelmed, needs ONE thing
+  - "Vad ska jag göra?" → Choice paralysis, needs direction
+  - No complaint → Just asking for next action
+- **Output to user:** None (internal assessment)
+- **Wait for:** Continue immediately
 
 See [OVERWHELM-RESPONSE.md](OVERWHELM-RESPONSE.md) for state-specific responses.
 
-### 2. Get Available Tasks
+### Step 2: Get Available Tasks
 
-```bash
-bun run src/aida-cli.ts tasks getTodayTasks
-```
+- **Action:** Retrieve today's tasks via `tasks getTodayTasks`
+- **Output to user:** None
+- **Wait for:** Continue immediately (unless no tasks - see Error Handling)
 
-### 3. Select Best Task
+### Step 3: Select Best Task
 
-See [ENERGY-AWARE-SELECTION.md](ENERGY-AWARE-SELECTION.md) for selection rules.
+See [ENERGY-AWARE-SELECTION.md](ENERGY-AWARE-SELECTION.md) for detailed selection rules.
 
-**Consider:**
-1. User's current energy level (ask or infer)
-2. Time of day (from user's energy pattern)
-3. Task energy requirements
-4. Deadlines
-5. Task status (ready > planned > captured)
+- **Action:** Select ONE task based on:
+  1. User's current energy level
+  2. Time of day (from user's energy pattern)
+  3. Task energy requirements
+  4. Deadlines
+  5. Task status (ready > planned > captured)
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
 
-### 4. Apply Activation Technique
+### Step 4: Apply Activation Technique
 
-See [ACTIVATION-TECHNIQUES.md](ACTIVATION-TECHNIQUES.md) for techniques.
+See [ACTIVATION-TECHNIQUES.md](ACTIVATION-TECHNIQUES.md) for detailed techniques.
 
-**Based on user state:**
-- Stuck → Extract smallest first step
-- Overwhelmed → One thing only, 5-minute rule
-- Low energy → Easy win first
-- Choice paralysis → Make the choice for them
+- **Action:** Choose technique based on user state:
+  - Stuck → Extract smallest first step
+  - Overwhelmed → One thing only, 5-minute rule
+  - Low energy → Easy win first
+  - Choice paralysis → Make the choice for them
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
 
-### 5. Present Single Action
+### Step 5: Present Single Action
 
-**Format (Swedish):**
-```
-🎯 Nästa steg:
+- **Output to user:**
+  ```
+  🎯 Nästa steg:
 
-[One concrete action]
+  [One concrete action]
 
-Du behöver bara göra 5 minuter - sedan kan du bestämma om du vill fortsätta.
+  Du behöver bara göra 5 minuter - sedan kan du bestämma om du vill fortsätta.
 
-Ska vi köra?
-```
+  Ska vi köra?
+  ```
+- **Wait for:** User confirms they're starting (or declines)
 
-### 6. Log Activation
+### Step 6: Log Activation
 
-When user starts:
-```bash
-bun run src/aida-cli.ts tasks setTaskStatus [id] "active"
-bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Aktiverade: [task title]"}'
-```
+- **Action when user confirms:**
+  ```bash
+  bun run src/aida-cli.ts tasks setTaskStatus [id] "active"
+  bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Aktiverade: [task title]"}'
+  ```
+- **Output to user:** "Perfekt! Kör igång 🚀"
+- **Wait for:** N/A (workflow complete)
 
-## Supporting Documentation
+## Output Format
 
-- [ACTIVATION-TECHNIQUES.md](ACTIVATION-TECHNIQUES.md) - 5-minute rule, smallest step, etc.
-- [ENERGY-AWARE-SELECTION.md](ENERGY-AWARE-SELECTION.md) - Matching tasks to energy
-- [OVERWHELM-RESPONSE.md](OVERWHELM-RESPONSE.md) - Handling stuck/overwhelmed states
+- **Language:** Swedish (default)
+- **Style:** Encouraging, non-judgmental, supportive
+- **Action:** ONE concrete step only, never multiple options
+- **Tone:** No guilt, no pressure, frame deferrals positively
 
-## Design Principles
-
-1. **ONE thing** - Never present multiple options
-2. **Smallest step** - Break it down until it's obvious
-3. **5-minute rule** - Just start, decide later
-4. **No guilt** - Deferrals are rescheduling, not failure
-5. **Energy-aware** - Don't suggest high-energy tasks when user is drained
-6. **Momentum** - Small wins build confidence
-
-## Example Invocations
-
-### Example 1: Simple "What's Next?"
-
-**User**: "/next"
-
-**Response**:
+**Example for simple "what's next":**
 ```
 🎯 Nästa steg för dig:
 
@@ -146,11 +122,7 @@ bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Akt
 5 minuter - sedan bestämmer du om du fortsätter. Kör! 🚀
 ```
 
-### Example 2: User is Overwhelmed
-
-**User**: "Jag har för mycket, vet inte var jag ska börja"
-
-**Response**:
+**Example for overwhelmed:**
 ```
 Jag hör dig. Låt oss göra det enkelt.
 
@@ -166,40 +138,61 @@ Det är allt. Resten kan vänta.
 Redo?
 ```
 
-### Example 3: User is Stuck on Specific Task
+## Error Handling
 
-**User**: "Jag kan inte börja med rapporten"
+- **If `tasks getTodayTasks` returns empty:** Show message "Inga uppgifter för idag. Vill du fånga något nytt?" and suggest task-capture skill
+- **If no tasks match energy level:** Adjust matching criteria, or suggest a break/pause with message "Alla uppgifter kräver mer energi än du har just nu. Vill du ta en paus?"
+- **If user is overwhelmed but no easy tasks:** Find ANY task and break it into smallest possible step, even if artificially small
+- **If task already active:** Ask "Du har redan en aktiv uppgift: [task]. Vill du byta till något annat?"
+- **If `setTaskStatus` fails:** Log error to console, inform user task activation wasn't recorded but they can still work on it
+- **If `journal createEntry` fails:** Task status is still updated, just log warning to console
+- **If profile doesn't exist:** Use default energy level "medium" and proceed with general activation
 
-**Response**:
-```
-Rapporten känns stor - det förstår jag!
+## Anti-patterns
 
-Vad sägs om att vi bryter ner det?
+- **NEVER recommend high-energy task when energy is low** - always match energy level
+- **NEVER skip user confirmation before marking active** - always wait for user to say they're starting
+- **NEVER show multiple task options** - always suggest ONE thing only
+- **NEVER use guilt or pressure** - frame deferrals as rescheduling, not failure
+- **NEVER create new tasks** - only activate existing ones (use task-capture for new tasks)
+- **NEVER update task details** - only change status
+- **NEVER set status to "cancelled"** - only "active" or "done" allowed
+- **NEVER use direct SQL** - always use aida-cli.ts
+- **NEVER run query modules directly**
 
-🎯 Första steget:
-**Öppna dokumentet och skriv rubriken**
+## Tool Contract
 
-Bara rubriken! Inget mer.
+**Allowed CLI Operations:**
+- **tasks:** getTodayTasks, getTaskById, setTaskStatus (to "active" or "done")
+- **journal:** createEntry (type: task) - Log activation/completion
+- **profile:** getCurrentEnergyLevel, getProfile (READ ONLY)
 
-5 minuter, sedan pratar vi igen. Kör?
-```
+**Forbidden Operations:**
+- Creating new tasks (use task-capture skill)
+- Updating task details (title, description, etc.)
+- Deleting tasks
+- Updating profile
+- Setting status to "cancelled"
 
-### Example 4: Low Energy
+**Status Transition Rules:**
+- `ready|waiting → active` (when starting task)
+- `active → done` (when user indicates completion during activation flow)
 
-**User**: "Orkar ingenting..."
+**File Access:**
+- **Read:** `personal-profile.json`
+- **No file writes** - All operations via CLI
 
-**Response**:
-```
-Det är okej att vara trött. 💙
+## Supporting Documentation
 
-Vad sägs om EN liten sak som känns hanterbar?
+- [ACTIVATION-TECHNIQUES.md](ACTIVATION-TECHNIQUES.md) - 5-minute rule, smallest step, etc.
+- [ENERGY-AWARE-SELECTION.md](ENERGY-AWARE-SELECTION.md) - Matching tasks to energy
+- [OVERWHELM-RESPONSE.md](OVERWHELM-RESPONSE.md) - Handling stuck/overwhelmed states
 
-🎯 **Rensa 5 mail från inkorgen**
-   - Öppna mail
-   - Delete/Archive/Reply kort
-   - Klart!
+## Design Principles
 
-Lite framsteg > Inget framsteg.
-
-Eller vill du ta en paus först?
-```
+1. **ONE thing** - Never present multiple options
+2. **Smallest step** - Break it down until it's obvious
+3. **5-minute rule** - Just start, decide later
+4. **No guilt** - Deferrals are rescheduling, not failure
+5. **Energy-aware** - Don't suggest high-energy tasks when user is drained
+6. **Momentum** - Small wins build confidence

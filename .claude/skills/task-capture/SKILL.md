@@ -4,130 +4,169 @@ description: Quick, structured task capture with automatic processing. Use when 
 allowed-tools: Bash, Read
 ---
 
-# Task Capture Skill 📥
+# Skill: task-capture
 
 ## Purpose
 
 Provides minimal-friction task capture that processes natural language input into structured tasks. Focuses on SPEED over perfectionism - get it captured, refine later if needed.
 
-## Triggers
+## Trigger Conditions
 
-- **Command**: `/capture [text]`
-- **Auto-triggers**: "I need to...", "remind me to...", "add task", "new todo", "capture this", "jag måste...", "lägg till uppgift", "fånga detta", "kom ihåg att...", "todo:", "task:"
+- **Slash command:** `/capture [text]`
+- **Natural phrases:** ["I need to...", "remind me to...", "add task", "new todo", "capture this", "jag måste...", "lägg till uppgift", "fånga detta", "kom ihåg att...", "todo:", "task:"]
+- **Auto-trigger:** When user expresses something they need to do
 
-## Critical Rules
+## Required Context (gather BEFORE starting workflow)
 
-- **ALL database operations MUST use `aida-cli.ts`** - See "How to Query Database" section below
-- **NEVER use direct SQL queries**
-- **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
-- **Use Swedish** for user-facing output
-- **SPEED is key** - Capture first, refine later
-- **Ask ONLY if role is ambiguous** - Don't over-ask, infer when possible
+1. Active roles via `roles getActiveRoles` → returns Role[] for role inference
+2. Active projects via `projects getActiveProjects` → returns Project[] for project linking (optional)
 
-## 🚨 How to Query Database
-
-**ONLY use the `aida-cli.ts` tool for ALL database operations:**
-
+**How to gather context:**
 ```bash
-# CORRECT - Always use this pattern:
-bun run src/aida-cli.ts <module> <function> [args...]
-
-# WRONG - NEVER do this:
-bun run src/database/queries/tasks.ts createTask '...'  # ❌ NO!
-sqlite3 .system/data/aida.db "INSERT INTO..."                     # ❌ NO!
-```
-
-**Queries you will need:**
-
-```bash
-# Create a new task
-bun run src/aida-cli.ts tasks createTask '{"title":"Task title","role_id":1}'
-
-# Search for existing tasks (to avoid duplicates)
-bun run src/aida-cli.ts tasks searchTasks "keyword"
-
-# Get active roles (for role selection)
+# Get active roles (for role inference/selection)
 bun run src/aida-cli.ts roles getActiveRoles
 
-# Search projects (for project association)
-bun run src/aida-cli.ts projects searchProjects "keyword"
-
-# Create journal entry (to log the capture)
-bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Captured: [task title]"}'
+# Get active projects (optional, for project association)
+bun run src/aida-cli.ts projects getActiveProjects
 ```
 
-**⚠️ OBS:** Använd alltid explicit timestamp via `getTimeInfo()` - omit aldrig!
+## Workflow Steps
 
-## Workflow
-
-### 1. Parse Input
+### Step 1: Parse Input
 
 See [PARSING-RULES.md](PARSING-RULES.md) for detailed parsing rules.
 
-**Extract from natural language:**
-- Task title (required)
-- Deadline/dates (if mentioned)
-- Role hints (if mentioned)
-- Project hints (if mentioned)
-- Energy requirement hints (if inferrable)
-- Priority hints (if mentioned)
+- **Action:** Extract task title, deadline hints, role hints, project hints, energy hints, priority hints
+- **Output to user:** None (internal processing)
+- **Wait for:** Continue immediately
 
-### 2. Infer Role
+### Step 2: Infer Role
 
-See [ROLE-INFERENCE.md](ROLE-INFERENCE.md) for inference rules.
+See [ROLE-INFERENCE.md](ROLE-INFERENCE.md) for detailed inference rules.
 
-**First: Try to infer automatically:**
-- Keywords → Role mapping
-- Project context → Role
-- Previous conversation context → Role
+- **Action:** Match keywords, project context, or conversation context to determine role
+- **Output to user:** If ambiguous, ask "Vilken roll gäller detta?" with role options
+- **Wait for:** User selects role (only if ambiguous)
 
-**Only if ambiguous: Ask user**
+### Step 3: Check for Duplicates (Optional)
+
+- **Action:** Search existing tasks via `tasks searchTasks "[parsed title]"`
+- **Output to user:** If similar task found, warn: "Det finns redan en liknande uppgift: [title]. Vill du lägga till ändå?"
+- **Wait for:** User confirms or cancels
+
+### Step 4: Create Task
+
+- **Action:** Create task via `tasks createTask {...}`
+- **CLI call:**
+  ```bash
+  bun run src/aida-cli.ts tasks createTask '{
+    "title": "[parsed title]",
+    "role_id": [inferred/selected role id],
+    "deadline": "[parsed date or null]",
+    "priority": [0-3, default 0],
+    "energy_requirement": "[low/medium/high or null]",
+    "project_id": [associated project or null]
+  }'
+  ```
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
+
+### Step 5: Create Journal Entry
+
+- **Action:** Log capture via `journal createEntry {...}`
+- **CLI call:**
+  ```bash
+  bun run src/aida-cli.ts journal createEntry '{
+    "entry_type": "task",
+    "content": "Fångade: [task title]",
+    "related_task_id": [created task id]
+  }'
+  ```
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
+
+### Step 6: Confirm & Suggest Next Step
+
+- **Output to user:**
+  ```
+  ✅ Fångat: "[task title]"
+     Roll: [role name]
+     [Deadline: datum] (if set)
+
+  Vill du göra något mer med den? (annars är den sparad i captured-status)
+  ```
+- **Optional follow-ups:**
+  - "Vill du sätta en deadline?"
+  - "Ska vi aktivera den nu?" (triggers task-activation)
+  - "Finns det fler saker att fånga?"
+- **Wait for:** User input (optional)
+
+## Output Format
+
+- **Language:** Swedish (default)
+- **Style:** Quick confirmation, minimal text
+- **Confirmation:** Always show captured task with role and deadline (if set)
+
+**Example output:**
 ```
-Vilken roll gäller detta?
-- Systemutvecklare
-- Digitaliseringssamordnare
-- Förälder
-- [etc...]
+✅ Fångat: "Ringa tandläkaren"
+   Roll: Förälder
+
+Sparad! Något mer?
 ```
 
-### 3. Create Task
+**Example with deadline:**
+```
+✅ Fångat: "Skicka rapporten till chefen"
+   Roll: Systemutvecklare
+   Deadline: 2025-12-20
 
-```bash
-bun run src/aida-cli.ts tasks createTask '{
-  "title": "[parsed title]",
-  "role_id": [inferred or selected role id],
-  "deadline": "[parsed date or null]",
-  "priority": [0-3, default 0],
-  "energy_requirement": "[low/medium/high or null]",
-  "project_id": [associated project or null]
-}'
+Sparad med deadline! 📅
 ```
 
-### 4. Create Journal Entry
+## Error Handling
 
-```bash
-bun run src/aida-cli.ts journal createEntry '{
-  "entry_type": "task",
-  "content": "Fångade: [task title]",
-  "related_task_id": [created task id]
-}'
-```
+- **If `roles getActiveRoles` returns empty:** Show error "Inga roller finns. Du behöver skapa roller först via profile-management."
+- **If role inference fails and no clarification:** Use first active role as default and inform user "Sparad i [role name]. Om det är fel roll kan du ändra senare."
+- **If `tasks createTask` fails:** Show error message with details, ask user if they want to retry
+- **If `journal createEntry` fails:** Task is still created, just log warning to console and continue
+- **If duplicate task found:** Warn user and ask for confirmation before proceeding
+- **If project not found:** Ignore project_id and create task without project association
 
-### 5. Confirm & Suggest Next Step
+## Anti-patterns
 
-**Quick confirmation (Swedish):**
-```
-✅ Fångat: "[task title]"
-   Roll: [role name]
-   [Deadline: datum] (if set)
+- **NEVER create task without role_id** - always infer or ask for role
+- **NEVER use non-existent project_id** - validate project exists before associating
+- **NEVER over-ask** - infer as much as possible, only ask if truly ambiguous
+- **NEVER force all fields** - capture with minimal info, user can refine later
+- **NEVER modify existing tasks** - only create new ones
+- **NEVER change task status** - tasks are created with status='captured'
+- **NEVER use direct SQL** - always use aida-cli.ts
+- **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
 
-Vill du göra något mer med den? (annars är den sparad i captured-status)
-```
+## Tool Contract
 
-**Optional follow-ups:**
-- "Vill du sätta en deadline?"
-- "Ska vi aktivera den nu?" (triggers task-activation)
-- "Finns det fler saker att fånga?"
+**Allowed CLI Operations:**
+- **tasks:** createTask, searchTasks (duplicate check)
+- **roles:** getActiveRoles, getRoleById (READ ONLY)
+- **projects:** searchProjects, getActiveProjects (READ ONLY)
+- **journal:** createEntry (type: task)
+
+**Forbidden Operations:**
+- Updating existing tasks
+- Changing task status
+- Deleting tasks
+- Any profile operations
+- Any plan operations
+
+**Default Task Values:**
+- status: `captured`
+- priority: inferred or null
+- energy_requirement: inferred or null
+
+**File Access:**
+- **No file reads needed**
+- **No file writes** - All operations via CLI
 
 ## Supporting Documentation
 
@@ -141,41 +180,3 @@ Vill du göra något mer med den? (annars är den sparad i captured-status)
 2. **Minimal questions** - Infer as much as possible
 3. **Non-blocking** - Don't force user to fill in all fields
 4. **Confirm, don't interrogate** - Show what was captured, offer to adjust
-
-## Example Invocations
-
-### Example 1: Simple Capture
-**User**: "Jag måste ringa tandläkaren"
-
-**Response**:
-```
-✅ Fångat: "Ringa tandläkaren"
-   Roll: Förälder (inferred from personal context)
-
-Sparad! Något mer?
-```
-
-### Example 2: With Deadline
-**User**: "/capture Skicka rapporten till chefen innan fredag"
-
-**Response**:
-```
-✅ Fångat: "Skicka rapporten till chefen"
-   Roll: [Frågar om det är oklart]
-   Deadline: 2025-12-20 (fredag)
-
-Sparad med deadline! 📅
-```
-
-### Example 3: With Context
-**User**: "Ny task: Implementera auth-modulen för AIDA-projektet"
-
-**Response**:
-```
-✅ Fångat: "Implementera auth-modulen"
-   Roll: Systemutvecklare
-   Projekt: AIDA - AI Digital Assistant
-   Energi: Hög (inferred from "implementera")
-
-Sparad! Ska vi sätta en deadline?
-```

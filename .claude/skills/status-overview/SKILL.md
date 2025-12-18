@@ -4,177 +4,153 @@ description: Role and project workload overview. Use when user wants to see thei
 allowed-tools: Bash, Read
 ---
 
-# Status Overview Skill 📊
+# Skill: status-overview
 
 ## Purpose
 
 Provides clear visibility into workload across roles and projects. Helps users understand their current balance, identify attention items (overdue, stale), and make informed decisions about where to focus.
 
-## Triggers
+## Trigger Conditions
 
-- **Command**: `/overview [role]`
-- **Auto-triggers**: "how am I doing", "workload", "what's on my plate", "role balance", "project status", "hur ligger jag till", "arbetsbelastning", "rollbalans", "visa status", "hur ser det ut", "översikt"
+- **Slash command:** `/overview [role]`
+- **Natural phrases:** ["how am I doing", "workload", "what's on my plate", "role balance", "project status", "hur ligger jag till", "arbetsbelastning", "rollbalans", "visa status", "hur ser det ut", "översikt"]
+- **Auto-trigger:** When user asks about their current status or workload
 
-## Critical Rules
+## Required Context (gather BEFORE starting workflow)
 
-- **ALL database operations MUST use `aida-cli.ts`** - See "How to Query Database" section below
-- **NEVER use direct SQL queries**
-- **NEVER run query modules directly**
-- **Use Swedish** for user-facing output
-- **Highlight actionable insights** - Don't just list, interpret
-- **Show imbalances** - Compare actual vs target balance
+1. Active roles via `roles getActiveRoles` → returns Role[] for overview
+2. Overdue tasks via `tasks getOverdueTasks` → returns Task[] for attention flags
+3. Stale tasks via `tasks getStaleTasks` → returns Task[] for attention flags
+4. Profile via `profile getProfile` → returns full profile (optional, for role balance targets)
 
-## 🚨 How to Query Database
-
-**ONLY use the `aida-cli.ts` tool for ALL database operations:**
-
-```bash
-# CORRECT - Always use this pattern:
-bun run src/aida-cli.ts <module> <function> [args...]
-
-# WRONG - NEVER do this:
-bun run src/database/queries/roles.ts getActiveRoles  # ❌ NO!
-```
-
-**Queries you will need:**
-
+**How to gather context:**
 ```bash
 # Get all active roles
 bun run src/aida-cli.ts roles getActiveRoles
 
-# Get specific role details
-bun run src/aida-cli.ts roles getRoleById 1
-
-# Get tasks by role
-bun run src/aida-cli.ts tasks getTasksByRole 1
-
-# Get overdue tasks
+# Get overdue tasks (attention flags)
 bun run src/aida-cli.ts tasks getOverdueTasks
 
-# Get stale tasks
+# Get stale tasks (attention flags)
 bun run src/aida-cli.ts tasks getStaleTasks
 
-# Get projects by role
-bun run src/aida-cli.ts projects getProjectsByRole 1
+# Get profile (optional, for balance targets)
+bun run src/aida-cli.ts profile getProfile
 ```
 
-## Workflow
+## Workflow Steps
 
-### Mode 1: General Overview (No Role Specified)
+### Mode Selection
+
+Determine which mode based on user input:
+- **Mode 1:** General overview (no role specified)
+- **Mode 2:** Role-specific overview (role name/ID provided)
+
+### Mode 1: General Overview
 
 **Trigger:** `/overview` or "hur ligger jag till"
 
-**Steps:**
-1. Fetch all active roles
-2. For each role, count tasks by status
-3. Calculate role balance vs targets
-4. Identify attention items across all roles
-5. Present summary with drill-down options
+#### Step 1: Gather Role Data
 
-```bash
-# Get roles
-bun run src/aida-cli.ts roles getActiveRoles
+- **Action:** For each active role, get task counts via `tasks getTasksByRole [role_id]`
+- **CLI calls:**
+  ```bash
+  # For each role from getActiveRoles:
+  bun run src/aida-cli.ts tasks getTasksByRole [role_id]
+  ```
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
 
-# For each role, get task counts
-bun run src/aida-cli.ts tasks getTasksByRole [role_id]
+#### Step 2: Calculate Balance
 
-# Get attention items
-bun run src/aida-cli.ts tasks getOverdueTasks
-bun run src/aida-cli.ts tasks getStaleTasks
-```
+See [ROLE-BALANCE.md](ROLE-BALANCE.md) for balance calculations.
+
+- **Action:** Calculate percentage of tasks per role vs profile balance targets
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
+
+#### Step 3: Identify Attention Items
+
+See [ATTENTION-FLAGS.md](ATTENTION-FLAGS.md) for criteria.
+
+- **Action:** Flag overdue tasks, stale tasks, imbalanced roles
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
+
+#### Step 4: Present Summary
+
+- **Output to user:**
+  ```
+  📊 Din arbetsbelastning
+
+  [Table with roles, task counts, balance percentages]
+
+  ⚠️ Kräver uppmärksamhet:
+  • [attention items]
+
+  Vill du se detaljer för en roll? (/overview [roll])
+  ```
+- **Wait for:** User may request role-specific view
 
 ### Mode 2: Role-Specific Overview
 
 **Trigger:** `/overview Developer` or "hur ligger Developer-rollen till"
 
-**Steps:**
-1. Fetch role details
-2. Get all tasks for role (grouped by status)
-3. Get projects for role
-4. Identify role-specific attention items
-5. Present detailed breakdown
+#### Step 1: Get Role Details
 
-```bash
-# Get role details
-bun run src/aida-cli.ts roles getRoleById [id]
+- **Action:** Fetch role via `roles getRoleById [id]` and tasks via `tasks getTasksByRole [id]`
+- **CLI calls:**
+  ```bash
+  bun run src/aida-cli.ts roles getRoleById [id]
+  bun run src/aida-cli.ts tasks getTasksByRole [id]
+  bun run src/aida-cli.ts projects getProjectsByRole [id]
+  ```
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
 
-# Get role tasks
-bun run src/aida-cli.ts tasks getTasksByRole [id]
+#### Step 2: Group by Status and Project
 
-# Get role projects
-bun run src/aida-cli.ts projects getProjectsByRole [id]
-```
+- **Action:** Count tasks by status (captured, ready, planned, active, done), list projects with task counts
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
 
-## Supporting Documentation
+#### Step 3: Identify Role-Specific Attention Items
 
-- [ROLE-BALANCE.md](ROLE-BALANCE.md) - Balance target calculations
-- [ATTENTION-FLAGS.md](ATTENTION-FLAGS.md) - What deserves attention
+- **Action:** Flag overdue/stale tasks specific to this role
+- **Output to user:** None yet
+- **Wait for:** Continue immediately
 
-## Output Formats
+#### Step 4: Present Role Breakdown
 
-### General Overview Format
+- **Output to user:**
+  ```
+  📊 [Role Name] - Status
 
-```
-📊 Din arbetsbelastning
+  📈 Uppgifter:
+  • Captured: [n]
+  • Ready: [n]
+  • Planned: [n]
+  • Active: [n]
+  • Done (denna vecka): [n]
 
-┌─────────────────────────────────────────┐
-│ Roll                │ Tasks │ Balans   │
-├─────────────────────────────────────────┤
-│ 💼 Systemutvecklare │  12   │ ✅ 45%   │
-│ 🏠 Förälder         │   5   │ ⚠️ 15%   │
-│ 🎮 Hobbyutvecklare  │   8   │ ✅ 30%   │
-│ 🏛️ Ordförande       │   3   │ ✅ 10%   │
-└─────────────────────────────────────────┘
+  📁 Projekt:
+  • [project] ([n] tasks, [n] aktiva)
 
-⚠️ Kräver uppmärksamhet:
-• 2 försenade tasks
-• 1 stale task (captured >28 dagar)
+  ⚠️ Kräver uppmärksamhet:
+  • [attention items]
 
-💡 Förälder-rollen har för lite fokus (15% vs mål 25%)
+  🎯 Förslag:
+  [actionable suggestions]
+  ```
+- **Wait for:** N/A (workflow complete)
 
-Vill du se detaljer för en roll? (/overview [roll])
-```
+## Output Format
 
-### Role-Specific Format
+- **Language:** Swedish (default)
+- **Style:** Clear tables, visual indicators (emoji), actionable insights
+- **Structure:** Summary first, details on request (drill-down)
 
-```
-📊 Systemutvecklare - Status
-
-📈 Uppgifter:
-• Captured: 3
-• Ready: 5
-• Planned: 2
-• Active: 2
-• Done (denna vecka): 4
-
-📁 Projekt:
-• AIDA (8 tasks, 2 aktiva)
-• Legacy Migration (4 tasks, 0 aktiva)
-
-⚠️ Kräver uppmärksamhet:
-• "API-dokumentation" - Försenad 3 dagar
-• "Refaktorera auth" - Stale (captured 35 dagar sen)
-
-🎯 Förslag:
-1. Ta hand om försenad task först
-2. Besluta om stale task (gör/ta bort/flytta)
-```
-
-## Design Principles
-
-1. **Actionable insights** - Don't just show data, interpret it
-2. **Highlight problems** - Overdue and stale items need attention
-3. **Show balance** - Compare actual vs target role distribution
-4. **Enable drill-down** - Overview → Role → Task
-5. **No overwhelm** - Summary first, details on request
-
-## Example Invocations
-
-### Example 1: General Check
-
-**User**: "/overview"
-
-**Response**:
+**Example general overview:**
 ```
 📊 Din arbetsbelastning just nu
 
@@ -192,11 +168,7 @@ Du har totalt 28 uppgifter fördelade på 4 roller:
 Vill du gå djupare i någon roll?
 ```
 
-### Example 2: Role-Specific
-
-**User**: "/overview Förälder"
-
-**Response**:
+**Example role-specific:**
 ```
 📊 Förälder - Status
 
@@ -215,29 +187,59 @@ Inga försenade eller stale tasks! 👏
 Vill du aktivera någon? (/next)
 ```
 
-### Example 3: Project Status
+## Error Handling
 
-**User**: "Hur går AIDA-projektet?"
+- **If `roles getActiveRoles` returns empty:** Show message "Inga roller finns ännu. Du behöver skapa roller via profile-management först."
+- **If no tasks exist:** Show empty state "Inga uppgifter ännu. Vill du fånga något nytt?" and suggest task-capture
+- **If role not found (Mode 2):** Show error "Rollen '[name]' hittades inte. Tillgängliga roller: [list]"
+- **If `tasks getTasksByRole` fails:** Show error message, skip that role in overview
+- **If profile doesn't exist or no balance targets:** Skip balance comparison, just show task counts
+- **If no attention items:** Show positive message "Allt ser bra ut! 👏"
 
-**Response**:
-```
-📊 AIDA - AI Digital Assistant
+## Anti-patterns
 
-📈 Progress: 6/15 tasks klara (40%)
+- **NEVER show raw task counts without context** - always include interpretation/insights
+- **NEVER skip overdue/stale warnings** - these must always be highlighted
+- **NEVER present all tasks** - show counts and drill-down options, not full lists
+- **NEVER modify data** - this is a read-only skill
+- **NEVER create tasks, journal entries, or update profile** - only display information
+- **NEVER ignore imbalances** - if role balance differs from targets, mention it
+- **NEVER use direct SQL** - always use aida-cli.ts
+- **NEVER run query modules directly**
 
-📋 Status:
-• Captured: 3
-• Ready: 4
-• Planned: 2
-• Active: 1
-• Done: 5
+## Tool Contract
 
-⏱️ Aktiv task:
-"Implementera skills-system"
+**Allowed CLI Operations:**
+- **tasks:** getTasksByRole, getOverdueTasks, getStaleTasks, getTodayTasks (READ ONLY)
+- **roles:** getActiveRoles, getRoleById (READ ONLY)
+- **projects:** getProjectsByRole, getActiveProjects (READ ONLY)
+- **profile:** getProfile, getAttribute (READ ONLY)
 
-⚠️ Uppmärksamhet:
-• "Skriv tester" - Ready i 14 dagar (stale?)
+**Forbidden Operations:**
+- Creating tasks
+- Modifying task status
+- Updating profile
+- Creating journal entries
+- Any delete operations
 
-🎯 Nästa logiska steg:
-Ta hand om aktiva tasken, sedan "Skriv tester"
-```
+**Output Only:**
+- Formatted workload summary
+- Attention flags (overdue, stale, imbalance warnings)
+- No data modifications
+
+**File Access:**
+- **Read:** `personal-profile.json`
+- **No file writes** - Read-only skill
+
+## Supporting Documentation
+
+- [ROLE-BALANCE.md](ROLE-BALANCE.md) - Balance target calculations
+- [ATTENTION-FLAGS.md](ATTENTION-FLAGS.md) - What deserves attention
+
+## Design Principles
+
+1. **Actionable insights** - Don't just show data, interpret it
+2. **Highlight problems** - Overdue and stale items need attention
+3. **Show balance** - Compare actual vs target role distribution
+4. **Enable drill-down** - Overview → Role → Task
+5. **No overwhelm** - Summary first, details on request

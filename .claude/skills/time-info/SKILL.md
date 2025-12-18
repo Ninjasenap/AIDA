@@ -1,5 +1,6 @@
 ---
 name: time-info
+type: internal
 description: Parse and format Swedish date and time expressions, return comprehensive time information. Use when the user asks about dates, times, weekdays, countdowns, or Swedish time expressions like "imorgon", "nästa vecka", "halv tre", "påskafton", or when date/time information is needed for tasks, scheduling, or calendar operations.
 allowed-tools: Bash
 ---
@@ -16,6 +17,25 @@ Automatically invoke this skill when:
 - Swedish expressions: "nästa vecka", "förra måndagen", "halv tre"
 - Scheduling needs: planning tasks, setting deadlines, calendar operations
 - Any context requiring date/time parsing or formatting
+
+## Tool Contract
+
+**Allowed Operations:**
+- **ONLY**: `bun run src/utilities/time.ts getTimeInfo [expression]`
+
+**Forbidden Operations:**
+- Any aida-cli.ts calls
+- Any database access
+- Any file reads/writes
+- Any data modifications
+
+**Output Only:**
+- Structured time information object (JSON)
+- No side effects
+
+**Purpose:**
+- Internal support skill for date/time parsing
+- Used by other skills, not directly by users
 
 ## How to Use
 

@@ -31,6 +31,37 @@ Silently observe user patterns and suggest profile improvements through evidence
 - Notes timing preferences
 - Builds evidence-based suggestions for profile updates
 
+## Tool Contract
+
+**Allowed CLI Operations:**
+- **journal**: getEntriesByDateRange, getTodayEntries (READ ONLY)
+- **tasks**: getWeekTasks, getTasksByRole, getTodayTasks (READ ONLY)
+- **roles**: getActiveRoles, getRoleById (READ ONLY)
+- **profile**: getProfile, getAttribute, addObservation, updateAttribute (READ + WRITE)
+
+**Forbidden Operations:**
+- Creating tasks
+- Modifying task status
+- Creating journal entries
+- Initializing profile
+- Deleting any data
+
+**Profile Update Rules:**
+- **Observations only** for confidence < 0.8
+- **Direct updates allowed** for confidence ≥ 0.8
+  - Must set source: "learned"
+  - Must include reason with evidence summary
+  - All updates logged in feedback_history
+- Never auto-apply without meeting confidence threshold
+
+**File Access:**
+- **Read**: `personal-profile.json`
+- **No file writes** - All operations via CLI
+
+**Analysis Window:**
+- Default: Last 7-14 days
+- Minimum data requirements apply (see Error Handling section)
+
 ## When to Invoke
 
 **DO invoke this agent**:
@@ -291,12 +322,13 @@ This agent outputs to the profile's `learning_observations` section via CLI.
 
 ## Important Constraints
 
-- **Never auto-apply changes** - Only create observations with suggestions
+- **Auto-apply only high-confidence** - Direct profile updates allowed only for confidence ≥ 0.8, otherwise create observations
 - **Require evidence** - No observations without supporting data
 - **Respect privacy** - Analyze only journal/task data, not external sources
 - **Be conservative** - High confidence threshold before suggesting (≥60%)
 - **Allow dismissal** - User can dismiss any observation
 - **Update existing** - If pattern strengthens, update observation confidence and evidence rather than creating duplicate
+- **Audit trail** - All direct updates logged with source="learned" and reason containing evidence summary
 
 ## Post-Analysis Actions
 

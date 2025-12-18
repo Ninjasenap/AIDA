@@ -49,6 +49,27 @@ When the profile-learner agent runs, this skill is auto-loaded to display result
 - **Validate before saving** any changes
 - **Show observations transparently** - user should understand what AIDA has learned
 
+## Tool Contract
+
+**Allowed CLI Operations (profile module only):**
+- **FULL ACCESS**: profileExists, getProfile, getSection, getAttribute, updateAttribute, initializeProfile
+- **TIME QUERIES**: getCurrentTimePeriod, getCurrentEnergyLevel, getActivitiesForEnergy
+- **OBSERVATIONS**: getObservations, applyObservationSuggestion, getSuggestionAcceptanceRate
+
+**Forbidden Operations:**
+- Any task operations
+- Any journal operations
+- Any role/project management
+- Profile deletion (if such function exists)
+
+**Update Requirements:**
+- source: always "user" (this skill represents user-initiated changes)
+- reason: required for all updates
+
+**File Access:**
+- **Read**: `personal-profile.json`
+- **No direct file writes** - All updates via CLI
+
 ## 🚨 How to Access Profile
 
 **ONLY use the `aida-cli.ts` tool for ALL profile operations:**
