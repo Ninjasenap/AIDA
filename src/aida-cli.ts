@@ -41,6 +41,7 @@ import * as journal from './database/queries/journal';
 import * as journalMd from './utilities/journal-markdown';
 import * as plan from './utilities/daily-plan';
 import * as profile from './utilities/profile';
+import { serializeWithMaps } from './utilities/json-serialization';
 
 const modules = { tasks, roles, projects, journal, journalMd, plan, profile };
 
@@ -84,7 +85,7 @@ const parsedArgs = args.map(a => {
 
 try {
   const result = await (fn as any)(...parsedArgs);
-  console.log(JSON.stringify(result, null, 2));
+  console.log(serializeWithMaps(result));
 } catch (error) {
   console.error('Error executing query:', error instanceof Error ? error.message : String(error));
   process.exit(1);

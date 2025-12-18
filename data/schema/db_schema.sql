@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS roles (
                         'active', 'inactive', 'historical'
                     )),
     balance_target  REAL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 -- =============================================================================
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS projects (
                     )),
     description     TEXT NOT NULL,
     finish_criteria TEXT,  -- JSON array: [{"criterion": "...", "done": false}, ...]
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
 );
 
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     start_date          TEXT,
     deadline            TEXT,
     remind_date         TEXT,
-    created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at          TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT,
     FOREIGN KEY (parent_task_id) REFERENCES tasks(id) ON DELETE SET NULL
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS journal_entries (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp           TEXT NOT NULL DEFAULT (datetime('now')),
+    timestamp           TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     entry_type          TEXT NOT NULL DEFAULT 'check-in' CHECK (entry_type IN (
                         'checkin', 'reflection', 'task', 'event', 'note', 'idea'
                     )),
@@ -132,7 +132,7 @@ CREATE INDEX IF NOT EXISTS idx_journal_role ON journal_entries(related_role_id);
 CREATE TRIGGER IF NOT EXISTS trg_roles_updated_at
 AFTER UPDATE ON roles
 BEGIN
-    UPDATE roles SET updated_at = datetime('now') WHERE id = NEW.id;
+    UPDATE roles SET updated_at = datetime('now', 'localtime') WHERE id = NEW.id;
 END;
 
 -- =============================================================================
@@ -177,11 +177,11 @@ SELECT
     FROM tasks st
     WHERE st.parent_task_id = t.id) AS subtasks_json,
     -- Calculated fields
-    CAST((julianday('now') - julianday(t.created_at)) AS INTEGER) AS days_since_creation,
+    CAST((julianday('now', 'localtime') - julianday(t.created_at)) AS INTEGER) AS days_since_creation,
     CASE
-        WHEN t.deadline IS NOT NULL AND DATE(t.deadline) < DATE('now')
+        WHEN t.deadline IS NOT NULL AND DATE(t.deadline) < DATE('now', 'localtime')
              AND t.status NOT IN ('done', 'cancelled')
-        THEN CAST((julianday('now') - julianday(t.deadline)) AS INTEGER)
+        THEN CAST((julianday('now', 'localtime') - julianday(t.deadline)) AS INTEGER)
         ELSE NULL
     END AS days_overdue,
     CAST(strftime('%W', COALESCE(t.deadline, t.start_date, t.created_at)) AS INTEGER) AS week_number
@@ -198,10 +198,10 @@ CREATE VIEW IF NOT EXISTS v_today_tasks AS
 SELECT * FROM v_tasks_full
 WHERE status NOT IN ('done', 'cancelled')
   AND (
-    DATE(start_date) <= DATE('now')
-    OR DATE(deadline) <= DATE('now')
-    OR (DATE(deadline) <= DATE('now', '+7 days') AND start_date IS NULL)
-    OR DATE(remind_date) = DATE('now')
+    DATE(start_date) <= DATE('now', 'localtime')
+    OR DATE(deadline) <= DATE('now', 'localtime')
+    OR (DATE(deadline) <= DATE('now', 'localtime', '+7 days') AND start_date IS NULL)
+    OR DATE(remind_date) = DATE('now', 'localtime')
   )
 ORDER BY
     CASE WHEN days_overdue IS NOT NULL THEN 0 ELSE 1 END,
@@ -295,7 +295,7 @@ SELECT
     (SELECT COUNT(*) FROM tasks WHERE role_id = r.id AND status = 'planned') AS planned_tasks,
     -- Overdue tasks
     (SELECT COUNT(*) FROM tasks WHERE role_id = r.id
-     AND deadline IS NOT NULL AND DATE(deadline) < DATE('now')
+     AND deadline IS NOT NULL AND DATE(deadline) < DATE('now', 'localtime')
      AND status NOT IN ('done', 'cancelled')) AS overdue_tasks,
     -- Projects as JSON
     (SELECT json_group_array(json_object(
