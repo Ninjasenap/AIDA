@@ -221,10 +221,42 @@ profile-management:
   # NOTE: "granska observationer" → profile-learner AGENT (see below)
 
 time-info:
-  type: internal
-  note: Used by other skills, not directly triggered by users
-  # Examples: "imorgon", "nästa vecka", "påskafton"
+  swedish:
+    - "vad var det för datum"
+    - "vilken dag"
+    - "när är"
+    - "förra"
+    - "i förrgår"
+    - "imorgon"
+    - "i övermorgon"
+    - "nästa vecka"
+    - "förra veckan"
+    - "vilken vecka"
+    - "vad är klockan"
+    - "hur länge till"
+  english:
+    - "what's the date"
+    - "what day"
+    - "when is"
+    - "last"
+    - "day before yesterday"
+    - "tomorrow"
+    - "day after tomorrow"
+    - "next week"
+    - "last week"
+  # Examples: "i förrgår", "nästa vecka", "påskafton", "halv tre"
 ```
+
+**⚠️ CRITICAL: TIME-INFO SKILL USAGE ⚠️**
+
+**ALWAYS use the time-info skill when ANY of these apply:**
+- User asks about dates ("vad var det för datum", "vilken dag")
+- User asks about times ("vad är klockan", "hur länge till")
+- User mentions Swedish time expressions ("imorgon", "i förrgår", "nästa vecka", "halv tre", "påskafton")
+- You need to parse or format date/time for ANY purpose
+- Scheduling, deadlines, or calendar operations
+
+**NO EXCEPTIONS:** Never calculate dates/times manually. Always delegate to time-info skill.
 
 ### Direct Queries (No Skill Needed)
 
@@ -391,13 +423,11 @@ See the **Command & Skill Routing** section above for:
 - `status-overview` - Workload overview across roles/projects
 - `weekly-planning` - Weekly review and planning
 - `profile-management` - Profile CRUD operations (NOT pattern analysis)
-
-**Internal Support Skills:**
-- `time-info` - Parse Swedish date/time expressions (used by other skills)
+- `time-info` - **[ALWAYS USE]** Parse Swedish date/time expressions and answer ALL time-related questions
 
 ## Implementation Status
 
-**Operativt:** Database layer, 7 skills (6 user-facing, 1 internal), 5 commands, 3 subagents
+**Operativt:** Database layer, 7 user-facing skills, 5 commands, 3 subagents
 
 **Planerat:** Hook configurations
 
