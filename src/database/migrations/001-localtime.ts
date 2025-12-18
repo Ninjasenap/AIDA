@@ -16,11 +16,22 @@
 
 import { Database } from 'bun:sqlite';
 import { resolve } from 'path';
+import { homedir } from 'os';
 
 // Get database path from config
 const configPath = resolve(import.meta.dir, '../../../config/aida-paths.json');
 const config = JSON.parse(await Bun.file(configPath).text());
-const dbPath = resolve(config.pkm, '.aida/data/aida.db');
+
+// Expand ~ in path
+const expandHome = (path: string) => {
+  if (path.startsWith('~/')) {
+    return resolve(homedir(), path.slice(2));
+  }
+  return path;
+};
+
+const pkmRoot = expandHome(config.paths.pkm_root);
+const dbPath = resolve(pkmRoot, '.aida/data/aida.db');
 
 console.log(`Migrating database at: ${dbPath}`);
 
