@@ -163,9 +163,14 @@ function setRoleStatus(id: number, status: RoleStatus): Role | null
 function getProjectById(id: number): ProjectFull | null
 
 /**
- * Get all projects grouped by status.
+ * Get all projects grouped by status (includes all statuses).
  */
-function getAllProjects(includeCompleted?: boolean): Map<ProjectStatus, ProjectFull[]>
+function getAllProjects(): Map<ProjectStatus, ProjectFull[]>
+
+/**
+ * Get only active projects.
+ */
+function getActiveProjects(): ProjectFull[]
 
 /**
  * Fuzzy search projects by name.

@@ -43,7 +43,8 @@ bun run src/aida-cli.ts <module> <function> [args...]
 
 | Operation | CLI Command | Returns | Notes |
 |-----------|-------------|---------|-------|
-| Get all projects | `projects getAllProjects` | Map<status, Project[]> | Active by default |
+| Get all projects | `projects getAllProjects` | Map<status, Project[]> | Includes all statuses |
+| Get active projects | `projects getActiveProjects` | ProjectFull[] | Only active projects |
 | Get project by ID | `projects getProjectById 5` | ProjectFull \| null | - |
 | Search projects | `projects searchProjects "AIDA"` | ProjectFull[] | Fuzzy search |
 | Projects by role | `projects getProjectsByRole 2` | Map<status, Project[]> | - |
