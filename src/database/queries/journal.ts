@@ -68,7 +68,7 @@ export function getTodayEntries(): JournalEntryFull[] {
        LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
-       WHERE DATE(je.timestamp) = DATE('now')
+       WHERE DATE(je.timestamp) = DATE('now', 'localtime')
        ORDER BY datetime(je.timestamp) ASC`
     )
     .all() as JournalEntryFull[];

@@ -56,6 +56,8 @@ bun run src/aida-cli.ts projects searchProjects "keyword"
 bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Captured: [task title]"}'
 ```
 
+**⚠️ OBS:** Använd alltid explicit timestamp via `getTimeInfo()` - omit aldrig!
+
 ## Workflow
 
 ### 1. Parse Input

@@ -17,7 +17,7 @@ description: |
   - User: "Review observations" → Invoke profile-learner
 model: haiku
 tools: Bash, Read
-skills: profile-management
+skills: profile-management, time-info
 ---
 
 # Profile Learning Agent
@@ -51,8 +51,10 @@ Silently observe user patterns and suggest profile improvements through evidence
 
 **Query recent check-ins** (last 14 days):
 ```bash
-END_DATE=$(date +%Y-%m-%d)
-START_DATE=$(date -v-14d +%Y-%m-%d)
+# Hämta dagens datum via time-info
+END_DATE=$(bun run src/utilities/time.ts getTimeInfo | jq -r '.date')
+# Beräkna 14 dagar sedan
+START_DATE=$(bun run src/utilities/time.ts getTimeInfo "för 14 dagar sedan" | jq -r '.date')
 bun run src/aida-cli.ts journal getEntriesByDateRange "$START_DATE" "$END_DATE"
 ```
 
@@ -92,8 +94,10 @@ bun run src/aida-cli.ts profile addObservation '{
 
 **Query completed tasks** (last 14 days):
 ```bash
-START_DATE=$(date -v-14d +%Y-%m-%d)
-END_DATE=$(date +%Y-%m-%d)
+# Hämta dagens datum via time-info
+END_DATE=$(bun run src/utilities/time.ts getTimeInfo | jq -r '.date')
+# Beräkna 14 dagar sedan
+START_DATE=$(bun run src/utilities/time.ts getTimeInfo "för 14 dagar sedan" | jq -r '.date')
 bun run src/aida-cli.ts tasks getWeekTasks "$START_DATE" "$END_DATE"
 ```
 

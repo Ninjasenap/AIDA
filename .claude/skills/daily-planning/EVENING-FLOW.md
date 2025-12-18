@@ -126,12 +126,18 @@ Accept short answers:
 
 ### 7. Create Reflection Journal Entry
 
-**Timestamp format:**
-- Use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss`
-- Get current time: `bun run src/utilities/time.ts getTimeInfo`
-- Extract `date` and `time` fields from JSON output, combine as: `{date}T{time}:00`
-- Example: `2025-12-16T18:00:00`
-- Or omit timestamp to use server time automatically
+**⚠️ TIMESTAMP-REGEL (KRITISK):**
+Omit ALDRIG timestamp - det ger fel tidszon (UTC istället för lokal)!
+
+**Hämta alltid tid via time-info först:**
+```bash
+bun run src/utilities/time.ts getTimeInfo
+```
+
+**Bygg timestamp från output:**
+- Extrahera `date` och `time` fält från JSON
+- Kombinera: `"{date}T{time}:00"`
+- Exempel: `"2025-12-16T18:00:00"`
 
 **Via script:**
 ```bash
@@ -141,8 +147,6 @@ bun run src/aida-cli.ts journal createEntry '{
   "timestamp": "2025-12-16T18:00:00"
 }'
 ```
-
-**Note:** If `timestamp` is omitted, the database will use the current server time automatically.
 
 ### 8. Archive Plan to Log and Clear Plan File
 
