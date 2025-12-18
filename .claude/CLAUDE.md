@@ -103,32 +103,168 @@ User message →
 └─[6] AMBIGUOUS → Ask clarifying question
 ```
 
-### Decision Point 1: Slash Commands
+## Command & Skill Routing
+
+This section provides the single source of truth for routing user messages to the appropriate skill or CLI function. The Decision Points below reference this section for details.
+
+### Slash Commands (User-Initiated)
 
 Direct command invocation - highest priority routing.
 
-| Command | Skill Invoked | Context to Pass |
-|---------|---------------|-----------------|
-| `/checkin` | daily-planning | (none - skill auto-detects time) |
-| `/capture [text]` | task-capture | Captured text if provided |
-| `/next` | task-activation | (none - skill checks context) |
-| `/overview [role]` | status-overview | Role filter if specified |
-| `/weekly [review\|plan]` | weekly-planning | Mode if specified |
+| Command | Skill | Description |
+|---------|-------|-------------|
+| `/checkin` | daily-planning | Context-aware daily check-in (auto-detects morning/midday/evening) |
+| `/capture [text]` | task-capture | Quick task capture with minimal friction |
+| `/next` | task-activation | Next recommended action with activation support |
+| `/overview [role]` | status-overview | Workload overview for role(s) |
+| `/weekly [review\|plan]` | weekly-planning | Weekly review/planning (auto-detects mode based on day) |
+
+**Action:** Use SlashCommand tool with the command string.
+
+### Natural Language Triggers
+
+Match against these trigger phrases for automatic skill invocation. Use the Skill tool with the skill name.
+
+```yaml
+daily-planning:
+  swedish:
+    - "god morgon"
+    - "morgonplanering"
+    - "planera dagen"
+    - "kolla laget"
+    - "kvällsavstämning"
+    - "kvällsreflektion"
+    - "hur går dagen"
+  english:
+    - "plan my day"
+    - "morning planning"
+    - "let's check in"
+    - "how's my day going"
+    - "evening review"
+    - "day review"
+
+task-capture:
+  swedish:
+    - "jag måste..."
+    - "lägg till uppgift"
+    - "fånga detta"
+    - "kom ihåg att..."
+    - "ny uppgift"
+    - "todo:"
+    - "task:"
+  english:
+    - "I need to..."
+    - "remind me to..."
+    - "add task"
+    - "new todo"
+    - "capture this"
+
+task-activation:
+  swedish:
+    - "jag fastnar"
+    - "kan inte börja"
+    - "vad ska jag göra"
+    - "nästa steg"
+    - "hjälp mig börja"
+    - "orkar inte"
+    - "vet inte var jag ska börja"
+    - "vad är nästa"
+  english:
+    - "I'm stuck"
+    - "can't get started"
+    - "overwhelmed"
+    - "what should I do"
+    - "next step"
+    - "where do I start"
+    - "help me start"
+
+status-overview:
+  swedish:
+    - "hur ligger jag till"
+    - "arbetsbelastning"
+    - "rollbalans"
+    - "visa status"
+    - "hur ser det ut"
+    - "översikt"
+    - "vad har jag på gång"
+  english:
+    - "how am I doing"
+    - "workload"
+    - "what's on my plate"
+    - "role balance"
+    - "project status"
+    - "show status"
+
+weekly-planning:
+  swedish:
+    - "veckoplanering"
+    - "veckans planering"
+    - "planera veckan"
+    - "hur gick veckan"
+    - "vecköversikt"
+  english:
+    - "weekly review"
+    - "how was my week"
+    - "plan my week"
+    - "weekly planning"
+
+profile-management:
+  swedish:
+    - "uppdatera profil"
+    - "ändra profil"
+    - "ställ in profil"
+  english:
+    - "update profile"
+    - "profile setup"
+    - "change preferences"
+  # NOTE: "visa min profil" → direct query (see below)
+  # NOTE: "granska observationer" → profile-learner AGENT (see below)
+
+time-info:
+  type: internal
+  note: Used by other skills, not directly triggered by users
+  # Examples: "imorgon", "nästa vecka", "påskafton"
+```
+
+### Direct Queries (No Skill Needed)
+
+Simple read operations that don't require workflow logic. Call CLI directly using `bun run src/aida-cli.ts <module> <function> [args]` and format the response.
+
+| User Says | CLI Command |
+|-----------|-------------|
+| "Hur många uppgifter har jag idag?" | `tasks getTodayTasks` + count |
+| "Vilka roller har jag?" | `roles getActiveRoles` |
+| "Vilka projekt är aktiva?" | `projects getActiveProjects` |
+| "Visa uppgift 42" | `tasks getTaskById 42` |
+| "Visa min profil" | `profile getFullProfile` |
+| "Vilken energinivå har jag satt?" | `profile getCurrentEnergyLevel` |
+
+**Key distinction:** Direct queries return RAW DATA. Skills provide WORKFLOW + INSIGHTS + FOLLOW-UP OPTIONS.
+
+### Analysis Requests (Subagent Delegation)
+
+Pattern recognition and specialized analysis requests. Use Task tool with subagent_type matching the agent name.
+
+| User Says | Delegate To |
+|-----------|-------------|
+| "Vad har du lärt dig om mig?" | profile-learner agent |
+| "Granska observationer" | profile-learner agent |
+| "Ser du några mönster?" | profile-learner agent |
+| "Har du noterat några mönster?" | profile-learner agent |
+| After creating code files | code-commenter agent |
+| Documentation lookup | documentation-retriever agent |
+
+---
+
+### Decision Point 1: Slash Commands
+
+See **Slash Commands (User-Initiated)** in the Command & Skill Routing section above for the complete mapping.
 
 **Action:** Use SlashCommand tool with the command string.
 
 ### Decision Point 2: Skill Trigger Phrases
 
-Match against known trigger phrases for automatic skill invocation.
-
-| Phrase Pattern | Route To | Examples |
-|----------------|----------|----------|
-| Planning intent | daily-planning | "planera dagen", "morning planning", "kvällsavstämning" |
-| Task capture | task-capture | "jag måste...", "I need to...", "remind me", "lägg till uppgift" |
-| Stuck/blocked | task-activation | "jag fastnar", "overwhelmed", "vad ska jag göra", "nästa steg" |
-| Workload check | status-overview | "hur ligger jag till", "workload", "rollbalans", "vad har jag på gång" |
-| Weekly scope | weekly-planning | "veckoplanering", "how was my week", "planera veckan" |
-| Profile CRUD | profile-management | "visa min profil", "uppdatera profil", "ändra inställningar" |
+See **Natural Language Triggers** in the Command & Skill Routing section above for the complete YAML-formatted trigger lists for all skills.
 
 **Action:** Use Skill tool with the skill name.
 
@@ -148,16 +284,9 @@ Requests requiring judgment, pattern recognition, or specialized analysis.
 
 ### Decision Point 4: Simple Data Queries
 
-Direct database queries that don't require workflow logic. Bypass skills for efficiency.
+See **Direct Queries (No Skill Needed)** in the Command & Skill Routing section above for the complete mapping of simple read operations.
 
-| Query Type | CLI Command | Example User Messages |
-|------------|-------------|----------------------|
-| Task count | `tasks getTodayTasks` | "Hur många uppgifter har jag idag?" |
-| Role list | `roles getAllRoles` | "Vilka roller har jag?" |
-| Project list | `projects getActiveProjects` | "Vilka projekt är aktiva?" |
-| Profile view | `profile getFullProfile` | "Visa min profil" |
-| Specific task | `tasks getTaskById <id>` | "Visa uppgift 42" |
-| Energy level | `profile getCurrentEnergyLevel` | "Vilken energinivå har jag satt?" |
+**Key distinction:** Direct queries return RAW DATA. Skills provide WORKFLOW + INSIGHTS + FOLLOW-UP OPTIONS.
 
 **Action:** Run `bun run src/aida-cli.ts <module> <function> [args]` and format the response.
 
@@ -249,33 +378,22 @@ You have the ability to create subagents with specific roles to handle specializ
 
 **⚠️ ANVÄND ALLTID SKILLS ⚠️**
 
-### User-Facing Skills
+See the **Command & Skill Routing** section above for:
+- Complete slash command to skill mapping
+- Natural language trigger phrases for each skill (YAML format)
+- When to use skills vs direct CLI queries
+- When to delegate to subagents
 
-| Behov | Skill | Slash Command | Trigger Phrases |
-|-------|-------|---------------|-----------------|
-| Planera dagen | `daily-planning` | `/checkin` | "plan my day", "morning planning", "check in", "evening review" |
-| Fånga uppgifter | `task-capture` | `/capture` | "I need to...", "remind me", "jag måste...", "lägg till" |
-| Nästa steg/aktivering | `task-activation` | `/next` | "stuck", "can't start", "what should I do", "nästa steg" |
-| Översikt/workload | `status-overview` | `/overview` | "how am I doing", "workload", "role balance", "hur ligger jag till" |
-| Veckoplanering | `weekly-planning` | `/weekly` | "weekly review", "planera veckan", "veckans planering", "how was my week" |
-| Profiländringar | `profile-management` | - | "min profil", "uppdatera profil", "profile setup", "vem är jag", "granska observationer" |
+**User-Facing Skills:**
+- `daily-planning` - Context-aware check-ins (morning/midday/evening)
+- `task-capture` - Quick task capture with minimal friction
+- `task-activation` - Activation support for getting unstuck
+- `status-overview` - Workload overview across roles/projects
+- `weekly-planning` - Weekly review and planning
+- `profile-management` - Profile CRUD operations (NOT pattern analysis)
 
-### Internal Support Skills
-
-| Behov | Skill | Slash Command | Trigger Phrases |
-|-------|-------|---------------|-----------------|
-| Tid/datumtolkning | `time-info` | - | "imorgon", "nästa vecka", "påskafton" |
-
-## Commands
-
-| Command | Purpose | Invokes Skill |
-|---------|---------|---------------|
-| `/checkin` | Context-aware daily check-in (auto-detects morning/midday/evening) | daily-planning |
-| `/weekly [review\|plan]` | Weekly review and planning (auto-detects mode based on day) | weekly-planning |
-| `/next` | Next recommended action with activation support | task-activation |
-| `/capture [text]` | Quick task capture with minimal friction | task-capture |
-| `/overview [role]` | Workload overview for role(s) | status-overview |
-
+**Internal Support Skills:**
+- `time-info` - Parse Swedish date/time expressions (used by other skills)
 
 ## Implementation Status
 
