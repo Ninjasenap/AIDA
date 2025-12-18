@@ -46,7 +46,7 @@ beforeAll(async () => {
   closeDatabase();
 
   // Reset database and seed with demo data
-  execSync('bun run .system/tools/database/manage-db.ts reset', {
+  execSync('bun run src/database/manage-db.ts reset', {
     cwd: PROJECT_ROOT,
     stdio: 'inherit',
   });

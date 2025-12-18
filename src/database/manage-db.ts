@@ -18,9 +18,9 @@ FEATURES:
 - PRAGMA settings inspection
 
 USAGE:
-  bun run .system/tools/database/manage-db.ts init    # Initialize/recreate
-  bun run .system/tools/database/manage-db.ts delete  # Delete database files
-  bun run .system/tools/database/manage-db.ts reset   # Delete and reinitialize
+  bun run src/database/manage-db.ts init    # Initialize/recreate
+  bun run src/database/manage-db.ts delete  # Delete database files
+  bun run src/database/manage-db.ts reset   # Delete and reinitialize
 
 DEPENDENCIES:
 - bun:sqlite (Database class)
@@ -268,11 +268,11 @@ const command = process.argv[2];
 ╚═════════════════════════════════════════════════════════════════════════════╝
 
 USAGE:
-  bun run .system/tools/database/manage-db.ts <command>
+  bun run src/database/manage-db.ts <command>
 
 COMMANDS:
   init      Initialize/create database with schema (creates if doesn't exist)
-            - Reads schema from .system/data/schema/db_schema.sql
+            - Reads schema from data/schema/db_schema.sql
             - Creates all tables, views, indexes, and triggers
             - Enables WAL mode for improved concurrency
             - Enables foreign key constraints
@@ -289,9 +289,9 @@ COMMANDS:
             - Clears corrupted database state
 
 EXAMPLES:
-  bun run .system/tools/database/manage-db.ts init
-  bun run .system/tools/database/manage-db.ts delete
-  bun run .system/tools/database/manage-db.ts reset
+  bun run src/database/manage-db.ts init
+  bun run src/database/manage-db.ts delete
+  bun run src/database/manage-db.ts reset
 
 SCHEMA LOCATION:
   ${SCHEMA_PATH.replace(LOCAL_ROOT, '')}
