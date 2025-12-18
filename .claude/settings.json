@@ -5,8 +5,7 @@
       "Bash(bun run:*)",
       "Read",
       "Skill",
-      "Search",
-      "grep"
+      "Search"
     ]
   },
   "model": "opusplan"

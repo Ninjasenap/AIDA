@@ -162,6 +162,17 @@ This is preconfigured subagents for specialized tasks you are able to invoke:
 - **Templates** stored in `templates/` using Mustache-style syntax
 - ALL database operations via `aida-cli.ts`, never direct SQL
 
+## CLI Limitations (viktigt för att undvika hallucinations)
+
+**Moduler som INTE finns:**
+- `config` - Path-konfiguration hanteras internt via `src/utilities/paths.ts`, inte via CLI
+- `paths` - Se ovan
+- `settings` - Ingen sådan modul finns
+
+**Om du behöver PKM-sökvägen:** Läs konfigurationsfilen direkt med `cat config/aida-paths.json` eller använd interna utilities.
+
+**Tillgängliga moduler:** `tasks`, `roles`, `projects`, `journal`, `journalMd`, `plan`, `profile`
+
 ## Architecture Reference
 
 Start from **`docs/INDEX.md`** - navigation map for all docs.
