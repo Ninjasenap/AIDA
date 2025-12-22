@@ -90,7 +90,7 @@ function formatEntry(entry: JournalEntryFull): string {
  */
 export function generateJournalMarkdown(date: string): string {
   // Get entries for the date
-  const entries = getEntriesByDateRange(date, date);
+  const entries = getEntriesByDateRange({ startDate: date, endDate: date });
 
   // Parse date and format Swedish parts
   const dateObj = new Date(date);
@@ -147,7 +147,7 @@ export function generateJournalMarkdownWithPlan(
   calendarEvents: { time: string; title: string }[]
 ): string {
   // Get entries for the date
-  const entries = getEntriesByDateRange(date, date);
+  const entries = getEntriesByDateRange({ startDate: date, endDate: date });
 
   // Parse date and format Swedish parts
   const dateObj = new Date(date);
