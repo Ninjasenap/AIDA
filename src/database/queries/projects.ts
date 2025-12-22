@@ -25,6 +25,7 @@ import {
   parseFinishCriteria,
   PROJECT_STATUS_ORDER,
 } from '../helpers';
+import { getLocalTimestamp } from '../../utilities/time';
 import type {
   Project,
   ProjectFull,
@@ -121,29 +122,27 @@ export function getActiveProjects(): ProjectFull[] {
  * matching). By default only searches active and on_hold projects; use
  * `includeCompleted: true` to include completed/cancelled projects in results.
  *
- * @param query - Search string to match against project names (substring match)
- * @param options - Optional search configuration
- * @param options.includeCompleted - If true, searches all projects including completed ones
- *                                    Default: false
+ * @param input - Search parameters:
+ *        - query: Search string to match against project names (substring match)
+ *        - includeCompleted: If true, searches all projects including completed ones (default: false)
  * @returns Array of matching ProjectFull objects, or empty array if no matches
  *
  * @example
- * const results = searchProjects('Marketing');
+ * const results = searchProjects({ query: 'Marketing' });
  * results.forEach(p => console.log(p.name));
  */
 export function searchProjects(
-  query: string,
-  options?: { includeCompleted?: boolean }
+  input: { query: string; includeCompleted?: boolean }
 ): ProjectFull[] {
   const db = getDatabase();
 
   let sql =
     "SELECT * FROM v_projects_full WHERE name LIKE '%' || ? || '%' COLLATE NOCASE";
-  if (!options?.includeCompleted) {
+  if (!input.includeCompleted) {
     sql += " AND status IN ('active', 'on_hold')";
   }
 
-  const projects = db.query(sql).all(query) as ProjectFull[];
+  const projects = db.query(sql).all(input.query) as ProjectFull[];
 
   return projects;
 }
@@ -309,13 +308,17 @@ export function createProject(input: CreateProjectInput): Project {
     ? JSON.stringify(input.finish_criteria)
     : null;
 
+  // Generate local timestamp to ensure consistent timezone handling
+  const created_at = getLocalTimestamp();
+
   const result = db
     .query(
-      `INSERT INTO projects (name, role_id, description, finish_criteria)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO projects (created_at, name, role_id, description, finish_criteria)
+       VALUES (?, ?, ?, ?, ?)
        RETURNING *`
     )
     .get(
+      created_at,
       input.name,
       input.role_id,
       input.description,
@@ -333,25 +336,22 @@ export function createProject(input: CreateProjectInput): Project {
  * on which fields are provided. Returns the current project if no fields are
  * provided for update.
  *
- * @param id - The unique project identifier to update
- * @param input - Project update input object
- * @param input.name - New project name (optional)
- * @param input.description - New project description (optional)
+ * @param input - Project update input object including id (required)
  * @returns The updated Project record with all current fields
  * @throws Error if project with the given id is not found
  *
  * @example
- * const updated = updateProject(1, {
+ * const updated = updateProject({
+ *   id: 1,
  *   name: 'Updated Project Name',
  *   description: 'New description'
  * });
  *
  * // Partial update
- * const nameOnly = updateProject(1, { name: 'New Name' });
+ * const nameOnly = updateProject({ id: 1, name: 'New Name' });
  */
 export function updateProject(
-  id: number,
-  input: UpdateProjectInput
+  input: UpdateProjectInput & { id: number }
 ): Project {
   const db = getDatabase();
 
@@ -370,16 +370,16 @@ export function updateProject(
 
   if (updates.length === 0) {
     // No updates, just return current project
-    const current = db.query('SELECT * FROM projects WHERE id = ?').get(id) as
+    const current = db.query('SELECT * FROM projects WHERE id = ?').get(input.id) as
       | Project
       | undefined;
     if (!current) {
-      throw new Error(`Project not found: id=${id}`);
+      throw new Error(`Project not found: id=${input.id}`);
     }
     return current;
   }
 
-  params.push(id);
+  params.push(input.id);
 
   const result = db
     .query(
@@ -388,7 +388,7 @@ export function updateProject(
     .get(...params) as Project | undefined;
 
   if (!result) {
-    throw new Error(`Project not found: id=${id}`);
+    throw new Error(`Project not found: id=${input.id}`);
   }
 
   return result;
@@ -402,30 +402,30 @@ export function updateProject(
  * 'cancelled'. This is the primary mechanism for transitioning projects between
  * lifecycle states.
  *
- * @param id - The unique project identifier to update
- * @param status - The new status to set
+ * @param input - Status change parameters:
+ *        - id: The unique project identifier to update
+ *        - status: The new status to set
  * @returns The updated Project record with the new status
  * @throws Error if project with the given id is not found
  *
  * @example
  * // Pause a project
- * const paused = setProjectStatus(1, 'on_hold');
+ * const paused = setProjectStatus({ id: 1, status: 'on_hold' });
  *
  * // Mark as complete
- * const completed = setProjectStatus(1, 'completed');
+ * const completed = setProjectStatus({ id: 1, status: 'completed' });
  */
 export function setProjectStatus(
-  id: number,
-  status: ProjectStatus
+  input: { id: number; status: ProjectStatus }
 ): Project {
   const db = getDatabase();
 
   const result = db
     .query('UPDATE projects SET status = ? WHERE id = ? RETURNING *')
-    .get(status, id) as Project | undefined;
+    .get(input.status, input.id) as Project | undefined;
 
   if (!result) {
-    throw new Error(`Project not found: id=${id}`);
+    throw new Error(`Project not found: id=${input.id}`);
   }
 
   return result;
@@ -439,41 +439,47 @@ export function setProjectStatus(
  * entirely (not a merge operation). Use this to set initial criteria, modify
  * the set, or mark criteria as complete.
  *
- * @param id - The unique project identifier to update
- * @param criteria - Complete array of FinishCriterion objects to set.
- *                   Each criterion has: { criterion: string, done: boolean }
+ * @param input - Criteria update parameters:
+ *        - id: The unique project identifier to update
+ *        - criteria: Complete array of FinishCriterion objects to set.
+ *                    Each criterion has: { criterion: string, done: boolean }
  * @returns The updated Project record with new finish_criteria JSON
  * @throws Error if project with the given id is not found
  *
  * @example
  * // Set initial finish criteria
- * const updated = updateFinishCriteria(1, [
- *   { criterion: 'Requirements gathered', done: true },
- *   { criterion: 'Design approved', done: false },
- *   { criterion: 'Implementation complete', done: false }
- * ]);
+ * const updated = updateFinishCriteria({
+ *   id: 1,
+ *   criteria: [
+ *     { criterion: 'Requirements gathered', done: true },
+ *     { criterion: 'Design approved', done: false },
+ *     { criterion: 'Implementation complete', done: false }
+ *   ]
+ * });
  *
  * // Update to mark one complete
- * const updated2 = updateFinishCriteria(1, [
- *   { criterion: 'Requirements gathered', done: true },
- *   { criterion: 'Design approved', done: true },
- *   { criterion: 'Implementation complete', done: false }
- * ]);
+ * const updated2 = updateFinishCriteria({
+ *   id: 1,
+ *   criteria: [
+ *     { criterion: 'Requirements gathered', done: true },
+ *     { criterion: 'Design approved', done: true },
+ *     { criterion: 'Implementation complete', done: false }
+ *   ]
+ * });
  */
 export function updateFinishCriteria(
-  id: number,
-  criteria: FinishCriterion[]
+  input: { id: number; criteria: FinishCriterion[] }
 ): Project {
   const db = getDatabase();
 
-  const criteriaJson = JSON.stringify(criteria);
+  const criteriaJson = JSON.stringify(input.criteria);
 
   const result = db
     .query('UPDATE projects SET finish_criteria = ? WHERE id = ? RETURNING *')
-    .get(criteriaJson, id) as Project | undefined;
+    .get(criteriaJson, input.id) as Project | undefined;
 
   if (!result) {
-    throw new Error(`Project not found: id=${id}`);
+    throw new Error(`Project not found: id=${input.id}`);
   }
 
   return result;

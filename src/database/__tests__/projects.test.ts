@@ -202,27 +202,27 @@ describe('searchProjects', () => {
    */
   test('should find projects by partial name match', () => {
     // Search for "AIDA" should find "AIDA - AI Digital Assistant"
-    const results = searchProjects('AIDA');
+    const results = searchProjects({ query: 'AIDA' });
 
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].name).toContain('AIDA');
   });
 
   test('should be case insensitive', () => {
-    const results = searchProjects('aida');
+    const results = searchProjects({ query: 'aida' });
 
     expect(results.length).toBeGreaterThan(0);
   });
 
   test('should return empty array when no matches', () => {
-    const results = searchProjects('nonexistent-project-xyz');
+    const results = searchProjects({ query: 'nonexistent-project-xyz' });
 
     expect(results).toBeInstanceOf(Array);
     expect(results.length).toBe(0);
   });
 
   test('should exclude completed projects by default', () => {
-    const results = searchProjects('');
+    const results = searchProjects({ query: '' });
 
     // No completed or cancelled projects should be in results
     const hasCompleted = results.some(
@@ -232,7 +232,7 @@ describe('searchProjects', () => {
   });
 
   test('should include completed projects when option is set', () => {
-    const results = searchProjects('', { includeCompleted: true });
+    const results = searchProjects({ query: '', includeCompleted: true });
 
     // Should include all projects regardless of status
     expect(results.length).toBeGreaterThanOrEqual(0);
@@ -500,7 +500,7 @@ describe('updateProject', () => {
       description: 'Test',
     });
 
-    const updated = updateProject(original.id, {
+    const updated = updateProject({ id: original.id,
       name: 'Updated Name',
     });
 
@@ -516,7 +516,7 @@ describe('updateProject', () => {
       description: 'Original description',
     });
 
-    const updated = updateProject(original.id, {
+    const updated = updateProject({ id: original.id,
       description: 'Updated description',
     });
 
@@ -532,7 +532,7 @@ describe('updateProject', () => {
       description: 'Old description',
     });
 
-    const updated = updateProject(original.id, {
+    const updated = updateProject({ id: original.id,
       name: 'New Name',
       description: 'New description',
     });
@@ -572,7 +572,7 @@ describe('setProjectStatus', () => {
 
     expect(project.status).toBe('active');
 
-    const updated = setProjectStatus(project.id, 'on_hold');
+    const updated = setProjectStatus({ id: project.id, status: 'on_hold' });
 
     expect(updated.id).toBe(project.id);
     expect(updated.status).toBe('on_hold');
@@ -585,7 +585,7 @@ describe('setProjectStatus', () => {
       description: 'Test',
     });
 
-    const updated = setProjectStatus(project.id, 'completed');
+    const updated = setProjectStatus({ id: project.id, status: 'completed' });
 
     expect(updated.status).toBe('completed');
   });
@@ -597,7 +597,7 @@ describe('setProjectStatus', () => {
       description: 'Test',
     });
 
-    const updated = setProjectStatus(project.id, 'cancelled');
+    const updated = setProjectStatus({ id: project.id, status: 'cancelled' });
 
     expect(updated.status).toBe('cancelled');
   });
@@ -609,8 +609,8 @@ describe('setProjectStatus', () => {
       description: 'Test',
     });
 
-    setProjectStatus(project.id, 'on_hold');
-    const updated = setProjectStatus(project.id, 'active');
+    setProjectStatus({ id: project.id, status: 'on_hold' });
+    const updated = setProjectStatus({ id: project.id, status: 'active' });
 
     expect(updated.status).toBe('active');
   });
@@ -647,11 +647,11 @@ describe('updateFinishCriteria', () => {
       ],
     });
 
-    const updated = updateFinishCriteria(project.id, [
+    const updated = updateFinishCriteria({ id: project.id, criteria: [
       { criterion: 'New criterion 1', done: true },
       { criterion: 'New criterion 2', done: false },
       { criterion: 'New criterion 3', done: false },
-    ]);
+    ] });
 
     expect(updated.id).toBe(project.id);
     expect(updated.finish_criteria).toBeDefined();
@@ -671,7 +671,7 @@ describe('updateFinishCriteria', () => {
       finish_criteria: [{ criterion: 'Some criterion', done: false }],
     });
 
-    const updated = updateFinishCriteria(project.id, []);
+    const updated = updateFinishCriteria({ id: project.id, criteria: [] });
 
     expect(updated.finish_criteria).toBe('[]');
   });
@@ -685,9 +685,9 @@ describe('updateFinishCriteria', () => {
 
     expect(project.finish_criteria).toBeNull();
 
-    const updated = updateFinishCriteria(project.id, [
+    const updated = updateFinishCriteria({ id: project.id, criteria: [
       { criterion: 'First criterion', done: false },
-    ]);
+    ] });
 
     expect(updated.finish_criteria).toBeDefined();
     const parsed = JSON.parse(updated.finish_criteria!);

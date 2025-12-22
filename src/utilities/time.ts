@@ -1096,6 +1096,31 @@ TIMESTAMP NORMALIZATION
 */
 
 /**
+ * Generates a local timestamp string in SQLite format.
+ *
+ * Returns the current local time as a string suitable for SQLite storage.
+ * Format: "YYYY-MM-DD HH:MM:SS" (with space separator, not T).
+ * Always uses the system's local timezone, never UTC.
+ *
+ * Use this function when inserting records that need timestamps to ensure
+ * consistent local time handling across all database operations.
+ *
+ * @returns Current local timestamp in format "YYYY-MM-DD HH:MM:SS"
+ * @example
+ * getLocalTimestamp(); // "2025-12-22 07:11:52"
+ */
+export function getLocalTimestamp(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
  * Normalizes a timestamp string to ISO 8601 datetime format.
  *
  * Accepts various input formats including:

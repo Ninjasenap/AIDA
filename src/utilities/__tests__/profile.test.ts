@@ -418,7 +418,7 @@ describe('Profile Utility', () => {
       });
 
       test('should update top-level attribute', () => {
-        const success = updateAttribute('identity.name', 'Updated User', 'user');
+        const success = updateAttribute({ path: 'identity.name', value: 'Updated User', source: 'user' });
         expect(success).toBe(true);
 
         const name = getAttribute('identity.name');
@@ -426,7 +426,7 @@ describe('Profile Utility', () => {
       });
 
       test('should update nested attribute', () => {
-        const success = updateAttribute('identity.location.city', 'Göteborg', 'user');
+        const success = updateAttribute({ path: 'identity.location.city', value: 'Göteborg', source: 'user' });
         expect(success).toBe(true);
 
         const city = getAttribute('identity.location.city');
@@ -434,7 +434,7 @@ describe('Profile Utility', () => {
       });
 
       test('should create update log entry', () => {
-        updateAttribute('identity.name', 'Updated', 'user', 'User requested name change');
+        updateAttribute({ path: 'identity.name', value: 'Updated', source: 'user', reason: 'User requested name change' });
 
         const profile = getProfile();
         expect(profile?.update_log?.entries.length).toBeGreaterThan(0);

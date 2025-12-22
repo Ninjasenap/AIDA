@@ -43,6 +43,7 @@ import * as plan from './utilities/daily-plan';
 import * as profile from './utilities/profile';
 import * as time from './utilities/time';
 import { serializeWithMaps } from './utilities/json-serialization';
+import { validateCLIArgs } from './validation/validator';
 
 const modules = { tasks, roles, projects, journal, journalMd, plan, profile, time };
 
@@ -84,8 +85,21 @@ const parsedArgs = args.map(a => {
   }
 });
 
+// Validate arguments using schema registry
+const validation = validateCLIArgs(module, func, parsedArgs);
+
+if (!validation.success) {
+  // Output structured validation error
+  console.error(serializeWithMaps({
+    error: true,
+    validation: validation.error,
+  }));
+  process.exit(1);
+}
+
 try {
-  const result = await (fn as any)(...parsedArgs);
+  // Call function with validated data
+  const result = await (fn as any)(...validation.data);
   console.log(serializeWithMaps(result));
 } catch (error) {
   console.error('Error executing query:', error instanceof Error ? error.message : String(error));

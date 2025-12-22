@@ -18,6 +18,7 @@
  * All queries are parameterized to prevent SQL injection.
  */
 import { getDatabase } from '../connection';
+import { getLocalTimestamp } from '../../utilities/time';
 import type {
   Role,
   RoleSummary,
@@ -93,21 +94,20 @@ export function getInactiveRoles(): RoleSummary[] {
  *
  * SQL: SELECT * FROM v_roles_summary WHERE type = ? [AND status = 'active']
  *
- * @param type - Role type to filter by
- * @param options - Optional filter options
- * @param options.includeInactive - Include inactive/historical roles (default: false)
+ * @param input - Query parameters:
+ *        - type: Role type to filter by
+ *        - includeInactive: Include inactive/historical roles (default: false)
  * @returns Array of RoleSummary objects matching the type
  */
 export function getRolesByType(
-  type: RoleType,
-  options?: { includeInactive?: boolean }
+  input: { type: RoleType; includeInactive?: boolean }
 ): RoleSummary[] {
   const db = getDatabase();
 
   let query = 'SELECT * FROM v_roles_summary WHERE type = ?';
-  const params: any[] = [type];
+  const params: any[] = [input.type];
 
-  if (!options?.includeInactive) {
+  if (!input.includeInactive) {
     query += " AND status = 'active'";
   }
 
@@ -139,12 +139,16 @@ export function createRole(input: CreateRoleInput): Role {
     ? JSON.stringify(input.responsibilities)
     : null;
 
+  // Generate local timestamp to ensure consistent timezone handling
+  const created_at = getLocalTimestamp();
+
   const result = db
     .query(
-      `INSERT INTO roles (name, type, description, responsibilities, balance_target)
-       VALUES (?, ?, ?, ?, ?) RETURNING *`
+      `INSERT INTO roles (created_at, name, type, description, responsibilities, balance_target)
+       VALUES (?, ?, ?, ?, ?, ?) RETURNING *`
     )
     .get(
+      created_at,
       input.name,
       input.type,
       input.description ?? null,
@@ -163,12 +167,11 @@ export function createRole(input: CreateRoleInput): Role {
  *
  * SQL: UPDATE roles SET [field1 = ?, field2 = ?, ...] WHERE id = ?
  *
- * @param id - Role ID to update
- * @param input - Fields to update
+ * @param input - Fields to update including id (required)
  * @returns Updated Role object
  * @throws Error if role does not exist
  */
-export function updateRole(id: number, input: UpdateRoleInput): Role {
+export function updateRole(input: UpdateRoleInput & { id: number }): Role {
   const db = getDatabase();
 
   // Build dynamic update query
@@ -199,23 +202,23 @@ export function updateRole(id: number, input: UpdateRoleInput): Role {
     // No fields to update, just return current role
     const current = db
       .query('SELECT * FROM roles WHERE id = ?')
-      .get(id) as Role | undefined;
+      .get(input.id) as Role | undefined;
 
     if (!current) {
-      throw new Error(`Role not found: id=${id}`);
+      throw new Error(`Role not found: id=${input.id}`);
     }
 
     return current;
   }
 
   // Add ID to values
-  values.push(id);
+  values.push(input.id);
 
   const query = `UPDATE roles SET ${updates.join(', ')} WHERE id = ? RETURNING *`;
   const result = db.query(query).get(...values) as Role | undefined;
 
   if (!result) {
-    throw new Error(`Role not found: id=${id}`);
+    throw new Error(`Role not found: id=${input.id}`);
   }
 
   return result;
@@ -229,14 +232,14 @@ export function updateRole(id: number, input: UpdateRoleInput): Role {
  *
  * SQL: UPDATE roles SET status = ? WHERE id = ?
  *
- * @param id - Role ID to update
- * @param status - New status for the role
+ * @param input - Status change parameters:
+ *        - id: Role ID to update
+ *        - status: New status for the role
  * @returns Object with updated role and optional warning
  * @throws Error if role does not exist
  */
 export function setRoleStatus(
-  id: number,
-  status: RoleStatus
+  input: { id: number; status: RoleStatus }
 ): {
   role: Role;
   warning?: { linkedTaskCount: number };
@@ -246,19 +249,19 @@ export function setRoleStatus(
   // Update the status
   const result = db
     .query('UPDATE roles SET status = ? WHERE id = ? RETURNING *')
-    .get(status, id) as Role | undefined;
+    .get(input.status, input.id) as Role | undefined;
 
   if (!result) {
-    throw new Error(`Role not found: id=${id}`);
+    throw new Error(`Role not found: id=${input.id}`);
   }
 
   // Check for linked tasks if going to inactive or historical
   let warning: { linkedTaskCount: number } | undefined;
 
-  if (status === 'inactive' || status === 'historical') {
+  if (input.status === 'inactive' || input.status === 'historical') {
     const taskCount = db
       .query('SELECT COUNT(*) as count FROM tasks WHERE role_id = ?')
-      .get(id) as { count: number };
+      .get(input.id) as { count: number };
 
     if (taskCount.count > 0) {
       warning = { linkedTaskCount: taskCount.count };

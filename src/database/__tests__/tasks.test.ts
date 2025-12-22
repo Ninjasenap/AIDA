@@ -163,7 +163,7 @@ describe('searchTasks', () => {
    * Confirms partial title matching works with case-insensitive search.
    */
   test('should find tasks by partial title match (case-insensitive)', () => {
-    const results = searchTasks('query');
+    const results = searchTasks({ query: 'query' });
 
     expect(results).toBeInstanceOf(Array);
     expect(results.length).toBeGreaterThan(0);
@@ -174,7 +174,7 @@ describe('searchTasks', () => {
    * Verifies done and cancelled tasks are excluded from search by default.
    */
   test('should exclude done and cancelled tasks by default', () => {
-    const results = searchTasks('starta'); // "Starta podcast" is cancelled
+    const results = searchTasks({ query: 'starta' }); // "Starta podcast" is cancelled
 
     expect(results).toBeInstanceOf(Array);
     expect(results.length).toBe(0); // Should not find the cancelled task
@@ -184,7 +184,7 @@ describe('searchTasks', () => {
    * Confirms done and cancelled tasks are included when includeDone option is set.
    */
   test('should include done and cancelled tasks when includeDone is true', () => {
-    const results = searchTasks('starta', { includeDone: true });
+    const results = searchTasks({ query: 'starta', includeDone: true });
 
     expect(results).toBeInstanceOf(Array);
     expect(results.length).toBeGreaterThan(0);
@@ -195,7 +195,7 @@ describe('searchTasks', () => {
    * Verifies search returns empty array when no title matches found.
    */
   test('should return empty array when no matches found', () => {
-    const results = searchTasks('xyznonexistent123');
+    const results = searchTasks({ query: 'xyznonexistent123' });
 
     expect(results).toBeInstanceOf(Array);
     expect(results.length).toBe(0);
@@ -205,7 +205,7 @@ describe('searchTasks', () => {
    * Confirms search matches partial strings anywhere in title.
    */
   test('should match anywhere in title', () => {
-    const results = searchTasks('kod'); // Should match "Kodgranskning" or other kod-related
+    const results = searchTasks({ query: 'kod' }); // Should match "Kodgranskning" or other kod-related
 
     expect(results).toBeInstanceOf(Array);
     // At least one result should contain 'kod' somewhere
@@ -215,7 +215,7 @@ describe('searchTasks', () => {
    * Verifies search results include all required task detail fields.
    */
   test('should return full task details', () => {
-    const results = searchTasks('implementera');
+    const results = searchTasks({ query: 'implementera' });
 
     expect(results.length).toBeGreaterThan(0);
     const task = results[0];
@@ -346,7 +346,7 @@ describe('getWeekTasks', () => {
     const weekStart = '2025-12-08'; // Monday
     const weekEnd = '2025-12-14'; // Sunday
 
-    const tasksByDate = getWeekTasks(weekStart, weekEnd);
+    const tasksByDate = getWeekTasks({ weekStart, weekEnd });
 
     expect(tasksByDate).toBeInstanceOf(Map);
   });
@@ -355,7 +355,7 @@ describe('getWeekTasks', () => {
     const weekStart = '2025-12-08';
     const weekEnd = '2025-12-14';
 
-    const tasksByDate = getWeekTasks(weekStart, weekEnd);
+    const tasksByDate = getWeekTasks({ weekStart, weekEnd });
 
     for (const [dateStr, tasks] of tasksByDate) {
       expect(typeof dateStr).toBe('string');
@@ -375,7 +375,7 @@ describe('getWeekTasks', () => {
     const weekStart = '2025-12-08';
     const weekEnd = '2025-12-14';
 
-    const tasksByDate = getWeekTasks(weekStart, weekEnd);
+    const tasksByDate = getWeekTasks({ weekStart, weekEnd });
 
     for (const [dateStr, tasks] of tasksByDate) {
       for (const task of tasks) {
@@ -388,7 +388,7 @@ describe('getWeekTasks', () => {
     const weekStart = '2030-01-01';
     const weekEnd = '2030-01-07';
 
-    const tasksByDate = getWeekTasks(weekStart, weekEnd);
+    const tasksByDate = getWeekTasks({ weekStart, weekEnd });
 
     expect(tasksByDate).toBeInstanceOf(Map);
     expect(tasksByDate.size).toBe(0);
@@ -589,7 +589,7 @@ describe('getTasksByRole', () => {
 
     const anyRole = db.query('SELECT id FROM roles LIMIT 1').get() as { id: number };
 
-    const tasksByStatus = getTasksByRole(anyRole.id);
+    const tasksByStatus = getTasksByRole({ roleId: anyRole.id });
 
     expect(tasksByStatus).toBeInstanceOf(Map);
   });
@@ -599,7 +599,7 @@ describe('getTasksByRole', () => {
 
     const anyRole = db.query('SELECT id FROM roles LIMIT 1').get() as { id: number };
 
-    const tasksByStatus = getTasksByRole(anyRole.id);
+    const tasksByStatus = getTasksByRole({ roleId: anyRole.id });
 
     for (const [status, tasks] of tasksByStatus) {
       for (const task of tasks) {
@@ -613,7 +613,7 @@ describe('getTasksByRole', () => {
 
     const anyRole = db.query('SELECT id FROM roles LIMIT 1').get() as { id: number };
 
-    const tasksByStatus = getTasksByRole(anyRole.id);
+    const tasksByStatus = getTasksByRole({ roleId: anyRole.id });
 
     for (const [status, tasks] of tasksByStatus) {
       expect(['done', 'cancelled']).not.toContain(status);
@@ -628,7 +628,7 @@ describe('getTasksByRole', () => {
 
     const anyRole = db.query('SELECT id FROM roles LIMIT 1').get() as { id: number };
 
-    const tasksByStatus = getTasksByRole(anyRole.id, { includeDone: true });
+    const tasksByStatus = getTasksByRole({ roleId: anyRole.id, includeDone: true });
 
     // Should potentially have done or cancelled tasks if they exist for this role
     const allStatuses = Array.from(tasksByStatus.keys());
@@ -640,7 +640,7 @@ describe('getTasksByRole', () => {
 
     const anyRole = db.query('SELECT id FROM roles LIMIT 1').get() as { id: number };
 
-    const tasksByStatus = getTasksByRole(anyRole.id);
+    const tasksByStatus = getTasksByRole({ roleId: anyRole.id });
 
     for (const [status, tasks] of tasksByStatus) {
       if (tasks.length > 1) {
@@ -662,7 +662,7 @@ describe('getTasksByRole', () => {
       .query("INSERT INTO roles (name, type, status) VALUES ('Test Role', 'work', 'active') RETURNING id")
       .get() as { id: number };
 
-    const tasksByStatus = getTasksByRole(newRole.id);
+    const tasksByStatus = getTasksByRole({ roleId: newRole.id });
 
     expect(tasksByStatus).toBeInstanceOf(Map);
     expect(tasksByStatus.size).toBe(0);
@@ -1000,7 +1000,8 @@ describe('updateTask', () => {
       role_id: roleId.id,
     });
 
-    const updated = updateTask(task.id, {
+    const updated = updateTask({
+      id: task.id,
       title: 'Updated Title',
     });
 
@@ -1023,7 +1024,8 @@ describe('updateTask', () => {
       priority: 0,
     });
 
-    const updated = updateTask(task.id, {
+    const updated = updateTask({
+      id: task.id,
       title: 'New Title',
       notes: 'New notes',
       priority: 3,
@@ -1051,7 +1053,8 @@ describe('updateTask', () => {
       time_estimate: 60,
     });
 
-    const updated = updateTask(task.id, {
+    const updated = updateTask({
+      id: task.id,
       notes: null,
       time_estimate: null,
     });
@@ -1065,7 +1068,7 @@ describe('updateTask', () => {
    */
   test('should throw error when task not found', () => {
     expect(() => {
-      updateTask(99999, { title: 'New Title' });
+      updateTask({ id: 99999, title: 'New Title' });
     }).toThrow('Task not found');
   });
 });
@@ -1104,7 +1107,7 @@ describe('setTaskStatus', () => {
       status: 'captured',
     });
 
-    const updated = setTaskStatus(task.id, 'ready');
+    const updated = setTaskStatus({ id: task.id, status: 'ready' });
 
     expect(updated.status).toBe('ready');
   });
@@ -1127,7 +1130,7 @@ describe('setTaskStatus', () => {
       .query('SELECT COUNT(*) as count FROM journal_entries WHERE related_task_id = ?')
       .get(task.id) as { count: number };
 
-    setTaskStatus(task.id, 'done', 'Completed successfully');
+    setTaskStatus({ id: task.id, status: 'done', comment: 'Completed successfully' });
 
     const afterEntryCount = db
       .query('SELECT COUNT(*) as count FROM journal_entries WHERE related_task_id = ?')
@@ -1160,7 +1163,7 @@ describe('setTaskStatus', () => {
       status: 'captured',
     });
 
-    setTaskStatus(task.id, 'cancelled', 'No longer needed');
+    setTaskStatus({ id: task.id, status: 'cancelled', comment: 'No longer needed' });
 
     const entry = db
       .query(
@@ -1190,7 +1193,7 @@ describe('setTaskStatus', () => {
       .query('SELECT COUNT(*) as count FROM journal_entries WHERE related_task_id = ?')
       .get(task.id) as { count: number };
 
-    setTaskStatus(task.id, 'ready');
+    setTaskStatus({ id: task.id, status: 'ready' });
 
     const afterCount = db
       .query('SELECT COUNT(*) as count FROM journal_entries WHERE related_task_id = ?')
@@ -1204,7 +1207,7 @@ describe('setTaskStatus', () => {
    */
   test('should throw error when task not found', () => {
     expect(() => {
-      setTaskStatus(99999, 'done');
+      setTaskStatus({ id: 99999, status: 'done' });
     }).toThrow('Task not found');
   });
 });
