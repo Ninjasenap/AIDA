@@ -81,5 +81,6 @@ config/aida-paths.json
 
 # Personal profile
 personal-profile.json
+AIDA-prod.code-workspace
 
 .system/config/aida-paths.json
