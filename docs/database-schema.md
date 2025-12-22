@@ -89,8 +89,8 @@ CREATE TABLE IF NOT EXISTS roles (
                         'active', 'inactive', 'historical'
                     )),
     balance_target  REAL,  -- 0.0-1.0
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 ```
 
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS projects (
                     )),
     description     TEXT NOT NULL,
     finish_criteria TEXT,  -- JSON: [{"criterion": "...", "done": false}]
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
 );
 ```
@@ -153,7 +153,7 @@ captured -> clarified -> ready -> planned -> done
 ```sql
 CREATE TABLE IF NOT EXISTS journal_entries (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp           TEXT NOT NULL DEFAULT (datetime('now')),
+    timestamp           TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     entry_type          TEXT NOT NULL DEFAULT 'checkin' CHECK (entry_type IN (
                         'checkin', 'reflection', 'task', 'event', 'note', 'idea'
                     )),

@@ -413,7 +413,7 @@ describe('getEntriesByType', () => {
     createEntry({ entry_type: 'reflection', content: 'Reflection 1' });
     createEntry({ entry_type: 'reflection', content: 'Reflection 2' });
 
-    const entries = getEntriesByType('reflection');
+    const entries = getEntriesByType({ type: 'reflection' });
 
     expect(entries).toBeDefined();
     expect(Array.isArray(entries)).toBe(true);
@@ -422,7 +422,7 @@ describe('getEntriesByType', () => {
   });
 
   test('should return entries in chronological order (ASC)', () => {
-    const entries = getEntriesByType('checkin');
+    const entries = getEntriesByType({ type: 'checkin' });
 
     if (entries.length > 1) {
       for (let i = 0; i < entries.length - 1; i++) {
@@ -443,7 +443,7 @@ describe('getEntriesByType', () => {
     // Create a test entry
     createEntry({ entry_type: 'idea', content: 'Test idea för datumfilter' });
 
-    const entries = getEntriesByType('idea', { startDate, endDate });
+    const entries = getEntriesByType({ type: 'idea', startDate, endDate });
 
     expect(entries).toBeDefined();
     expect(Array.isArray(entries)).toBe(true);
@@ -464,7 +464,7 @@ describe('getEntriesByType', () => {
       related_role_id: 1,
     });
 
-    const entries = getEntriesByType('event');
+    const entries = getEntriesByType({ type: 'event' });
     const eventEntry = entries.find(e => e.content === 'Event med relationer');
 
     expect(eventEntry).toBeDefined();
@@ -473,7 +473,8 @@ describe('getEntriesByType', () => {
   });
 
   test('should return empty array for type with no entries', () => {
-    const entries = getEntriesByType('note', {
+    const entries = getEntriesByType({
+      type: 'note',
       startDate: '2000-01-01T00:00:00Z',
       endDate: '2000-01-02T00:00:00Z',
     });
@@ -522,7 +523,7 @@ describe('getEntriesByDateRange', () => {
     // Create test entry
     createEntry({ entry_type: 'note', content: 'Entry för datumrange-test' });
 
-    const entries = getEntriesByDateRange(startDate, endDate);
+    const entries = getEntriesByDateRange({ startDate, endDate });
 
     expect(entries).toBeDefined();
     expect(Array.isArray(entries)).toBe(true);
@@ -541,7 +542,7 @@ describe('getEntriesByDateRange', () => {
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
 
-    const entries = getEntriesByDateRange(weekAgo.toISOString(), today.toISOString());
+    const entries = getEntriesByDateRange({ startDate: weekAgo.toISOString(), endDate: today.toISOString() });
 
     if (entries.length > 1) {
       for (let i = 0; i < entries.length - 1; i++) {
@@ -567,7 +568,7 @@ describe('getEntriesByDateRange', () => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const entries = getEntriesByDateRange(yesterday.toISOString(), tomorrow.toISOString());
+    const entries = getEntriesByDateRange({ startDate: yesterday.toISOString(), endDate: tomorrow.toISOString() });
     const fullEntry = entries.find(e => e.content === 'Entry med alla relationer för range-test');
 
     expect(fullEntry).toBeDefined();
@@ -577,7 +578,7 @@ describe('getEntriesByDateRange', () => {
   });
 
   test('should return empty array when no entries in range', () => {
-    const entries = getEntriesByDateRange('2000-01-01T00:00:00Z', '2000-01-02T00:00:00Z');
+    const entries = getEntriesByDateRange({ startDate: '2000-01-01T00:00:00Z', endDate: '2000-01-02T00:00:00Z' });
     expect(entries).toEqual([]);
   });
 
@@ -587,7 +588,7 @@ describe('getEntriesByDateRange', () => {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const entries = getEntriesByDateRange(today.toISOString(), endOfDay.toISOString());
+    const entries = getEntriesByDateRange({ startDate: today.toISOString(), endDate: endOfDay.toISOString() });
 
     expect(entries).toBeDefined();
     expect(Array.isArray(entries)).toBe(true);

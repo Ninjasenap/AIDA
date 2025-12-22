@@ -23,7 +23,7 @@
  */
 
 import { getDatabase } from '../connection';
-import { normalizeToISO8601 } from '../../utilities/time';
+import { normalizeToISO8601, getLocalTimestamp } from '../../utilities/time';
 import { regenerateJournalMarkdown } from '../../utilities/journal-markdown.js';
 import type {
   JournalEntry,
@@ -197,18 +197,17 @@ export function getEntriesByRole(roleId: number): JournalEntryFull[] {
  * Filters by entry_type, optionally narrows with timestamp BETWEEN if date range
  * provided. Enriches with all related entity names via standard LEFT JOINs.
  *
- * @param type - EntryType to filter by (required)
- * @param options - Optional date range:
- *        - startDate: ISO string for range start (inclusive)
- *        - endDate: ISO string for range end (inclusive)
- *        If both provided, applies BETWEEN filter; partial options are ignored.
+ * @param input - Query parameters:
+ *        - type: EntryType to filter by (required)
+ *        - startDate: ISO string for range start (inclusive, optional)
+ *        - endDate: ISO string for range end (inclusive, optional)
+ *        If both dates provided, applies BETWEEN filter; partial options are ignored.
  * @returns Array of journal entries matching type (and optionally date range),
  *          ordered by timestamp ascending (oldest first).
  *          Entries enriched with task_title, project_name, role_name (null if unset).
  */
 export function getEntriesByType(
-  type: EntryType,
-  options?: { startDate?: string; endDate?: string }
+  input: { type: EntryType; startDate?: string; endDate?: string }
 ): JournalEntryFull[] {
   const db = getDatabase();
 
@@ -222,11 +221,11 @@ export function getEntriesByType(
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.entry_type = ?`;
 
-  const params: any[] = [type];
+  const params: any[] = [input.type];
 
-  if (options?.startDate && options?.endDate) {
+  if (input.startDate && input.endDate) {
     sql += ` AND je.timestamp BETWEEN ? AND ?`;
-    params.push(options.startDate, options.endDate);
+    params.push(input.startDate, input.endDate);
   }
 
   sql += ` ORDER BY datetime(je.timestamp) ASC`;
@@ -248,13 +247,14 @@ export function getEntriesByType(
  * all related entity names via standard LEFT JOINs.
  * Ordered ASC (oldest first) for chronological narrative of the period.
  *
- * @param startDate - ISO 8601 datetime string for range start (inclusive)
- * @param endDate - ISO 8601 datetime string for range end (inclusive)
+ * @param input - Query parameters:
+ *        - startDate: ISO 8601 datetime string for range start (inclusive)
+ *        - endDate: ISO 8601 datetime string for range end (inclusive)
  * @returns Array of all journal entries within the date range, ordered by
  *          timestamp ascending (oldest first). Entries enriched with task_title,
  *          project_name, role_name (null if unset).
  */
-export function getEntriesByDateRange(startDate: string, endDate: string): JournalEntryFull[] {
+export function getEntriesByDateRange(input: { startDate: string; endDate: string }): JournalEntryFull[] {
   const db = getDatabase();
 
   const entries = db
@@ -270,7 +270,7 @@ export function getEntriesByDateRange(startDate: string, endDate: string): Journ
        WHERE DATE(je.timestamp) BETWEEN ? AND ?
        ORDER BY datetime(je.timestamp) ASC`
     )
-    .all(startDate, endDate) as JournalEntryFull[];
+    .all(input.startDate, input.endDate) as JournalEntryFull[];
 
   return entries;
 }
@@ -315,43 +315,33 @@ export function getEntriesByDateRange(startDate: string, endDate: string): Journ
 export function createEntry(input: CreateEntryInput): JournalEntry {
   const db = getDatabase();
 
-  // Validate and normalize timestamp if provided
-  let normalizedTimestamp: string | null = null;
+  // Generate or validate timestamp - always provide explicit timestamp for local time
+  let timestamp: string;
   if (input.timestamp !== undefined) {
-    normalizedTimestamp = normalizeToISO8601(input.timestamp);
-    if (!normalizedTimestamp) {
+    // User provided timestamp - validate and convert to SQLite format
+    const normalizedISO = normalizeToISO8601(input.timestamp);
+    if (!normalizedISO) {
       throw new Error(`Invalid timestamp format: "${input.timestamp}". Expected ISO 8601 format or parseable date expression.`);
     }
-  }
-
-  // Build dynamic INSERT based on whether timestamp is provided
-  let sql: string;
-  let params: any[];
-
-  if (normalizedTimestamp !== null) {
-    sql = `INSERT INTO journal_entries (timestamp, entry_type, content, related_task_id, related_project_id, related_role_id)
-           VALUES (?, ?, ?, ?, ?, ?)
-           RETURNING *`;
-    params = [
-      normalizedTimestamp,
-      input.entry_type,
-      input.content,
-      input.related_task_id ?? null,
-      input.related_project_id ?? null,
-      input.related_role_id ?? null,
-    ];
+    // Convert from ISO format (T separator) to SQLite format (space separator)
+    timestamp = normalizedISO.replace('T', ' ');
   } else {
-    sql = `INSERT INTO journal_entries (entry_type, content, related_task_id, related_project_id, related_role_id)
-           VALUES (?, ?, ?, ?, ?)
-           RETURNING *`;
-    params = [
-      input.entry_type,
-      input.content,
-      input.related_task_id ?? null,
-      input.related_project_id ?? null,
-      input.related_role_id ?? null,
-    ];
+    // No timestamp provided - use current local time
+    timestamp = getLocalTimestamp();
   }
+
+  // Always include timestamp in INSERT to ensure local time
+  const sql = `INSERT INTO journal_entries (timestamp, entry_type, content, related_task_id, related_project_id, related_role_id)
+         VALUES (?, ?, ?, ?, ?, ?)
+         RETURNING *`;
+  const params = [
+    timestamp,
+    input.entry_type,
+    input.content,
+    input.related_task_id ?? null,
+    input.related_project_id ?? null,
+    input.related_role_id ?? null,
+  ];
 
   const result = db.query(sql).get(...params) as JournalEntry;
 

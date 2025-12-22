@@ -303,23 +303,21 @@ export function getAttribute(path: string): unknown {
 /**
  * Update a specific attribute in the profile.
  * Automatically logs the change to update_log.
- * @param path - Dot-notation path to update
- * @param value - New value to set
- * @param source - Source of the change (user, auto_learn, setup_wizard, import)
- * @param reason - Optional reason for the change
+ * @param input - Update parameters:
+ *        - path: Dot-notation path to update
+ *        - value: New value to set
+ *        - source: Source of the change (user, auto_learn, setup_wizard, import)
+ *        - reason: Optional reason for the change
  * @returns true if successful, false otherwise
  */
 export function updateAttribute(
-  path: string,
-  value: unknown,
-  source: ChangeSource,
-  reason?: string
+  input: { path: string; value: unknown; source: ChangeSource; reason?: string }
 ): boolean {
   const profile = getProfile();
   if (!profile) return false;
 
-  const oldValue = getNestedValue(profile, path);
-  setNestedValue(profile, path, value);
+  const oldValue = getNestedValue(profile, input.path);
+  setNestedValue(profile, input.path, input.value);
 
   // Ensure update_log exists
   if (!profile.update_log) {
@@ -330,11 +328,11 @@ export function updateAttribute(
   const logEntry: UpdateLogEntry = {
     id: randomUUID(),
     timestamp: getCurrentISO(),
-    path,
+    path: input.path,
     old_value: oldValue,
-    new_value: value,
-    source,
-    reason,
+    new_value: input.value,
+    source: input.source,
+    reason: input.reason,
   };
 
   profile.update_log.entries.push(logEntry);
@@ -793,7 +791,7 @@ export function applyObservationSuggestion(observationId: string): boolean {
   const { path, value, rationale } = observation.suggested_update;
 
   // Apply the update using updateAttribute
-  const success = updateAttribute(path, value, 'auto_learn', rationale);
+  const success = updateAttribute({ path, value, source: 'auto_learn', reason: rationale });
 
   if (success) {
     // Re-read profile to get the updated version

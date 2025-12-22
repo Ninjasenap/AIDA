@@ -234,7 +234,7 @@ describe('getRolesByType', () => {
    * Confirms only roles of work type are returned.
    */
   test('returns only roles of specified type (work)', () => {
-    const roles = getRolesByType('work');
+    const roles = getRolesByType({ type: 'work' });
 
     // Demo data has 1 work role (Systemutvecklare), but tests may create more
     expect(roles.length).toBeGreaterThanOrEqual(1);
@@ -247,7 +247,7 @@ describe('getRolesByType', () => {
    * Confirms only personal type roles are returned.
    */
   test('returns only roles of specified type (personal)', () => {
-    const roles = getRolesByType('personal');
+    const roles = getRolesByType({ type: 'personal' });
 
     // Demo data has 1 personal role (Förälder)
     expect(roles).toHaveLength(1);
@@ -259,7 +259,7 @@ describe('getRolesByType', () => {
    * Confirms only hobby type roles are returned.
    */
   test('returns only roles of specified type (hobby)', () => {
-    const roles = getRolesByType('hobby');
+    const roles = getRolesByType({ type: 'hobby' });
 
     // Demo data has 1 hobby role (Hobbyutvecklare)
     expect(roles).toHaveLength(1);
@@ -271,7 +271,7 @@ describe('getRolesByType', () => {
    * Verifies inactive roles are excluded by default, even when querying by type.
    */
   test('returns only active roles by default', () => {
-    const roles = getRolesByType('civic');
+    const roles = getRolesByType({ type: 'civic' });
 
     // Demo data has 1 civic role (Föreningsordförande), but it's inactive
     expect(roles).toHaveLength(0);
@@ -281,7 +281,7 @@ describe('getRolesByType', () => {
    * Confirms includeInactive option allows inactive roles to be returned.
    */
   test('includes inactive roles when option is set', () => {
-    const roles = getRolesByType('civic', { includeInactive: true });
+    const roles = getRolesByType({ type: 'civic', includeInactive: true });
 
     // Now we should get the inactive civic role
     expect(roles).toHaveLength(1);
@@ -294,7 +294,7 @@ describe('getRolesByType', () => {
    * Confirms empty array is returned for type with no matching roles.
    */
   test('returns empty array for type with no roles', () => {
-    const roles = getRolesByType('meta');
+    const roles = getRolesByType({ type: 'meta' });
 
     expect(roles).toHaveLength(0);
     expect(Array.isArray(roles)).toBe(true);
@@ -439,7 +439,8 @@ describe('updateRole', () => {
       type: 'hobby' as const,
     });
 
-    const updated = updateRole(original.id, {
+    const updated = updateRole({
+      id: original.id,
       name: 'Updated Role Name',
     });
 
@@ -458,7 +459,8 @@ describe('updateRole', () => {
       description: 'Old description',
     });
 
-    const updated = updateRole(original.id, {
+    const updated = updateRole({
+      id: original.id,
       description: 'New creative description',
     });
 
@@ -476,7 +478,8 @@ describe('updateRole', () => {
       responsibilities: ['Old task 1', 'Old task 2'],
     });
 
-    const updated = updateRole(original.id, {
+    const updated = updateRole({
+      id: original.id,
       responsibilities: ['New task 1', 'New task 2', 'New task 3'],
     });
 
@@ -495,7 +498,8 @@ describe('updateRole', () => {
       balance_target: 0.2,
     });
 
-    const updated = updateRole(original.id, {
+    const updated = updateRole({
+      id: original.id,
       balance_target: 0.35,
     });
 
@@ -514,7 +518,8 @@ describe('updateRole', () => {
       balance_target: 0.5,
     });
 
-    const updated = updateRole(original.id, {
+    const updated = updateRole({
+      id: original.id,
       name: 'Senior Coach',
       description: 'Leadership and mentoring',
       responsibilities: ['Team leadership', 'Individual coaching', 'Career development'],
@@ -539,7 +544,8 @@ describe('updateRole', () => {
     });
 
     // Small delay to ensure timestamp difference
-    const updated = updateRole(original.id, {
+    const updated = updateRole({
+      id: original.id,
       name: 'Test Updated',
     });
 
@@ -552,7 +558,7 @@ describe('updateRole', () => {
    */
   test('throws error when updating non-existent role', () => {
     expect(() => {
-      updateRole(99999, { name: 'Should fail' });
+      updateRole({ id: 99999, name: 'Should fail' });
     }).toThrow();
   });
 });
@@ -585,7 +591,7 @@ describe('setRoleStatus', () => {
       type: 'hobby' as const,
     });
 
-    const result = setRoleStatus(role.id, 'inactive');
+    const result = setRoleStatus({ id: role.id, status: 'inactive' });
 
     expect(result.role.status).toBe('inactive');
     expect(result.role.id).toBe(role.id);
@@ -601,10 +607,10 @@ describe('setRoleStatus', () => {
     });
 
     // First set to inactive
-    setRoleStatus(role.id, 'inactive');
+    setRoleStatus({ id: role.id, status: 'inactive' });
 
     // Then reactivate
-    const result = setRoleStatus(role.id, 'active');
+    const result = setRoleStatus({ id: role.id, status: 'active' });
 
     expect(result.role.status).toBe('active');
     expect(result.warning).toBeUndefined();
@@ -619,7 +625,7 @@ describe('setRoleStatus', () => {
       type: 'work' as const,
     });
 
-    const result = setRoleStatus(role.id, 'historical');
+    const result = setRoleStatus({ id: role.id, status: 'historical' });
 
     expect(result.role.status).toBe('historical');
   });
@@ -636,7 +642,7 @@ describe('setRoleStatus', () => {
     db.query('INSERT INTO tasks (title, role_id, status) VALUES (?, ?, ?)')
       .run('Test task', role.id, 'captured');
 
-    const result = setRoleStatus(role.id, 'inactive');
+    const result = setRoleStatus({ id: role.id, status: 'inactive' });
 
     expect(result.role.status).toBe('inactive');
     expect(result.warning).toBeDefined();
@@ -655,7 +661,7 @@ describe('setRoleStatus', () => {
     db.query('INSERT INTO tasks (title, role_id, status) VALUES (?, ?, ?)')
       .run('Another test task', role.id, 'ready');
 
-    const result = setRoleStatus(role.id, 'historical');
+    const result = setRoleStatus({ id: role.id, status: 'historical' });
 
     expect(result.role.status).toBe('historical');
     expect(result.warning).toBeDefined();
@@ -671,7 +677,7 @@ describe('setRoleStatus', () => {
       type: 'hobby' as const,
     });
 
-    const result = setRoleStatus(role.id, 'active');
+    const result = setRoleStatus({ id: role.id, status: 'active' });
 
     expect(result.role.status).toBe('active');
     expect(result.warning).toBeUndefined();
@@ -686,7 +692,7 @@ describe('setRoleStatus', () => {
       type: 'private' as const,
     });
 
-    const result = setRoleStatus(role.id, 'inactive');
+    const result = setRoleStatus({ id: role.id, status: 'inactive' });
 
     expect(result.role.status).toBe('inactive');
     // Should have no warning or warning with 0 tasks
@@ -700,7 +706,7 @@ describe('setRoleStatus', () => {
    */
   test('throws error when setting status on non-existent role', () => {
     expect(() => {
-      setRoleStatus(99999, 'inactive');
+      setRoleStatus({ id: 99999, status: 'inactive' });
     }).toThrow();
   });
 });

@@ -25,6 +25,7 @@ import {
   TASK_STATUS_ORDER,
   getCurrentWeekRange,
 } from '../helpers';
+import { getLocalTimestamp } from '../../utilities/time';
 import type {
   Task,
   TaskFull,
@@ -70,23 +71,24 @@ export function getTaskById(id: number): TaskFull | null {
  * SQL: SELECT * FROM v_tasks_full WHERE title LIKE '%' || ? || '%'
  *      [AND status NOT IN ('done', 'cancelled')]
  *
- * @param query - Search string to match against task titles
- * @param options - Optional settings to include done/cancelled tasks
+ * @param input - Search parameters
+ * @param input.query - Search string to match against task titles
+ * @param input.includeDone - Optional flag to include done/cancelled tasks (defaults to false)
  * @returns Array of matching tasks with full details
  */
-export function searchTasks(
-  query: string,
-  options?: { includeDone?: boolean }
-): TaskFull[] {
+export function searchTasks(input: {
+  query: string;
+  includeDone?: boolean;
+}): TaskFull[] {
   const db = getDatabase();
 
   let sql = "SELECT * FROM v_tasks_full WHERE title LIKE '%' || ? || '%'";
 
-  if (!options?.includeDone) {
+  if (!input.includeDone) {
     sql += " AND status NOT IN ('done', 'cancelled')";
   }
 
-  const tasks = db.query(sql).all(query) as TaskFull[];
+  const tasks = db.query(sql).all(input.query) as TaskFull[];
 
   return tasks;
 }
@@ -123,14 +125,15 @@ export function getTodayTasks(): Map<number, TaskFull[]> {
  *      WHERE (deadline BETWEEN ? AND ? OR start_date BETWEEN ? AND ?)
  *      AND status NOT IN ('done', 'cancelled')
  *
- * @param weekStart - ISO date string for week start (Monday)
- * @param weekEnd - ISO date string for week end (Sunday)
+ * @param input - Week range parameters
+ * @param input.weekStart - ISO date string for week start (Monday)
+ * @param input.weekEnd - ISO date string for week end (Sunday)
  * @returns Map with date string as key and array of tasks as value
  */
-export function getWeekTasks(
-  weekStart: string,
-  weekEnd: string
-): Map<string, TaskFull[]> {
+export function getWeekTasks(input: {
+  weekStart: string;
+  weekEnd: string;
+}): Map<string, TaskFull[]> {
   const db = getDatabase();
 
   const tasks = db
@@ -139,7 +142,7 @@ export function getWeekTasks(
        WHERE (deadline BETWEEN ? AND ? OR start_date BETWEEN ? AND ?)
        AND status NOT IN ('done', 'cancelled')`
     )
-    .all(weekStart, weekEnd, weekStart, weekEnd) as TaskFull[];
+    .all(input.weekStart, input.weekEnd, input.weekStart, input.weekEnd) as TaskFull[];
 
   // Group by deadline, or start_date if no deadline
   return groupBy(tasks, (task) => task.deadline || task.start_date || '');
@@ -173,10 +176,12 @@ export function getOverdueTasks(): TaskFull[] {
  *      WHERE subtasks_json != '[]' AND status NOT IN ('done', 'cancelled')
  *      [AND role_id = ? OR project_id = ?]
  *
- * @param options - Optional filters for role or project
+ * @param input - Optional filters
+ * @param input.roleId - Optional role ID filter
+ * @param input.projectId - Optional project ID filter
  * @returns Array of parent tasks with subtasks
  */
-export function getTasksWithSubtasks(options?: {
+export function getTasksWithSubtasks(input?: {
   roleId?: number;
   projectId?: number;
 }): TaskFull[] {
@@ -187,14 +192,14 @@ export function getTasksWithSubtasks(options?: {
 
   const params: number[] = [];
 
-  if (options?.roleId !== undefined) {
+  if (input?.roleId !== undefined) {
     sql += ' AND role_id = ?';
-    params.push(options.roleId);
+    params.push(input.roleId);
   }
 
-  if (options?.projectId !== undefined) {
+  if (input?.projectId !== undefined) {
     sql += ' AND project_id = ?';
-    params.push(options.projectId);
+    params.push(input.projectId);
   }
 
   const tasks = db.query(sql).all(...params) as TaskFull[];
@@ -213,25 +218,26 @@ export function getTasksWithSubtasks(options?: {
  *      [AND status NOT IN ('done', 'cancelled')]
  *      ORDER BY status, deadline NULLS LAST, priority DESC
  *
- * @param roleId - Role ID to fetch tasks for
- * @param options - Optional settings to include done/cancelled tasks
+ * @param input - Query parameters
+ * @param input.roleId - Role ID to fetch tasks for
+ * @param input.includeDone - Optional flag to include done/cancelled tasks (defaults to false)
  * @returns Map with TaskStatus as key and array of tasks as value
  */
-export function getTasksByRole(
-  roleId: number,
-  options?: { includeDone?: boolean }
-): Map<TaskStatus, TaskFull[]> {
+export function getTasksByRole(input: {
+  roleId: number;
+  includeDone?: boolean;
+}): Map<TaskStatus, TaskFull[]> {
   const db = getDatabase();
 
   let sql = 'SELECT * FROM v_tasks_full WHERE role_id = ?';
 
-  if (!options?.includeDone) {
+  if (!input.includeDone) {
     sql += " AND status NOT IN ('done', 'cancelled')";
   }
 
   sql += ' ORDER BY status, deadline NULLS LAST, priority DESC';
 
-  const tasks = db.query(sql).all(roleId) as TaskFull[];
+  const tasks = db.query(sql).all(input.roleId) as TaskFull[];
 
   return groupBy(tasks, (task) => task.status);
 }
@@ -275,15 +281,17 @@ export function getTasksByProject(projectId: number): {
  * Retrieves stale tasks based on customizable thresholds.
  *
  * Uses v_stale_tasks view by default (captured >= 28 days, ready >= 14 days).
- * Can customize thresholds via options parameter.
+ * Can customize thresholds via input parameter.
  *
  * SQL: SELECT * FROM v_stale_tasks
  *      OR custom query with adjustable days_since_creation thresholds
  *
- * @param options - Optional custom thresholds for captured and ready tasks
+ * @param input - Optional custom thresholds
+ * @param input.capturedDays - Days threshold for captured tasks
+ * @param input.readyDays - Days threshold for ready tasks
  * @returns Array of stale tasks
  */
-export function getStaleTasks(options?: {
+export function getStaleTasks(input?: {
   capturedDays?: number;
   readyDays?: number;
 }): TaskFull[] {
@@ -291,11 +299,11 @@ export function getStaleTasks(options?: {
 
   // If custom thresholds provided, build custom query
   if (
-    options?.capturedDays !== undefined ||
-    options?.readyDays !== undefined
+    input?.capturedDays !== undefined ||
+    input?.readyDays !== undefined
   ) {
-    const capturedDays = options.capturedDays ?? 28;
-    const readyDays = options.readyDays ?? 14;
+    const capturedDays = input.capturedDays ?? 28;
+    const readyDays = input.readyDays ?? 14;
 
     const tasks = db
       .query(
@@ -348,15 +356,19 @@ WRITE OPERATIONS - Create, update, and manage task status with journaling
 export function createTask(input: CreateTaskInput): Task {
   const db = getDatabase();
 
+  // Generate local timestamp to ensure consistent timezone handling
+  const created_at = getLocalTimestamp();
+
   const result = db
     .query(
       `INSERT INTO tasks (
-        title, role_id, notes, status, priority, energy_requirement,
+        created_at, title, role_id, notes, status, priority, energy_requirement,
         time_estimate, project_id, parent_task_id, start_date, deadline, remind_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *`
     )
     .get(
+      created_at,
       input.title,
       input.role_id,
       input.notes ?? null,
@@ -387,8 +399,8 @@ export function createTask(input: CreateTaskInput): Task {
  * SQL Pattern: UPDATE tasks SET field1 = ?, field2 = ? WHERE id = ?
  *              RETURNING * (only fields provided in input are updated)
  *
- * @param id - Task ID to update
- * @param input - Partial task data to update (any fields can be omitted)
+ * @param input - Update parameters including task ID and fields to update
+ * @param input.id - Task ID to update (required)
  * @param input.title - Update task title (optional)
  * @param input.notes - Update notes/description (optional)
  * @param input.priority - Update priority level (optional)
@@ -403,7 +415,7 @@ export function createTask(input: CreateTaskInput): Task {
  * @returns Updated task with all fields populated
  * @throws Error if task not found or if no fields provided (returns current task)
  */
-export function updateTask(id: number, input: UpdateTaskInput): Task {
+export function updateTask(input: UpdateTaskInput & { id: number }): Task {
   const db = getDatabase();
 
   // Build dynamic SQL for partial updates
@@ -417,6 +429,10 @@ export function updateTask(id: number, input: UpdateTaskInput): Task {
   if (input.notes !== undefined) {
     fields.push('notes = ?');
     values.push(input.notes);
+  }
+  if (input.status !== undefined) {
+    fields.push('status = ?');
+    values.push(input.status);
   }
   if (input.priority !== undefined) {
     fields.push('priority = ?');
@@ -457,21 +473,21 @@ export function updateTask(id: number, input: UpdateTaskInput): Task {
 
   if (fields.length === 0) {
     // No fields to update, just return current task
-    const task = db.query('SELECT * FROM tasks WHERE id = ?').get(id) as Task;
+    const task = db.query('SELECT * FROM tasks WHERE id = ?').get(input.id) as Task;
     if (!task) {
-      throw new Error(`Task not found: id=${id}`);
+      throw new Error(`Task not found: id=${input.id}`);
     }
     return task;
   }
 
-  values.push(id);
+  values.push(input.id);
 
   const sql = `UPDATE tasks SET ${fields.join(', ')} WHERE id = ? RETURNING *`;
 
   const result = db.query(sql).get(...values) as Task | null;
 
   if (!result) {
-    throw new Error(`Task not found: id=${id}`);
+    throw new Error(`Task not found: id=${input.id}`);
   }
 
   return result;
@@ -493,46 +509,47 @@ export function updateTask(id: number, input: UpdateTaskInput): Task {
  * SQL Pattern: UPDATE tasks SET status = ? WHERE id = ?
  *              + INSERT INTO journal_entries (conditional on status)
  *
- * @param id - Task ID to update
- * @param status - New status to set (captured, ready, planned, active, done, cancelled)
- * @param comment - Optional comment for journal entry (only used if done/cancelled)
+ * @param input - Status change parameters
+ * @param input.id - Task ID to update
+ * @param input.status - New status to set (captured, ready, planned, active, done, cancelled)
+ * @param input.comment - Optional comment for journal entry (only used if done/cancelled)
  * @returns Updated task with new status
  * @throws Error if task not found
  *
  * @example
  * // Complete task with auto-generated journal entry
- * setTaskStatus(42, 'done');
+ * setTaskStatus({ id: 42, status: 'done' });
  *
  * @example
  * // Complete with custom reflection
- * setTaskStatus(42, 'done', 'Completed earlier than expected, energy was high');
+ * setTaskStatus({ id: 42, status: 'done', comment: 'Completed earlier than expected' });
  */
-export function setTaskStatus(
-  id: number,
-  status: TaskStatus,
-  comment?: string
-): Task {
+export function setTaskStatus(input: {
+  id: number;
+  status: TaskStatus;
+  comment?: string;
+}): Task {
   const db = getDatabase();
 
   // Update status
   const result = db
     .query('UPDATE tasks SET status = ? WHERE id = ? RETURNING *')
-    .get(status, id) as Task | null;
+    .get(input.status, input.id) as Task | null;
 
   if (!result) {
-    throw new Error(`Task not found: id=${id}`);
+    throw new Error(`Task not found: id=${input.id}`);
   }
 
   // Create journal entry if done or cancelled
-  if (status === 'done' || status === 'cancelled') {
+  if (input.status === 'done' || input.status === 'cancelled') {
     const content =
-      comment ||
-      `Task ${status === 'done' ? 'completed' : 'cancelled'}: ${result.title}`;
+      input.comment ||
+      `Task ${input.status === 'done' ? 'completed' : 'cancelled'}: ${result.title}`;
 
     db.query(
       `INSERT INTO journal_entries (entry_type, content, related_task_id)
        VALUES ('task', ?, ?)`
-    ).run(content, id);
+    ).run(content, input.id);
   }
 
   return result;

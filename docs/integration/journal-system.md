@@ -21,7 +21,7 @@ The database stores structured journal data. Markdown files are generated for:
 ```sql
 CREATE TABLE journal_entries (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp           TEXT NOT NULL DEFAULT (datetime('now')),
+    timestamp           TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     entry_type          TEXT NOT NULL DEFAULT 'checkin',
     content             TEXT NOT NULL,
     related_task_id     INTEGER,
