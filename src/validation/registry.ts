@@ -172,4 +172,21 @@ export const schemaRegistry: Record<string, Record<string, SchemaEntry>> = {
     // Simple positional with optional string
     getTimeInfo: { schema: z.string().optional(), argMode: 'positional-id' },
   },
+
+  paths: {
+    // No-arg path utilities
+    getPkmRoot: { schema: z.undefined(), argMode: 'none' },
+    getLocalRoot: { schema: z.undefined(), argMode: 'none' },
+    getAidaDir: { schema: z.undefined(), argMode: 'none' },
+    getDatabasePath: { schema: z.undefined(), argMode: 'none' },
+    getContextDir: { schema: z.undefined(), argMode: 'none' },
+    getProfilePath: { schema: z.undefined(), argMode: 'none' },
+    getJournalDir: { schema: z.undefined(), argMode: 'none' },
+    getDailyJournalDir: { schema: z.undefined(), argMode: 'none' },
+    getPlanFilePath: { schema: z.undefined(), argMode: 'none' },
+    getInboxDir: { schema: z.undefined(), argMode: 'none' },
+    getSharedDir: { schema: z.undefined(), argMode: 'none' },
+    getTemplatesDir: { schema: z.undefined(), argMode: 'none' },
+    getSchemaPath: { schema: z.undefined(), argMode: 'none' },
+  },
 };

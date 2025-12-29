@@ -117,6 +117,7 @@ Direct command invocation - highest priority routing.
 | `/capture [text]` | task-capture | Quick task capture with minimal friction |
 | `/next` | task-activation | Next recommended action with activation support |
 | `/overview [role]` | status-overview | Workload overview for role(s) |
+| `/tib-report [title]` | tib-report | Create TIB (Tjänsteperson i Beredskap) incident report |
 | `/weekly [review\|plan]` | weekly-planning | Weekly review/planning (auto-detects mode based on day) |
 
 **Action:** Use SlashCommand tool with the command string.
@@ -219,6 +220,19 @@ profile-management:
     - "change preferences"
   # NOTE: "visa min profil" → direct query (see below)
   # NOTE: "granska observationer" → profile-learner AGENT (see below)
+
+tib-report:
+  swedish:
+    - "skapa TIB-rapport"
+    - "ny händelserapport"
+    - "TIB-rapport"
+    - "skapa rapport"
+    - "dokumentera händelse"
+    - "incident report"
+  english:
+    - "create TIB report"
+    - "new incident report"
+    - "document incident"
 
 ```
 
@@ -387,12 +401,13 @@ See the **Command & Skill Routing** section above for:
 - `task-capture` - Quick task capture with minimal friction
 - `task-activation` - Activation support for getting unstuck
 - `status-overview` - Workload overview across roles/projects
+- `tib-report` - Create TIB incident reports
 - `weekly-planning` - Weekly review and planning
 - `profile-management` - Profile CRUD operations (NOT pattern analysis)
 
 ## Implementation Status
 
-**Operativt:** Database layer, 6 user-facing skills, 5 commands, 3 subagents
+**Operativt:** Database layer, 7 user-facing skills, 6 commands, 3 subagents
 
 **Planerat:** Hook configurations
 
