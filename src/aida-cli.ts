@@ -23,6 +23,8 @@
  *   - journalMd: Journal markdown generation (8 functions)
  *   - plan: Daily plan file management (7 functions)
  *   - profile: Profile management (24 functions)
+ *   - time: Time parsing and formatting
+ *   - paths: Path utilities (getPkmRoot, getLocalRoot, etc.)
  *
  * Arguments:
  *   - JSON strings are automatically parsed: '{"key":"value"}' → object
@@ -42,17 +44,18 @@ import * as journalMd from './utilities/journal-markdown';
 import * as plan from './utilities/daily-plan';
 import * as profile from './utilities/profile';
 import * as time from './utilities/time';
+import * as paths from './utilities/paths';
 import { serializeWithMaps } from './utilities/json-serialization';
 import { validateCLIArgs } from './validation/validator';
 
-const modules = { tasks, roles, projects, journal, journalMd, plan, profile, time };
+const modules = { tasks, roles, projects, journal, journalMd, plan, profile, time, paths };
 
 const [module, func, ...args] = process.argv.slice(2);
 
 if (!module || !func) {
   console.log('Usage: aida-cli <module> <function> [args...]');
   console.log('');
-  console.log('Modules: tasks, roles, projects, journal, journalMd, plan, profile');
+  console.log('Modules: tasks, roles, projects, journal, journalMd, plan, profile, time, paths');
   console.log('');
   console.log('Examples:');
   console.log('  bun run .system/tools/aida-cli.ts tasks getTodayTasks');
