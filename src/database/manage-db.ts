@@ -96,7 +96,8 @@ DATABASE OPERATIONS
  *
  * @example
  * deleteDatabase();
- * // Output: ✓ Deleted: .system/data/aida.db
+  * // Output: ✓ Deleted: <pkm>/.aida/data/aida.db
+
  */
 function deleteDatabase(): void {
   console.log('🗑️  Deleting database files...');
@@ -215,7 +216,8 @@ async function initializeDatabase(): Promise<void> {
  * @example
  * await resetDatabase();
  * // Output: 🔄 Resetting database...
- * //         ✓ Deleted: .system/data/aida.db
+  * //         ✓ Deleted: <pkm>/.aida/data/aida.db
+
  * //         ✅ Database initialized successfully
  */
 async function resetDatabase(): Promise<void> {

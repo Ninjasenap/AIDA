@@ -496,10 +496,10 @@ interface FinishCriterion {
 
 ```bash
 # Initialize database
-bun run .system/tools/database/manage-db.ts init
+bun run src/database/manage-db.ts init
 
 # Reset database (delete + init)
-bun run .system/tools/database/manage-db.ts reset
+bun run src/database/manage-db.ts reset
 
 # Check integrity
 sqlite3 <pkm>/.aida/data/aida.db "PRAGMA integrity_check"

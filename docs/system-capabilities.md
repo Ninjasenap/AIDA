@@ -229,11 +229,11 @@ All database operations go through the CLI - no direct SQL manipulation.
 
 Each AIDA component has explicit tool usage contracts defining what operations are allowed and forbidden. This prevents scope creep and ensures predictable behavior.
 
-### Main Orchestrator (CLAUDE.md)
+### Main Orchestrator (AGENTS.md)
 
 **Allowed Direct Operations:**
 - Simple read queries: `tasks.getTodayTasks`, `roles.getActiveRoles`, `profile.getCurrentEnergyLevel`
-- Development tasks: Full access to `src/`, `docs/`, `.claude/` for system changes
+- Development tasks: Full access to `src/`, `docs/`, `.opencode/` for system changes
 
 **Delegation Rules:**
 - Workflow operations → Skills
@@ -283,7 +283,7 @@ Each AIDA component has explicit tool usage contracts defining what operations a
 **Contract Documentation:**
 - Each skill file has `## Tool Contract` section
 - Agent definitions include allowed/forbidden operations
-- Plan file: `/Users/henrik/.claude/plans/temporal-sleeping-puzzle.md`
+- Plan file: `<pkm>/0-JOURNAL/PLAN.md`
 
 ---
 

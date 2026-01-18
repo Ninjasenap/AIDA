@@ -4,11 +4,15 @@
 
 ## PKM Location
 
-Configured in `.system/config/aida-paths.json`:
+Configured in `config/aida-paths.json`:
 
 ```json
 {
-  "pkm": "/path/to/AIDA-PKM"
+  "_meta": { "version": "1.0" },
+  "paths": {
+    "pkm_root": "/path/to/AIDA-PKM",
+    "local_root": "/path/to/AIDA-dev"
+  }
 }
 ```
 
@@ -191,7 +195,7 @@ created_by: aida
 ## Path Resolution
 
 ```typescript
-import { getAidaPaths } from '.system/config/paths';
+import { getPkmRoot } from 'src/utilities/paths';
 
 const paths = getAidaPaths();
 // paths.pkm = "/path/to/AIDA-PKM"

@@ -56,7 +56,7 @@ Har du några schemalagda möten eller händelser idag? Lista dem gärna med tid
 
 ### 4. Read User Energy Pattern
 
-From `.system/context/personal-profile.json` via template variables:
+From `<pkm>/.aida/context/personal-profile.json` via template variables:
 
 - `{{user.energy_pattern.high}}` - When user has high energy
 - `{{user.energy_pattern.medium}}` - When user has medium energy

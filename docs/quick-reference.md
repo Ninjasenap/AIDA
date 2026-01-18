@@ -287,4 +287,4 @@ bun run src/aida-cli.ts tasks unknown
 - **Full Reference:** `docs/query-reference.md`
 - **Usage Guide:** `docs/cli-usage-guide.md`
 - **Database Schema:** `docs/database-schema.md`
-- **Main Instructions:** `.claude/CLAUDE.md`
+- **Main Instructions:** `AGENTS.md`

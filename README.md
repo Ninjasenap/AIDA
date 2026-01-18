@@ -2,7 +2,7 @@
 
 > **Status:** Implementation Phase - Database layer complete, skills operational
 
-AIDA is a cognitive augmentation system built on Claude Code, designed to function as an external working memory and executive support system for users with ADHD/AuDHD neurotypes.
+AIDA is a cognitive augmentation system designed to function as an external working memory and executive support system for users with ADHD/AuDHD neurotypes.
 
 ## Quick Start
 
@@ -51,12 +51,12 @@ Once installed, use these commands:
 
 - **Runtime:** Bun with native SQLite support
 - **Database:** SQLite with WAL mode
-- **Interface:** Claude Code CLI
+- **Interface:** OpenCode (terminal UI / CLI)
 - **Documents:** Markdown (Obsidian-compatible)
 
 ## Documentation
 
-- **`.claude/CLAUDE.md`** - Main system documentation
+- **`AGENTS.md`** - Main system rules (OpenCode)
 - **`docs/`** - Design specifications
   - `solution-architecture.md` - Integration patterns, data flows
   - `system-architecture.md` - Database schema, TypeScript interfaces

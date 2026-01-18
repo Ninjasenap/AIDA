@@ -22,7 +22,7 @@ bun run src/aida-cli.ts tasks getTodayTasks
 
 ### Step 1: Check User's Energy Pattern
 
-Read from user profile (`.system/context/personal-profile.json`):
+Read from user profile (`<pkm>/.aida/context/personal-profile.json`):
 
 ```json
 {
@@ -301,7 +301,7 @@ Eller om du vill varva ner: [low-energy alternative]
 
 ```bash
 # Read from profile
-cat .system/context/personal-profile.json | jq '.energy_pattern'
+cat <pkm>/.aida/context/personal-profile.json | jq '.energy_pattern'
 ```
 
 ### Time Check

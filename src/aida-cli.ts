@@ -2,18 +2,18 @@
 /**
  * AIDA CLI - Command-line interface for database query functions
  *
- * This is the ONLY way to invoke database query functions from Claude Code skills,
- * commands, hooks, or any agent interaction. Direct SQL is NEVER allowed.
+ * This is the ONLY way to invoke database query functions from OpenCode skills,
+ * commands, or any agent interaction. Direct SQL is NEVER allowed.
  *
  * Usage:
- *   bun run .system/tools/aida-cli.ts <module> <function> [args...]
+ *   bun run src/aida-cli.ts <module> <function> [args...]
  *
  * Examples:
- *   bun run .system/tools/aida-cli.ts tasks getTodayTasks
- *   bun run .system/tools/aida-cli.ts tasks getOverdueTasks
- *   bun run .system/tools/aida-cli.ts journal getTodayEntries
- *   bun run .system/tools/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning check-in"}'
- *   bun run .system/tools/aida-cli.ts roles getActiveRoles
+ *   bun run src/aida-cli.ts tasks getTodayTasks
+ *   bun run src/aida-cli.ts tasks getOverdueTasks
+ *   bun run src/aida-cli.ts journal getTodayEntries
+ *   bun run src/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning check-in"}'
+ *   bun run src/aida-cli.ts roles getActiveRoles
  *
  * Modules:
  *   - tasks: Local task operations (SQLite)
@@ -59,14 +59,14 @@ if (!module || !func) {
   console.log('Modules: tasks, todoistTasks, todoist, roles, projects, journal, journalMd, plan, profile');
   console.log('');
   console.log('Examples:');
-  console.log('  bun run .system/tools/aida-cli.ts tasks getTodayTasks');
-  console.log('  bun run .system/tools/aida-cli.ts todoistTasks getTodayTasks');
-  console.log('  bun run .system/tools/aida-cli.ts todoist sync');
-  console.log('  bun run .system/tools/aida-cli.ts journal createEntry \'{"entry_type":"checkin","content":"test"}\'');
-  console.log('  bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"');
-  console.log('  bun run .system/tools/aida-cli.ts plan createDailyPlan \'{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}\'');
-  console.log('  bun run .system/tools/aida-cli.ts plan archivePlanToLog "2025-12-16"');
-  console.log('  bun run .system/tools/aida-cli.ts plan clearPlan');
+  console.log('  bun run src/aida-cli.ts tasks getTodayTasks');
+  console.log('  bun run src/aida-cli.ts todoistTasks getTodayTasks');
+  console.log('  bun run src/aida-cli.ts todoist sync');
+  console.log('  bun run src/aida-cli.ts journal createEntry \'{"entry_type":"checkin","content":"test"}\'');
+  console.log('  bun run src/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"');
+  console.log('  bun run src/aida-cli.ts plan createDailyPlan \'{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}\'');
+  console.log('  bun run src/aida-cli.ts plan archivePlanToLog "2025-12-16"');
+  console.log('  bun run src/aida-cli.ts plan clearPlan');
   process.exit(1);
 }
 

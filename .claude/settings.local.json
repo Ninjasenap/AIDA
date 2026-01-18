@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Skill(daily-planning)",
-      "Bash(bun run:*)"
-    ]
-  }
-}

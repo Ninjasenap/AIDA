@@ -5,7 +5,6 @@ import { homedir } from 'os';
 import {
   expandPath,
   getConfig,
-  isLegacyMode,
   getLocalRoot,
   getPkmRoot,
   getDatabasePath,
@@ -84,14 +83,13 @@ describe('paths.ts', () => {
   });
 
   describe('getConfig', () => {
-    test('returnerar null om config-fil saknas (legacy mode)', () => {
+    test('kastar fel om config-fil saknas', () => {
       // Ta bort config om den finns
       if (existsSync(CONFIG_PATH)) {
         unlinkSync(CONFIG_PATH);
       }
 
-      const config = getConfig();
-      expect(config).toBeNull();
+      expect(() => getConfig()).toThrow();
     });
 
     test('läser giltig config-fil', () => {
@@ -136,50 +134,8 @@ describe('paths.ts', () => {
     });
   });
 
-  describe('isLegacyMode', () => {
-    test('returnerar true när config saknas', () => {
-      if (existsSync(CONFIG_PATH)) {
-        unlinkSync(CONFIG_PATH);
-      }
-
-      expect(isLegacyMode()).toBe(true);
-    });
-
-    test('returnerar false när config finns', () => {
-      const testConfig = {
-        _meta: { version: '1.0' },
-        paths: {
-          pkm_root: '/test/pkm',
-          local_root: '/test/local',
-        },
-      };
-
-      // Skapa config-katalog om den inte finns
-      if (!existsSync(CONFIG_DIR)) {
-        mkdirSync(CONFIG_DIR, { recursive: true });
-      }
-
-      writeFileSync(CONFIG_PATH, JSON.stringify(testConfig, null, 2));
-
-      expect(isLegacyMode()).toBe(false);
-    });
-  });
-
   describe('getLocalRoot och getPkmRoot', () => {
-    test('returnerar PROJECT_ROOT i legacy mode', () => {
-      if (existsSync(CONFIG_PATH)) {
-        unlinkSync(CONFIG_PATH);
-      }
-
-      const localRoot = getLocalRoot();
-      const pkmRoot = getPkmRoot();
-
-      // I legacy mode ska båda peka på samma ställe
-      expect(localRoot).toBe(pkmRoot);
-      expect(localRoot).toContain('AIDA-dev');
-    });
-
-    test('returnerar olika roots i separated mode', () => {
+    test('returnerar olika roots', () => {
       const testConfig = {
         _meta: { version: '1.0' },
         paths: {
@@ -227,23 +183,7 @@ describe('paths.ts', () => {
   });
 
   describe('PKM-sökvägar', () => {
-    test('genererar korrekta PKM-sökvägar i legacy mode', () => {
-      if (existsSync(CONFIG_PATH)) {
-        unlinkSync(CONFIG_PATH);
-      }
-
-      const aidaDir = getAidaDir();
-      const dbPath = getDatabasePath();
-      const profilePath = getProfilePath();
-      const contextDir = getContextDir();
-
-      expect(aidaDir).toContain('.system');
-      expect(dbPath).toContain('.system/data/aida.db');
-      expect(profilePath).toContain('.system/context/personal-profile.json');
-      expect(contextDir).toContain('.system/context');
-    });
-
-    test('genererar korrekta PKM-sökvägar i separated mode', () => {
+    test('genererar korrekta PKM-sökvägar', () => {
       const testConfig = {
         _meta: { version: '1.0' },
         paths: {

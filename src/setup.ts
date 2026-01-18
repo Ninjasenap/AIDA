@@ -16,7 +16,7 @@ RESPONSIBILITIES:
 - Verify setup completion
 
 USAGE:
-  bun run .system/tools/setup.ts
+  bun run src/setup.ts
 
   This is typically called by the platform-specific install scripts:
   - install.sh (Mac/Linux)
@@ -232,7 +232,7 @@ async function initializeDatabase(): Promise<void> {
   if (existsSync(DB_PATH)) {
     console.log(`   ℹ️  Database already exists: ${DB_PATH.replace(LOCAL_ROOT, '')}`);
     console.log('   ℹ️  Skipping database initialization');
-    console.log('   ℹ️  To reinitialize, run: bun run .system/tools/database/manage-db.ts reset');
+    console.log('   ℹ️  To reinitialize, run: bun run src/database/manage-db.ts reset');
     return;
   }
 
@@ -312,7 +312,7 @@ AIDA is now ready to use!
 
 Next steps:
   1. Configure your personal profile (optional):
-     .system/context/personal-profile.json
+     <pkm>/.aida/context/personal-profile.json
 
   2. Start using AIDA:
      /checkin    - Daily check-in (morning/midday/evening)
@@ -321,8 +321,8 @@ Next steps:
      /status     - Workload overview
 
 For more information, see:
-  - .claude/CLAUDE.md (system documentation)
-  - .system/architecture/ (design specs)
+  - AGENTS.md (system rules)
+  - docs/ (design specs)
 `);
 }
 

@@ -72,18 +72,8 @@ logs/
 .env.local
 .env.*.local
 
-# Claude Code
-.claude/transcripts/
-.claude/settings.local.json
-
 # AIDA config (machine-specific paths)
 config/aida-paths.json
-
-# AIDA runtime data (legacy mode)
-.system/
-
-# Todoist config (contains API token)
-.system/context/todoist-config.json
 
 # Personal profile
 personal-profile.json

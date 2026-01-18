@@ -2,7 +2,7 @@
  * Symbol Mappings for AIDA
  *
  * Provides mappings between database values (statuses, types) and their visual symbols (emojis).
- * Source: .system/dbscenarios.md
+ * Source: internal AIDA conventions
  */
 
 export const TASK_STATUS_SYMBOLS = {

@@ -76,19 +76,23 @@ export function getConfigPath(): string {
 /**
  * Läser och parsar config-filen
  *
- * @returns Config-objektet, eller null om config-filen saknas (legacy mode)
+ * Single mode: config måste finnas.
  */
-export function getConfig(): AidaPathsConfig | null {
+export function getConfig(): AidaPathsConfig {
   // Returnera cached värde om det finns
   if (configCache !== undefined) {
+    if (configCache === null) {
+      throw new Error('Config cache is null (unexpected in single mode)');
+    }
     return configCache;
   }
 
   const configPath = getConfigPath();
 
   if (!existsSync(configPath)) {
-    configCache = null;
-    return null;
+    throw new Error(
+      `Missing config file at ${configPath}. Run install script or create config/aida-paths.json.`
+    );
   }
 
   try {
@@ -108,15 +112,6 @@ export function getConfig(): AidaPathsConfig | null {
 }
 
 /**
- * Kontrollerar om systemet körs i legacy mode (alla filer i samma mapp)
- *
- * @returns true om config saknas, false annars
- */
-export function isLegacyMode(): boolean {
-  return getConfig() === null;
-}
-
-/**
  * Hämtar LOCAL root (Git-repo root)
  *
  * @returns Absolut sökväg till Git-repot
@@ -127,14 +122,7 @@ export function getLocalRoot(): string {
   }
 
   const config = getConfig();
-
-  if (config === null) {
-    // Legacy mode: använd project root
-    localRootCache = join(import.meta.dir, '../..');
-  } else {
-    // Separated mode: läs från config
-    localRootCache = expandPath(config.paths.local_root);
-  }
+  localRootCache = expandPath(config.paths.local_root);
 
   return localRootCache;
 }
@@ -150,14 +138,7 @@ export function getPkmRoot(): string {
   }
 
   const config = getConfig();
-
-  if (config === null) {
-    // Legacy mode: PKM finns i samma mapp som LOCAL
-    pkmRootCache = getLocalRoot();
-  } else {
-    // Separated mode: läs från config
-    pkmRootCache = expandPath(config.paths.pkm_root);
-  }
+  pkmRootCache = expandPath(config.paths.pkm_root);
 
   return pkmRootCache;
 }
@@ -172,10 +153,6 @@ export function getPkmRoot(): string {
  * @returns Absolut sökväg till .aida/
  */
 export function getAidaDir(): string {
-  if (isLegacyMode()) {
-    // Legacy mode: använd .system som aida-katalog
-    return join(getPkmRoot(), '.system');
-  }
   return join(getPkmRoot(), '.aida');
 }
 
@@ -261,8 +238,6 @@ export function getSharedDir(): string {
 
 /**
  * Hämtar sökväg till templates-katalogen
- *
- * @returns Absolut sökväg till .system/templates/
  */
 export function getTemplatesDir(): string {
   return join(getLocalRoot(), 'templates');
@@ -270,8 +245,6 @@ export function getTemplatesDir(): string {
 
 /**
  * Hämtar sökväg till databas-schema-filen
- *
- * @returns Absolut sökväg till .system/data/schema/db_schema.sql
  */
 export function getSchemaPath(): string {
   return join(getLocalRoot(), 'data/schema/db_schema.sql');

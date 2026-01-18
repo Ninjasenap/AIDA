@@ -1,7 +1,7 @@
 # Energy-Aware Task Matching
 
 > **Purpose:** Match tasks to user's energy levels for optimal productivity and wellbeing
-> **Source:** User energy patterns from `.system/context/personal-profile.json`
+> **Source:** User energy patterns from `<pkm>/.aida/context/personal-profile.json`
 
 ---
 

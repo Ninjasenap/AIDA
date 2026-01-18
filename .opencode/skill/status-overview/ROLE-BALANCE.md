@@ -25,7 +25,7 @@ bun run src/aida-cli.ts tasks getTasksByRole [role_id]
 
 ### Reading from Profile
 
-User defines target balance in `.system/context/personal-profile.json`:
+User defines target balance in `<pkm>/.aida/context/personal-profile.json`: 
 
 ```json
 {
@@ -259,7 +259,7 @@ Fortsätt som du gör.
 
 ```bash
 # Read balance targets
-cat .system/context/personal-profile.json | jq '.roles.balance_targets'
+cat <pkm>/.aida/context/personal-profile.json | jq '.roles.balance_targets'
 ```
 
 ### Task Status Filter
