@@ -1,0 +1,90 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Primärt OpenAI (byt modell i UI vid behov)
+  "model": "openai/gpt-5.2",
+  "small_model": "openai/gpt-4o-mini",
+
+  // Standard: bygg-agenten är default
+  "default_agent": "build",
+
+  // Tools är påslagna som standard; permissions styr friktionen
+  "tools": {
+    "bash": true,
+    "read": true,
+    "write": true,
+    "edit": true,
+    "glob": true,
+    "grep": true,
+    "skill": true
+  },
+
+  "permission": {
+    // Läsning: tillåt allt utom env-filer
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+
+    // Filändringar
+    "edit": "allow",
+
+    // Bash: tillåt AIDA CLI + vanliga git-läsningar, men skydda farliga kommandon
+    "bash": {
+      "*": "ask",
+
+      "bun run src/aida-cli.ts *": "allow",
+      "bun test*": "allow",
+
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+
+      "rm *": "deny",
+      "git push*": "ask",
+      "git commit*": "ask"
+    },
+
+    // Web research: fråga första gången
+    "webfetch": "ask",
+
+    // Subagents / skills
+    "task": {
+      "*": "allow"
+    },
+    "skill": {
+      "*": "allow"
+    }
+  },
+
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "description": "Implementation agent for code and system changes",
+      "model": "openai/gpt-5.2"
+    },
+
+    "plan": {
+      "mode": "primary",
+      "description": "Planning and analysis without unintended changes",
+      "model": "openai/gpt-5.2",
+      "permission": {
+        "edit": "deny",
+        "bash": "ask"
+      }
+    }
+  },
+
+  // Vi lägger projektkommandon som markdownfiler i `.opencode/command/`
+  "command": {},
+
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+
+  "share": "manual",
+  "autoupdate": "notify"
+}
