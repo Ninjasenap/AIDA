@@ -313,8 +313,14 @@ export function createProject(input: CreateProjectInput): Project {
 
   const result = db
     .query(
-      `INSERT INTO projects (created_at, name, role_id, description, finish_criteria)
-       VALUES (?, ?, ?, ?, ?)
+      `INSERT INTO projects (
+        created_at,
+        name,
+        role_id,
+        description,
+        todoist_project_id,
+        finish_criteria
+      ) VALUES (?, ?, ?, ?, ?, ?)
        RETURNING *`
     )
     .get(
@@ -322,6 +328,7 @@ export function createProject(input: CreateProjectInput): Project {
       input.name,
       input.role_id,
       input.description,
+      input.todoist_project_id ?? null,
       finishCriteriaJson
     ) as Project;
 
@@ -366,6 +373,11 @@ export function updateProject(
   if (input.description !== undefined) {
     updates.push('description = ?');
     params.push(input.description);
+  }
+
+  if (input.todoist_project_id !== undefined) {
+    updates.push('todoist_project_id = ?');
+    params.push(input.todoist_project_id);
   }
 
   if (updates.length === 0) {

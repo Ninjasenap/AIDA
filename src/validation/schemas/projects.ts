@@ -35,6 +35,7 @@ export const CreateProjectInputSchema = z.object({
 	name: z.string().min(1, 'Name cannot be empty'),
 	role_id: PositiveIntSchema,
 	description: z.string(),
+	todoist_project_id: z.string().optional(),
 	finish_criteria: z.array(FinishCriterionSchema).optional(),
 });
 
@@ -49,6 +50,7 @@ export const UpdateProjectInputSchema = z.object({
 	id: PositiveIntSchema,
 	name: z.string().min(1, 'Name cannot be empty').optional(),
 	description: z.string().optional(),
+	todoist_project_id: z.string().optional(),
 });
 
 /**

@@ -17,6 +17,14 @@ import {
   GetTasksWithSubtasksInputSchema,
 } from './schemas/tasks';
 import {
+  TodoistCreateTaskInputSchema,
+  TodoistUpdateTaskInputSchema,
+  TodoistGetTasksFilterSchema,
+  TodoistGetTasksByEnergySchema,
+  TodoistGetTasksByRoleSchema,
+} from './schemas/todoist-tasks';
+import { TodoistTagTaskSchema } from './schemas/todoist-tags';
+import {
   CreateEntryInputSchema,
   GetEntriesByTypeInputSchema,
   GetEntriesByDateRangeInputSchema,
@@ -76,6 +84,58 @@ export const schemaRegistry: Record<string, Record<string, SchemaEntry>> = {
     getWeekTasks: { schema: GetWeekTasksInputSchema, argMode: 'single-object' },
     getStaleTasks: { schema: GetStaleTasksInputSchema, argMode: 'single-object' },
     getTasksWithSubtasks: { schema: GetTasksWithSubtasksInputSchema, argMode: 'single-object' },
+  },
+
+  todoistTasks: {
+    getTodayTasks: { schema: z.undefined(), argMode: 'none' },
+    getTaskById: { schema: z.union([z.string(), z.number()]), argMode: 'positional-id' },
+    completeTask: { schema: z.union([z.string(), z.number()]), argMode: 'positional-id' },
+    deleteTask: { schema: z.union([z.string(), z.number()]), argMode: 'positional-id' },
+    createTask: { schema: TodoistCreateTaskInputSchema, argMode: 'single-object' },
+    updateTask: { schema: TodoistUpdateTaskInputSchema, argMode: 'single-object' },
+    getTasks: { schema: TodoistGetTasksFilterSchema.optional(), argMode: 'single-object' },
+    getTasksByEnergy: { schema: TodoistGetTasksByEnergySchema, argMode: 'single-object' },
+    getTasksByRole: { schema: TodoistGetTasksByRoleSchema, argMode: 'single-object' },
+    tagTask: { schema: TodoistTagTaskSchema, argMode: 'single-object' },
+  },
+
+  todoist: {
+    sync: {
+      schema: z.object({ quiet: z.boolean().optional() }).optional(),
+      argMode: 'single-object',
+    },
+    ensureFresh: { schema: z.undefined(), argMode: 'none' },
+    ensureTodoistSchema: { schema: z.undefined(), argMode: 'none' },
+    syncRolesToLabels: { schema: z.undefined(), argMode: 'none' },
+    syncProjectsToTodoist: { schema: z.undefined(), argMode: 'none' },
+    setupTodoist: {
+      schema: z.object({
+        apiToken: z.string().min(1, 'API token is required'),
+        syncRoles: z.boolean().optional(),
+        syncProjects: z.boolean().optional(),
+      }),
+      argMode: 'single-object',
+    },
+    setupTodoistFromEnv: {
+      schema: z
+        .object({
+          syncRoles: z.boolean().optional(),
+          syncProjects: z.boolean().optional(),
+        })
+        .optional(),
+      argMode: 'single-object',
+    },
+    getLabels: { schema: z.undefined(), argMode: 'none' },
+    getProjects: { schema: z.undefined(), argMode: 'none' },
+    getConfigPath: { schema: z.undefined(), argMode: 'none' },
+    purgeTodoist: {
+      schema: z
+        .object({
+          includeCompleted: z.boolean().optional(),
+        })
+        .optional(),
+      argMode: 'single-object',
+    },
   },
 
   journal: {

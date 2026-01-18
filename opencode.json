@@ -3,7 +3,7 @@
 
   // Primärt OpenAI (byt modell i UI vid behov)
   "model": "openai/gpt-5.2",
-  "small_model": "openai/gpt-4o-mini",
+  "small_model": "openai/gpt-5.1-codex-mini",
 
   // Standard: bygg-agenten är default
   "default_agent": "build",

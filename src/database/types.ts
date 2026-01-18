@@ -63,6 +63,7 @@ export interface Role {
   type: RoleType;
   description: string | null;
   responsibilities: string | null; // JSON array som string
+  todoist_label_name?: string | null;
   status: RoleStatus;
   balance_target: number | null; // 0.0-1.0
   created_at: string;
@@ -79,6 +80,7 @@ export interface Project {
   id: number;
   name: string;
   role_id: number;
+  todoist_project_id?: string | null;
   status: ProjectStatus;
   description: string;
   finish_criteria: string | null; // JSON array som string
@@ -96,6 +98,7 @@ export interface JournalEntry {
   timestamp: string; // ISO datetime
   entry_type: EntryType;
   content: string;
+  todoist_task_id?: string | null;
   related_task_id: number | null;
   related_project_id: number | null;
   related_role_id: number | null;
@@ -237,6 +240,7 @@ export interface CreateRoleInput {
   type: RoleType;
   description?: string;
   responsibilities?: string[]; // Konverteras till JSON
+  todoist_label_name?: string;
   balance_target?: number;
 }
 
@@ -248,30 +252,8 @@ export interface CreateRoleInput {
 export interface UpdateRoleInput {
   name?: string;
   description?: string;
-  responsibilities?: string[];
-  balance_target?: number;
-}
+  todoist_project_id?: string;
 
-/**
- * Input type for creating a new project.
- *
- * Requires name, role_id, and description; finish criteria are optional.
- */
-export interface CreateProjectInput {
-  name: string;
-  role_id: number;
-  description: string;
-  finish_criteria?: FinishCriterion[];
-}
-
-/**
- * Input type for updating an existing project.
- *
- * All fields are optional for partial updates.
- */
-export interface UpdateProjectInput {
-  name?: string;
-  description?: string;
 }
 
 /**
@@ -295,6 +277,7 @@ export interface CreateEntryInput {
   entry_type: EntryType;
   content: string;
   timestamp?: string;
+  todoist_task_id?: string;
   related_task_id?: number;
   related_project_id?: number;
   related_role_id?: number;

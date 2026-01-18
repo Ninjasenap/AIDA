@@ -48,11 +48,9 @@ See [ROLE-INFERENCE.md](ROLE-INFERENCE.md) for detailed inference rules.
 - **Output to user:** If ambiguous, ask "Vilken roll gäller detta?" with role options
 - **Wait for:** User selects role (only if ambiguous)
 
-### Step 3: Check for Duplicates (Optional)
+### Step 3: Duplicate Check (Skipped)
 
-- **Action:** Search existing tasks via `tasks searchTasks "[parsed title]"`
-- **Output to user:** If similar task found, warn: "Det finns redan en liknande uppgift: [title]. Vill du lägga till ändå?"
-- **Wait for:** User confirms or cancels
+Todoist search is not available in the current integration, so duplicate checks are skipped.
 
 ### Step 4: Create Task
 
@@ -60,11 +58,11 @@ See [ROLE-INFERENCE.md](ROLE-INFERENCE.md) for detailed inference rules.
 - **CLI call:**
   ```bash
   bun run src/aida-cli.ts tasks createTask '{
-    "title": "[parsed title]",
+    "content": "[parsed title]",
     "role_id": [inferred/selected role id],
-    "deadline": "[parsed date or null]",
-    "priority": [0-3, default 0],
-    "energy_requirement": "[low/medium/high or null]",
+    "due_string": "[parsed date or null]",
+    "priority": [1-4, default 1],
+    "energy": "[low/medium/high or null]",
     "project_id": [associated project or null]
   }'
   ```
@@ -79,7 +77,7 @@ See [ROLE-INFERENCE.md](ROLE-INFERENCE.md) for detailed inference rules.
   bun run src/aida-cli.ts journal createEntry '{
     "entry_type": "task",
     "content": "Fångade: [task title]",
-    "related_task_id": [created task id]
+    "todoist_task_id": "[created task id]"
   }'
   ```
 - **Output to user:** None yet
@@ -140,14 +138,14 @@ Sparad med deadline! 📅
 - **NEVER over-ask** - infer as much as possible, only ask if truly ambiguous
 - **NEVER force all fields** - capture with minimal info, user can refine later
 - **NEVER modify existing tasks** - only create new ones
-- **NEVER change task status** - tasks are created with status='captured'
+- **NEVER assume task status** - Todoist handles task state
 - **NEVER use direct SQL** - always use aida-cli.ts
 - **NEVER run query modules directly** (e.g., `bun run src/database/queries/tasks.ts`)
 
 ## Tool Contract
 
 **Allowed CLI Operations:**
-- **tasks:** createTask, searchTasks (duplicate check)
+- **tasks:** createTask
 - **roles:** getActiveRoles, getRoleById (READ ONLY)
 - **projects:** searchProjects, getActiveProjects (READ ONLY)
 - **journal:** createEntry (type: task)
@@ -160,9 +158,8 @@ Sparad med deadline! 📅
 - Any plan operations
 
 **Default Task Values:**
-- status: `captured`
-- priority: inferred or null
-- energy_requirement: inferred or null
+- priority: inferred or default 1
+- energy: inferred or null
 
 **File Access:**
 - **No file reads needed**

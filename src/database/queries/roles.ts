@@ -144,8 +144,15 @@ export function createRole(input: CreateRoleInput): Role {
 
   const result = db
     .query(
-      `INSERT INTO roles (created_at, name, type, description, responsibilities, balance_target)
-       VALUES (?, ?, ?, ?, ?, ?) RETURNING *`
+      `INSERT INTO roles (
+        created_at,
+        name,
+        type,
+        description,
+        responsibilities,
+        todoist_label_name,
+        balance_target
+      ) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *`
     )
     .get(
       created_at,
@@ -153,6 +160,7 @@ export function createRole(input: CreateRoleInput): Role {
       input.type,
       input.description ?? null,
       responsibilitiesJson,
+      input.todoist_label_name ?? null,
       input.balance_target ?? null
     ) as Role;
 
@@ -196,6 +204,11 @@ export function updateRole(input: UpdateRoleInput & { id: number }): Role {
   if (input.balance_target !== undefined) {
     updates.push('balance_target = ?');
     values.push(input.balance_target);
+  }
+
+  if (input.todoist_label_name !== undefined) {
+    updates.push('todoist_label_name = ?');
+    values.push(input.todoist_label_name);
   }
 
   if (updates.length === 0) {

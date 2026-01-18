@@ -13,6 +13,7 @@
 | Task capture | `workflows/task-capture.md` | capture, fanga, create task, quick capture |
 | Activation support | `workflows/task-activation.md` | stuck, activation, 5-minute rule, start |
 | Obsidian integration | `integration/obsidian.md` | obsidian, PKM, folders, vault, markdown |
+| Todoist integration | `integration/todoist.md` | todoist, tasks, sync, api |
 | Journal system | `integration/journal-system.md` | journal, PLAN.md, log, dual-file, entries |
 | Code documentation | `code-standards.md` | comments, JSDoc, tests, documentation style |
 

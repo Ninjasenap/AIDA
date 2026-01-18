@@ -43,3 +43,4 @@ export * from './tasks';
 export * from './roles';
 export * from './projects';
 export * from './journal';
+export * from './sync-state';

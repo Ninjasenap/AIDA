@@ -331,13 +331,21 @@ export function createEntry(input: CreateEntryInput): JournalEntry {
   }
 
   // Always include timestamp in INSERT to ensure local time
-  const sql = `INSERT INTO journal_entries (timestamp, entry_type, content, related_task_id, related_project_id, related_role_id)
-         VALUES (?, ?, ?, ?, ?, ?)
+  const sql = `INSERT INTO journal_entries (
+         timestamp,
+         entry_type,
+         content,
+         todoist_task_id,
+         related_task_id,
+         related_project_id,
+         related_role_id
+       ) VALUES (?, ?, ?, ?, ?, ?, ?)
          RETURNING *`;
   const params = [
     timestamp,
     input.entry_type,
     input.content,
+    input.todoist_task_id ?? null,
     input.related_task_id ?? null,
     input.related_project_id ?? null,
     input.related_role_id ?? null,

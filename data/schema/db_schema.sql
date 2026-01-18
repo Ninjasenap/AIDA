@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS roles (
                     )),
     description     TEXT,
     responsibilities TEXT,  -- JSON array: ["responsibility 1", "responsibility 2", ...]
+    todoist_label_name TEXT UNIQUE,
     status          TEXT NOT NULL DEFAULT 'active' CHECK (status IN (
                         'active', 'inactive', 'historical'
                     )),
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS projects (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     name            TEXT NOT NULL,
     role_id         INTEGER NOT NULL,
+    todoist_project_id TEXT UNIQUE,
     status          TEXT NOT NULL DEFAULT 'active' CHECK (status IN (
                         'active', 'on_hold', 'completed', 'cancelled'
                     )),
@@ -88,12 +90,23 @@ CREATE TABLE IF NOT EXISTS journal_entries (
                         'checkin', 'reflection', 'task', 'event', 'note', 'idea'
                     )),
     content             TEXT NOT NULL,
+    todoist_task_id     TEXT,
     related_task_id     INTEGER,
     related_project_id  INTEGER,
     related_role_id     INTEGER,
     FOREIGN KEY (related_task_id) REFERENCES tasks(id) ON DELETE SET NULL,
     FOREIGN KEY (related_project_id) REFERENCES projects(id) ON DELETE SET NULL,
     FOREIGN KEY (related_role_id) REFERENCES roles(id) ON DELETE SET NULL
+);
+
+-- =============================================================================
+-- TABLE: todoist_sync_state
+-- Purpose: Track last sync timestamps for Todoist integration
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS todoist_sync_state (
+    key                 TEXT PRIMARY KEY,
+    value               TEXT NOT NULL,
+    updated_at          TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 -- =============================================================================
@@ -104,6 +117,7 @@ CREATE TABLE IF NOT EXISTS journal_entries (
 -- Roles: Quick lookup by status and type
 CREATE INDEX IF NOT EXISTS idx_roles_status ON roles(status);
 CREATE INDEX IF NOT EXISTS idx_roles_type ON roles(type);
+CREATE INDEX IF NOT EXISTS idx_roles_todoist_label ON roles(todoist_label_name);
 
 -- Tasks: Primary query patterns
 CREATE INDEX IF NOT EXISTS idx_tasks_role_status ON tasks(role_id, status);
@@ -117,11 +131,15 @@ CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_status_energy ON tasks(status, energy_requirement);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(deadline) WHERE deadline IS NOT NULL;
 
+-- Projects
+CREATE INDEX IF NOT EXISTS idx_projects_todoist ON projects(todoist_project_id);
+
 -- Journal entries
 CREATE INDEX IF NOT EXISTS idx_journal_timestamp ON journal_entries(timestamp);
 CREATE INDEX IF NOT EXISTS idx_journal_task ON journal_entries(related_task_id);
 CREATE INDEX IF NOT EXISTS idx_journal_project ON journal_entries(related_project_id);
 CREATE INDEX IF NOT EXISTS idx_journal_role ON journal_entries(related_role_id);
+CREATE INDEX IF NOT EXISTS idx_journal_todoist_task ON journal_entries(todoist_task_id);
 
 -- =============================================================================
 -- TRIGGERS

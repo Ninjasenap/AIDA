@@ -23,7 +23,7 @@ Provides context-aware daily check-ins that adapt based on time of day, existing
 3. Today's check-ins via `journal getTodayEntries` → filter for entry_type="checkin"
 4. Today's tasks via `tasks getTodayTasks` → returns Map<roleId, Task[]>
 5. Energy level via `profile getCurrentEnergyLevel` → returns "high"|"medium"|"low"
-6. Overdue tasks via `tasks getOverdueTasks` → returns Task[]
+6. Overdue tasks via `tasks getTasks {"due":"overdue"}` → returns Task[]
 
 **How to gather context:**
 ```bash
@@ -43,7 +43,7 @@ bun run src/aida-cli.ts tasks getTodayTasks
 bun run src/aida-cli.ts profile getCurrentEnergyLevel
 
 # Get overdue tasks
-bun run src/aida-cli.ts tasks getOverdueTasks
+bun run src/aida-cli.ts tasks getTasks '{"due":"overdue"}'
 ```
 
 ## Workflow Steps
@@ -142,7 +142,7 @@ Vad ska vi börja med först?
 
 **Allowed CLI Operations:**
 - **plan:** planHasContent, readDailyPlan, createDailyPlan, archivePlanToLog, clearDailyPlan
-- **tasks:** getTodayTasks, getOverdueTasks, getTaskById (READ ONLY)
+- **tasks:** getTodayTasks, getTasks (READ ONLY)
 - **roles:** getActiveRoles, getRoleById (READ ONLY)
 - **journal:** getTodayEntries, createEntry (types: checkin, reflection)
 - **profile:** getCurrentTimePeriod, getCurrentEnergyLevel, getProfile (READ ONLY)

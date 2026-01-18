@@ -16,7 +16,9 @@
  *   bun run .system/tools/aida-cli.ts roles getActiveRoles
  *
  * Modules:
- *   - tasks: Task CRUD operations (12 functions)
+ *   - tasks: Local task operations (SQLite)
+ *   - todoistTasks: Todoist-backed task operations
+ *   - todoist: Todoist integration utilities (sync, labels, projects)
  *   - roles: Role management (7 functions)
  *   - projects: Project management (10 functions)
  *   - journal: Journal entries (7 functions)
@@ -35,6 +37,8 @@
  */
 
 import * as tasks from './database/queries/tasks';
+import * as todoistTasks from './integrations/todoist/tasks';
+import * as todoist from './integrations/todoist';
 import * as roles from './database/queries/roles';
 import * as projects from './database/queries/projects';
 import * as journal from './database/queries/journal';
@@ -45,17 +49,19 @@ import * as time from './utilities/time';
 import { serializeWithMaps } from './utilities/json-serialization';
 import { validateCLIArgs } from './validation/validator';
 
-const modules = { tasks, roles, projects, journal, journalMd, plan, profile, time };
+const modules = { tasks, todoistTasks, todoist, roles, projects, journal, journalMd, plan, profile, time };
 
 const [module, func, ...args] = process.argv.slice(2);
 
 if (!module || !func) {
   console.log('Usage: aida-cli <module> <function> [args...]');
   console.log('');
-  console.log('Modules: tasks, roles, projects, journal, journalMd, plan, profile');
+  console.log('Modules: tasks, todoistTasks, todoist, roles, projects, journal, journalMd, plan, profile');
   console.log('');
   console.log('Examples:');
   console.log('  bun run .system/tools/aida-cli.ts tasks getTodayTasks');
+  console.log('  bun run .system/tools/aida-cli.ts todoistTasks getTodayTasks');
+  console.log('  bun run .system/tools/aida-cli.ts todoist sync');
   console.log('  bun run .system/tools/aida-cli.ts journal createEntry \'{"entry_type":"checkin","content":"test"}\'');
   console.log('  bun run .system/tools/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"');
   console.log('  bun run .system/tools/aida-cli.ts plan createDailyPlan \'{"date":"2025-12-16","events":[],"focus":["Task 1"],"next_steps":[],"parked":[],"notes":""}\'');

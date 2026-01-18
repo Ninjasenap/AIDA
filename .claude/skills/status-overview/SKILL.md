@@ -8,7 +8,7 @@ allowed-tools: Bash, Read
 
 ## Purpose
 
-Provides clear visibility into workload across roles and projects. Helps users understand their current balance, identify attention items (overdue, stale), and make informed decisions about where to focus.
+Provides clear visibility into workload across roles and projects. Helps users understand their current balance, identify attention items (overdue), and make informed decisions about where to focus.
 
 ## Trigger Conditions
 
@@ -19,9 +19,8 @@ Provides clear visibility into workload across roles and projects. Helps users u
 ## Required Context (gather BEFORE starting workflow)
 
 1. Active roles via `roles getActiveRoles` → returns Role[] for overview
-2. Overdue tasks via `tasks getOverdueTasks` → returns Task[] for attention flags
-3. Stale tasks via `tasks getStaleTasks` → returns Task[] for attention flags
-4. Profile via `profile getProfile` → returns full profile (optional, for role balance targets)
+2. Overdue tasks via `tasks getTasks {"due":"overdue"}` → returns Task[] for attention flags
+3. Profile via `profile getProfile` → returns full profile (optional, for role balance targets)
 
 **How to gather context:**
 ```bash
@@ -29,10 +28,7 @@ Provides clear visibility into workload across roles and projects. Helps users u
 bun run src/aida-cli.ts roles getActiveRoles
 
 # Get overdue tasks (attention flags)
-bun run src/aida-cli.ts tasks getOverdueTasks
-
-# Get stale tasks (attention flags)
-bun run src/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getTasks '{"due":"overdue"}'
 
 # Get profile (optional, for balance targets)
 bun run src/aida-cli.ts profile getProfile
@@ -73,7 +69,7 @@ See [ROLE-BALANCE.md](ROLE-BALANCE.md) for balance calculations.
 
 See [ATTENTION-FLAGS.md](ATTENTION-FLAGS.md) for criteria.
 
-- **Action:** Flag overdue tasks, stale tasks, imbalanced roles
+- **Action:** Flag overdue tasks and imbalanced roles
 - **Output to user:** None yet
 - **Wait for:** Continue immediately
 
@@ -116,7 +112,7 @@ See [ATTENTION-FLAGS.md](ATTENTION-FLAGS.md) for criteria.
 
 #### Step 3: Identify Role-Specific Attention Items
 
-- **Action:** Flag overdue/stale tasks specific to this role
+- **Action:** Flag overdue tasks specific to this role
 - **Output to user:** None yet
 - **Wait for:** Continue immediately
 
@@ -178,7 +174,7 @@ Vill du gå djupare i någon roll?
 ✅ Planned: 1
 ⏳ Active: 0
 
-Inga försenade eller stale tasks! 👏
+Inga försenade tasks! 👏
 
 📅 Kommande:
 • "Boka tandläkartid" - Deadline imorgon
@@ -199,7 +195,7 @@ Vill du aktivera någon? (/next)
 ## Anti-patterns
 
 - **NEVER show raw task counts without context** - always include interpretation/insights
-- **NEVER skip overdue/stale warnings** - these must always be highlighted
+- **NEVER skip overdue warnings** - these must always be highlighted
 - **NEVER present all tasks** - show counts and drill-down options, not full lists
 - **NEVER modify data** - this is a read-only skill
 - **NEVER create tasks, journal entries, or update profile** - only display information
@@ -210,7 +206,7 @@ Vill du aktivera någon? (/next)
 ## Tool Contract
 
 **Allowed CLI Operations:**
-- **tasks:** getTasksByRole, getOverdueTasks, getStaleTasks, getTodayTasks (READ ONLY)
+- **tasks:** getTasksByRole, getTasks, getTodayTasks (READ ONLY)
 - **roles:** getActiveRoles, getRoleById (READ ONLY)
 - **projects:** getProjectsByRole, getActiveProjects (READ ONLY)
 - **profile:** getProfile, getAttribute (READ ONLY)

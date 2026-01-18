@@ -98,8 +98,7 @@ See [ACTIVATION-TECHNIQUES.md](ACTIVATION-TECHNIQUES.md) for detailed techniques
 
 - **Action when user confirms:**
   ```bash
-  bun run src/aida-cli.ts tasks setTaskStatus [id] "active"
-  bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Aktiverade: [task title]"}'
+  bun run src/aida-cli.ts journal createEntry '{"entry_type":"task","content":"Aktiverade: [task title]","todoist_task_id":"[task id]"}'
   ```
 - **Output to user:** "Perfekt! Kör igång 🚀"
 - **Wait for:** N/A (workflow complete)
@@ -144,8 +143,7 @@ Redo?
 - **If no tasks match energy level:** Adjust matching criteria, or suggest a break/pause with message "Alla uppgifter kräver mer energi än du har just nu. Vill du ta en paus?"
 - **If user is overwhelmed but no easy tasks:** Find ANY task and break it into smallest possible step, even if artificially small
 - **If task already active:** Ask "Du har redan en aktiv uppgift: [task]. Vill du byta till något annat?"
-- **If `setTaskStatus` fails:** Log error to console, inform user task activation wasn't recorded but they can still work on it
-- **If `journal createEntry` fails:** Task status is still updated, just log warning to console
+- **If `journal createEntry` fails:** Log warning to console and continue
 - **If profile doesn't exist:** Use default energy level "medium" and proceed with general activation
 
 ## Anti-patterns
@@ -155,15 +153,15 @@ Redo?
 - **NEVER show multiple task options** - always suggest ONE thing only
 - **NEVER use guilt or pressure** - frame deferrals as rescheduling, not failure
 - **NEVER create new tasks** - only activate existing ones (use task-capture for new tasks)
-- **NEVER update task details** - only change status
-- **NEVER set status to "cancelled"** - only "active" or "done" allowed
+- **NEVER update task details** - only suggest actions
+- **NEVER change task state implicitly** - only complete tasks when user confirms
 - **NEVER use direct SQL** - always use aida-cli.ts
 - **NEVER run query modules directly**
 
 ## Tool Contract
 
 **Allowed CLI Operations:**
-- **tasks:** getTodayTasks, getTaskById, setTaskStatus (to "active" or "done")
+- **tasks:** getTodayTasks, getTaskById, completeTask (only when user confirms completion)
 - **journal:** createEntry (type: task) - Log activation/completion
 - **profile:** getCurrentEnergyLevel, getProfile (READ ONLY)
 
@@ -173,10 +171,6 @@ Redo?
 - Deleting tasks
 - Updating profile
 - Setting status to "cancelled"
-
-**Status Transition Rules:**
-- `ready|waiting → active` (when starting task)
-- `active → done` (when user indicates completion during activation flow)
 
 **File Access:**
 - **Read:** `personal-profile.json`

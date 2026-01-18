@@ -1,7 +1,7 @@
 ---
 description: Analyserar användarmönster och skapar/uppdaterar profile-observations. Använd när användaren frågar "vad har du lärt dig om mig?" eller vid observationsgranskning.
 mode: subagent
-model: openai/gpt-4o-mini
+model: openai/gpt-5.2
 tools:
   bash: true
   read: true

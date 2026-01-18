@@ -79,6 +79,12 @@ logs/
 # AIDA config (machine-specific paths)
 config/aida-paths.json
 
+# AIDA runtime data (legacy mode)
+.system/
+
+# Todoist config (contains API token)
+.system/context/todoist-config.json
+
 # Personal profile
 personal-profile.json
 AIDA-prod.code-workspace

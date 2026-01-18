@@ -35,6 +35,7 @@ export const CreateRoleInputSchema = z.object({
 	type: RoleTypeSchema,
 	description: z.string().optional(),
 	responsibilities: z.array(z.string()).optional(),
+	todoist_label_name: z.string().optional(),
 	balance_target: z.number().min(0).max(1).optional(),
 });
 
@@ -43,13 +44,13 @@ export const CreateRoleInputSchema = z.object({
  *
  * Required fields: id
  * Optional fields: name, description, responsibilities, balance_target
- * Allows partial updates - only provided fields are updated
  */
 export const UpdateRoleInputSchema = z.object({
 	id: PositiveIntSchema,
 	name: z.string().min(1, 'Name cannot be empty').optional(),
 	description: z.string().optional(),
 	responsibilities: z.array(z.string()).optional(),
+	todoist_label_name: z.string().optional(),
 	balance_target: z.number().min(0).max(1).optional(),
 });
 

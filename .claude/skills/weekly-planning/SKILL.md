@@ -27,7 +27,7 @@ Provides weekly review and planning workflows that help users reflect on the pas
 ## Tool Contract
 
 **Allowed CLI Operations:**
-- **tasks**: getWeekTasks, getOverdueTasks, getStaleTasks, getTasksByRole (READ ONLY)
+- **tasks**: getTasks (READ ONLY)
 - **roles**: getActiveRoles, getRoleById (READ ONLY)
 - **journal**: getEntriesByDateRange, createEntry (types: weekly_review, weekly_plan)
 - **profile**: getProfile, getAttribute (READ ONLY)
@@ -56,7 +56,7 @@ Provides weekly review and planning workflows that help users reflect on the pas
 bun run src/aida-cli.ts <module> <function> [args...]
 
 # WRONG - NEVER do this:
-bun run src/database/queries/tasks.ts getWeekTasks  # ❌ NO!
+bun run src/database/queries/tasks.ts getTasks  # ❌ NO!
 sqlite3 <pkm>/.aida/data/aida.db "SELECT..."        # ❌ NO!
 ```
 
@@ -64,14 +64,11 @@ sqlite3 <pkm>/.aida/data/aida.db "SELECT..."        # ❌ NO!
 
 **Example queries you will need:**
 ```bash
-# Get tasks for a specific week (requires YYYY-MM-DD dates for weekStart and weekEnd)
-bun run src/aida-cli.ts tasks getWeekTasks "2025-12-16" "2025-12-22"
+# Get tasks due this week
+bun run src/aida-cli.ts tasks getTasks '{"due":"week"}'
 
 # Get overdue tasks
-bun run src/aida-cli.ts tasks getOverdueTasks
-
-# Get stale tasks (captured but not activated)
-bun run src/aida-cli.ts tasks getStaleTasks
+bun run src/aida-cli.ts tasks getTasks '{"due":"overdue"}'
 
 # Get journal entries for date range
 bun run src/aida-cli.ts journal getEntriesByDateRange "2025-12-16" "2025-12-22"
@@ -115,7 +112,7 @@ See [REVIEW-FLOW.md](REVIEW-FLOW.md) for detailed procedure.
 
 **Summary:**
 1. Calculate past week date range (Monday-Sunday)
-2. Query completed tasks via `tasks.getWeekTasks(weekStart, weekEnd)`
+2. Query upcoming tasks via `tasks.getTasks({"due":"week"})`
 3. Query journal entries via `journal.getEntriesByDateRange(weekStart, weekEnd)`
 4. Summarize accomplishments by role
 5. Identify patterns (energy levels, productivity peaks)
@@ -129,8 +126,8 @@ See [PLANNING-FLOW.md](PLANNING-FLOW.md) for detailed procedure.
 
 **Summary:**
 1. Calculate upcoming week date range (next Monday-Sunday)
-2. Query overdue tasks via `tasks.getOverdueTasks()`
-3. Query stale tasks via `tasks.getStaleTasks()`
+2. Query overdue tasks via `tasks.getTasks({"due":"overdue"})`
+3. Query this week's tasks via `tasks.getTasks({"due":"week"})`
 4. Query tasks with deadlines this week
 5. Review role balance targets
 6. Suggest 3-5 weekly focus areas
@@ -141,10 +138,8 @@ See [PLANNING-FLOW.md](PLANNING-FLOW.md) for detailed procedure.
 ## Query Scripts Available
 
 **From `tasks.ts`:**
-- `getWeekTasks(weekStart, weekEnd)` - Get tasks for specific week (requires YYYY-MM-DD dates)
-- `getOverdueTasks()` - Get tasks past their deadline
-- `getStaleTasks(options?)` - Get tasks captured but not activated
-- `getTasksByRole(roleId, options?)` - Get tasks for specific role
+- `getTasks({"due":"week"})` - Get tasks due in next 7 days
+- `getTasks({"due":"overdue"})` - Get tasks past their deadline
 - `getTodayTasks()` - Get all tasks relevant for today (grouped by role)
 
 **From `journal.ts`:**

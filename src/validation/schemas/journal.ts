@@ -29,6 +29,7 @@ export const CreateEntryInputSchema = z.object({
 	entry_type: EntryTypeSchema,
 	content: z.string().min(1, 'Content cannot be empty'),
 	timestamp: ISODateTimeSchema.optional(),
+	todoist_task_id: z.string().optional(),
 	related_task_id: PositiveIntSchema.optional(),
 	related_project_id: PositiveIntSchema.optional(),
 	related_role_id: PositiveIntSchema.optional(),

@@ -61,9 +61,6 @@ export const UpdateTaskInputSchema = z.object({
 
 /**
  * Schema for setting task status.
- *
- * Used for status changes that may trigger journal entry creation.
- * Comment is optional and only used for done/cancelled statuses.
  */
 export const SetTaskStatusInputSchema = z.object({
   id: PositiveIntSchema,
@@ -73,9 +70,6 @@ export const SetTaskStatusInputSchema = z.object({
 
 /**
  * Schema for searching tasks by title.
- *
- * Query must be non-empty string.
- * Defaults: includeDone=false (excludes done and cancelled tasks)
  */
 export const SearchTasksInputSchema = z.object({
   query: z.string().min(1, 'Search query cannot be empty'),
@@ -84,9 +78,6 @@ export const SearchTasksInputSchema = z.object({
 
 /**
  * Schema for retrieving tasks by role.
- *
- * Filters tasks by role ID with optional inclusion of completed tasks.
- * Defaults: includeDone=false
  */
 export const GetTasksByRoleInputSchema = z.object({
   roleId: PositiveIntSchema,
@@ -95,9 +86,6 @@ export const GetTasksByRoleInputSchema = z.object({
 
 /**
  * Schema for retrieving tasks within a week range.
- *
- * Both dates are required and must be in ISO format (YYYY-MM-DD).
- * Typically weekStart=Monday, weekEnd=Sunday.
  */
 export const GetWeekTasksInputSchema = z.object({
   weekStart: ISODateSchema,
@@ -106,9 +94,6 @@ export const GetWeekTasksInputSchema = z.object({
 
 /**
  * Schema for retrieving stale tasks.
- *
- * Both thresholds are optional - function will use view defaults if not provided.
- * Defaults: capturedDays=28, readyDays=14 (handled in query function)
  */
 export const GetStaleTasksInputSchema = z.object({
   capturedDays: z.number().int().nonnegative().optional(),
@@ -117,9 +102,6 @@ export const GetStaleTasksInputSchema = z.object({
 
 /**
  * Schema for retrieving tasks with subtasks.
- *
- * Optional filters by role and/or project.
- * If no filters provided, returns all parent tasks.
  */
 export const GetTasksWithSubtasksInputSchema = z.object({
   roleId: PositiveIntSchema.optional(),
