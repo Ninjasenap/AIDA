@@ -8,7 +8,6 @@
  * QUERY PATTERN:
  * All READ queries use consistent LEFT JOINs to enrich journal entries with
  * related entity names:
- * - LEFT JOIN tasks: Retrieves task title if entry is task-related
  * - LEFT JOIN projects: Retrieves project name if entry is project-related
  * - LEFT JOIN roles: Retrieves role name if entry is role-related
  *
@@ -51,7 +50,7 @@ import type {
  * from related entities while preserving entries with missing relationships.
  *
  * @returns Array of today's journal entries with related entity names.
- *          Each entry includes: id, timestamp, entry_type, content, task_title,
+ *          Each entry includes: id, timestamp, entry_type, content,
  *          project_name, role_name (null if no related entity).
  *          Ordered by timestamp ascending (oldest first).
  */
@@ -61,11 +60,9 @@ export function getTodayEntries(): JournalEntryFull[] {
   const entries = db
     .query(
       `SELECT je.*,
-              t.title as task_title,
               p.name as project_name,
               r.name as role_name
        FROM journal_entries je
-       LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE DATE(je.timestamp) = DATE('now', 'localtime')
@@ -84,7 +81,7 @@ export function getTodayEntries(): JournalEntryFull[] {
  * lifecycle and all decisions/observations made about it.
  *
  * QUERY PATTERN:
- * Filters entries by related_task_id and enriches with project and role context.
+ * Filters entries by todoist_task_id and enriches with project and role context.
  * Uses LEFT JOINs so entries remain accessible even if task is deleted (id only).
  *
  * @param taskId - Numeric ID of the task to retrieve entries for
@@ -92,23 +89,21 @@ export function getTodayEntries(): JournalEntryFull[] {
  *          timestamp ascending (oldest first). Entries may be null for
  *          project_name and role_name if not set.
  */
-export function getEntriesByTask(taskId: number): JournalEntryFull[] {
+export function getEntriesByTodoistTask(todoistTaskId: string): JournalEntryFull[] {
   const db = getDatabase();
 
   const entries = db
     .query(
       `SELECT je.*,
-              t.title as task_title,
               p.name as project_name,
               r.name as role_name
        FROM journal_entries je
-       LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
-       WHERE je.related_task_id = ?
+       WHERE je.todoist_task_id = ?
        ORDER BY datetime(je.timestamp) ASC`
     )
-    .all(taskId) as JournalEntryFull[];
+    .all(todoistTaskId) as JournalEntryFull[];
 
   return entries;
 }
@@ -127,7 +122,7 @@ export function getEntriesByTask(taskId: number): JournalEntryFull[] {
  * @param projectId - Numeric ID of the project to retrieve entries for
  * @returns Array of journal entries associated with the project, ordered by
  *          timestamp ascending (oldest first). Entries may be null for
- *          task_title and role_name if not set.
+ *          role_name if not set.
  */
 export function getEntriesByProject(projectId: number): JournalEntryFull[] {
   const db = getDatabase();
@@ -135,11 +130,9 @@ export function getEntriesByProject(projectId: number): JournalEntryFull[] {
   const entries = db
     .query(
       `SELECT je.*,
-              t.title as task_title,
               p.name as project_name,
               r.name as role_name
        FROM journal_entries je
-       LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.related_project_id = ?
@@ -163,7 +156,7 @@ export function getEntriesByProject(projectId: number): JournalEntryFull[] {
  * @param roleId - Numeric ID of the role to retrieve entries for
  * @returns Array of journal entries associated with the role, ordered by
  *          timestamp ascending (oldest first). Entries may be null for
- *          task_title and project_name if not set.
+ *          project_name if not set.
  */
 export function getEntriesByRole(roleId: number): JournalEntryFull[] {
   const db = getDatabase();
@@ -171,11 +164,9 @@ export function getEntriesByRole(roleId: number): JournalEntryFull[] {
   const entries = db
     .query(
       `SELECT je.*,
-              t.title as task_title,
               p.name as project_name,
               r.name as role_name
        FROM journal_entries je
-       LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.related_role_id = ?
@@ -204,7 +195,7 @@ export function getEntriesByRole(roleId: number): JournalEntryFull[] {
  *        If both dates provided, applies BETWEEN filter; partial options are ignored.
  * @returns Array of journal entries matching type (and optionally date range),
  *          ordered by timestamp ascending (oldest first).
- *          Entries enriched with task_title, project_name, role_name (null if unset).
+ *          Entries enriched with project_name, role_name (null if unset).
  */
 export function getEntriesByType(
   input: { type: EntryType; startDate?: string; endDate?: string }
@@ -212,11 +203,9 @@ export function getEntriesByType(
   const db = getDatabase();
 
   let sql = `SELECT je.*,
-              t.title as task_title,
               p.name as project_name,
               r.name as role_name
        FROM journal_entries je
-       LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE je.entry_type = ?`;
@@ -251,8 +240,9 @@ export function getEntriesByType(
  *        - startDate: ISO 8601 datetime string for range start (inclusive)
  *        - endDate: ISO 8601 datetime string for range end (inclusive)
  * @returns Array of all journal entries within the date range, ordered by
- *          timestamp ascending (oldest first). Entries enriched with task_title,
- *          project_name, role_name (null if unset).
+  *          timestamp ascending (oldest first). Entries enriched with project_name,
+  *          role_name (null if unset).
+
  */
 export function getEntriesByDateRange(input: { startDate: string; endDate: string }): JournalEntryFull[] {
   const db = getDatabase();
@@ -260,11 +250,9 @@ export function getEntriesByDateRange(input: { startDate: string; endDate: strin
   const entries = db
     .query(
       `SELECT je.*,
-              t.title as task_title,
               p.name as project_name,
               r.name as role_name
        FROM journal_entries je
-       LEFT JOIN tasks t ON je.related_task_id = t.id
        LEFT JOIN projects p ON je.related_project_id = p.id
        LEFT JOIN roles r ON je.related_role_id = r.id
        WHERE DATE(je.timestamp) BETWEEN ? AND ?
@@ -301,9 +289,10 @@ export function getEntriesByDateRange(input: { startDate: string; endDate: strin
  *        - entry_type: Type of entry (required)
  *        - content: Text content (required)
  *        - timestamp: Optional ISO 8601 datetime or parseable string
- *        - related_task_id: Optional numeric task ID
- *        - related_project_id: Optional numeric project ID
- *        - related_role_id: Optional numeric role ID
+  *        - todoist_task_id: Optional Todoist task ID
+  *        - related_project_id: Optional numeric project ID
+  *        - related_role_id: Optional numeric role ID
+
  *
  * @returns Created JournalEntry object with:
  *         - id: Auto-generated numeric primary key
@@ -336,17 +325,15 @@ export function createEntry(input: CreateEntryInput): JournalEntry {
          entry_type,
          content,
          todoist_task_id,
-         related_task_id,
          related_project_id,
          related_role_id
-       ) VALUES (?, ?, ?, ?, ?, ?, ?)
+       ) VALUES (?, ?, ?, ?, ?, ?)
          RETURNING *`;
   const params = [
     timestamp,
     input.entry_type,
     input.content,
     input.todoist_task_id ?? null,
-    input.related_task_id ?? null,
     input.related_project_id ?? null,
     input.related_role_id ?? null,
   ];

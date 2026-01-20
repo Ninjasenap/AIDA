@@ -1,7 +1,7 @@
 /**
  * Database Query Functions - Central Export Hub
  *
- * Aggregates and re-exports all CRUD operations for tasks, roles, projects, and journal entries.
+ * Aggregates and re-exports all CRUD operations for roles, projects, and journal entries.
  * This module provides a single import point for all database queries used throughout AIDA.
  *
  * Use this module to access all database operations across the system. Each query module
@@ -39,7 +39,6 @@ QUERY FUNCTION EXPORTS
 ─────────────────────────────────────────────────────────────────────────────
 */
 // Re-export all query functions
-export * from './tasks';
 export * from './roles';
 export * from './projects';
 export * from './journal';

@@ -240,8 +240,9 @@ export function updateRole(input: UpdateRoleInput & { id: number }): Role {
 /**
  * Changes the status of a role.
  *
- * Returns a warning with linked task count when changing to 'inactive' or
- * 'historical' status if the role has associated tasks.
+  * Returns a warning with linked project count when changing to 'inactive' or
+  * 'historical' status if the role has associated projects.
+
  *
  * SQL: UPDATE roles SET status = ? WHERE id = ?
  *
@@ -255,7 +256,7 @@ export function setRoleStatus(
   input: { id: number; status: RoleStatus }
 ): {
   role: Role;
-  warning?: { linkedTaskCount: number };
+  warning?: { linkedProjectCount: number };
 } {
   const db = getDatabase();
 
@@ -268,16 +269,16 @@ export function setRoleStatus(
     throw new Error(`Role not found: id=${input.id}`);
   }
 
-  // Check for linked tasks if going to inactive or historical
-  let warning: { linkedTaskCount: number } | undefined;
+  // Check for linked projects if going to inactive or historical
+  let warning: { linkedProjectCount: number } | undefined;
 
   if (input.status === 'inactive' || input.status === 'historical') {
-    const taskCount = db
-      .query('SELECT COUNT(*) as count FROM tasks WHERE role_id = ?')
+    const projectCount = db
+      .query('SELECT COUNT(*) as count FROM projects WHERE role_id = ?')
       .get(input.id) as { count: number };
 
-    if (taskCount.count > 0) {
-      warning = { linkedTaskCount: taskCount.count };
+    if (projectCount.count > 0) {
+      warning = { linkedProjectCount: projectCount.count };
     }
   }
 

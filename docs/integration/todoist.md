@@ -185,7 +185,41 @@ bun run src/aida-cli.ts todoist syncStatus
 
 ---
 
-## 6. File Structure
+## 6. Testing
+
+### 6.1 Default Suite (Offline)
+
+```
+bun test
+```
+
+- Runs validation and local SQLite tests only.
+- Todoist integration tests are skipped unless explicitly enabled.
+
+### 6.2 Todoist Integration Suite (Explicit)
+
+```
+RUN_TODOIST_INTEGRATION=1 \
+  bun test ./src/integrations/todoist/__tests__/todoist.integration.test.ts
+```
+
+Token resolution:
+- Uses `TODOIST_API_TOKEN` if set.
+- Otherwise uses `<pkm_root>/.aida/context/todoist-config.json` (`apiToken`).
+
+Safety/requirements:
+- Requires `RUN_TODOIST_INTEGRATION=1` and a configured Todoist token.
+- Refuses to run unless `pkm_root` contains `PKM-TEST` (test vault guard).
+- Uses test markers only:
+  - Label: `aida-test-data` (never deleted)
+  - Project suffix: `[aida-test-data]`
+- Cleanup uses `clearTestData()` to delete only:
+  - active tasks with label `aida-test-data`
+  - projects ending with `[aida-test-data]`
+
+---
+
+## 7. File Structure
 
 ```
 src/integrations/todoist/
@@ -203,7 +237,7 @@ src/integrations/todoist/
 
 ---
 
-## 7. Cross-Platform Notes
+## 8. Cross-Platform Notes
 
 - Bun is supported on macOS, Windows (PowerShell), and Linux.
 - All paths must be constructed via `path.join()` and `os.homedir()`.
@@ -212,7 +246,7 @@ src/integrations/todoist/
 
 ---
 
-## 8. Implementation Order
+## 9. Implementation Order
 
 1. Config + HTTP Client
 2. Types + Mappers

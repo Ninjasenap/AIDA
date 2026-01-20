@@ -6,10 +6,11 @@
  */
 
 import { describe, test, expect } from 'bun:test';
+import './setup'; // Import setup to trigger beforeAll/afterAll hooks
 import {
   createEntry,
   getTodayEntries,
-  getEntriesByTask,
+  getEntriesByTodoistTask,
   getEntriesByProject,
   getEntriesByRole,
   getEntriesByType,
@@ -46,7 +47,7 @@ describe('createEntry', () => {
     const input: CreateEntryInput = {
       entry_type: 'task',
       content: 'Testentry: Slutförde en viktig uppgift',
-      related_task_id: 1,
+      todoist_task_id: 'todoist-1',
       related_project_id: 1,
       related_role_id: 1,
     };
@@ -57,7 +58,7 @@ describe('createEntry', () => {
     expect(entry.id).toBeGreaterThan(0);
     expect(entry.entry_type).toBe('task');
     expect(entry.content).toBe('Testentry: Slutförde en viktig uppgift');
-    expect(entry.related_task_id).toBe(1);
+    expect(entry.todoist_task_id).toBe('todoist-1');
     expect(entry.related_project_id).toBe(1);
     expect(entry.related_role_id).toBe(1);
     expect(entry.timestamp).toBeDefined();
@@ -75,7 +76,7 @@ describe('createEntry', () => {
     expect(entry.id).toBeGreaterThan(0);
     expect(entry.entry_type).toBe('note');
     expect(entry.content).toBe('En enkel anteckning');
-    expect(entry.related_task_id).toBeNull();
+    expect(entry.todoist_task_id).toBeNull();
     expect(entry.related_project_id).toBeNull();
     expect(entry.related_role_id).toBeNull();
   });
@@ -156,12 +157,12 @@ describe('getTodayEntries', () => {
     }
   });
 
-  test('should include task_title, project_name, and role_name when available', () => {
-    // Create entry with all relations
+  test('should include project_name and role_name when available', () => {
+    // Create entry with relations
     createEntry({
       entry_type: 'task',
       content: 'Entry med alla relationer',
-      related_task_id: 1,
+      todoist_task_id: 'todoist-1',
       related_project_id: 1,
       related_role_id: 1,
     });
@@ -170,7 +171,7 @@ describe('getTodayEntries', () => {
     const fullEntry = entries.find(e => e.content === 'Entry med alla relationer');
 
     expect(fullEntry).toBeDefined();
-    expect(fullEntry?.task_title).toBeDefined();
+    expect(fullEntry?.todoist_task_id).toBe('todoist-1');
     expect(fullEntry?.project_name).toBeDefined();
     expect(fullEntry?.role_name).toBeDefined();
   });
@@ -198,34 +199,48 @@ describe('getTodayEntries', () => {
  * - Bulk entry retrieval performance
  **************************************************************************/
 
-describe('getEntriesByTask', () => {
-  /**
-   * Confirms all entries for specific task are retrieved.
-   */
-  test('should return all entries for a specific task', () => {
-    // Create entries for task 1
+describe('getEntriesByTodoistTask', () => {
+  test('should return all entries for a specific todoist_task_id', () => {
+    const todoistTaskId = 'todoist-task-test-entries';
+
     createEntry({
       entry_type: 'task',
-      content: 'Startade arbetet på tasken',
-      related_task_id: 1,
+      content: 'Startade arbetet på uppgiften',
+      todoist_task_id: todoistTaskId,
     });
 
     createEntry({
       entry_type: 'task',
-      content: 'Slutförde tasken',
-      related_task_id: 1,
+      content: 'Slutförde uppgiften',
+      todoist_task_id: todoistTaskId,
     });
 
-    const entries = getEntriesByTask(1);
+    const entries = getEntriesByTodoistTask(todoistTaskId);
 
     expect(entries).toBeDefined();
     expect(Array.isArray(entries)).toBe(true);
     expect(entries.length).toBeGreaterThanOrEqual(2);
-    expect(entries.every(e => e.related_task_id === 1)).toBe(true);
+    expect(entries.every(e => e.todoist_task_id === todoistTaskId)).toBe(true);
   });
 
   test('should return entries in chronological order (ASC)', () => {
-    const entries = getEntriesByTask(1);
+    const todoistTaskId = 'todoist-task-test-order';
+
+    createEntry({
+      entry_type: 'task',
+      content: 'Första entryn',
+      todoist_task_id: todoistTaskId,
+      timestamp: '2025-12-19T09:00:00',
+    });
+
+    createEntry({
+      entry_type: 'task',
+      content: 'Andra entryn',
+      todoist_task_id: todoistTaskId,
+      timestamp: '2025-12-19T10:00:00',
+    });
+
+    const entries = getEntriesByTodoistTask(todoistTaskId);
 
     if (entries.length > 1) {
       for (let i = 0; i < entries.length - 1; i++) {
@@ -236,16 +251,8 @@ describe('getEntriesByTask', () => {
     }
   });
 
-  test('should include task_title from JOIN', () => {
-    const entries = getEntriesByTask(1);
-
-    if (entries.length > 0) {
-      expect(entries[0].task_title).toBeDefined();
-    }
-  });
-
-  test('should return empty array for task with no entries', () => {
-    const entries = getEntriesByTask(999999);
+  test('should return empty array for todoist task with no entries', () => {
+    const entries = getEntriesByTodoistTask('todoist-task-no-entries');
     expect(entries).toEqual([]);
   });
 });
@@ -460,7 +467,7 @@ describe('getEntriesByType', () => {
     createEntry({
       entry_type: 'event',
       content: 'Event med relationer',
-      related_task_id: 1,
+      todoist_task_id: 'todoist-event-1',
       related_role_id: 1,
     });
 
@@ -468,7 +475,7 @@ describe('getEntriesByType', () => {
     const eventEntry = entries.find(e => e.content === 'Event med relationer');
 
     expect(eventEntry).toBeDefined();
-    expect(eventEntry?.task_title).toBeDefined();
+    expect(eventEntry?.todoist_task_id).toBe('todoist-event-1');
     expect(eventEntry?.role_name).toBeDefined();
   });
 
@@ -557,7 +564,7 @@ describe('getEntriesByDateRange', () => {
     createEntry({
       entry_type: 'task',
       content: 'Entry med alla relationer för range-test',
-      related_task_id: 1,
+      todoist_task_id: 'todoist-range-1',
       related_project_id: 1,
       related_role_id: 1,
     });
@@ -572,7 +579,7 @@ describe('getEntriesByDateRange', () => {
     const fullEntry = entries.find(e => e.content === 'Entry med alla relationer för range-test');
 
     expect(fullEntry).toBeDefined();
-    expect(fullEntry?.task_title).toBeDefined();
+    expect(fullEntry?.todoist_task_id).toBe('todoist-range-1');
     expect(fullEntry?.project_name).toBeDefined();
     expect(fullEntry?.role_name).toBeDefined();
   });

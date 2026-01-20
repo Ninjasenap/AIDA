@@ -176,9 +176,9 @@ export function getProjectsByRole(
 /**
  * Retrieves project progress with calculated completion metrics.
  *
- * Fetches a project and calculates two progress metrics:
- * - **taskProgress**: Ratio of completed tasks to total tasks (0 if no tasks)
- * - **criteriaProgress**: Ratio of completed finish criteria to total criteria (0 if no criteria)
+ * Fetches a project and calculates progress from finish criteria.
+ *
+ * Note: task progress is tracked in Todoist, not in the local database.
  *
  * The finish_criteria JSON is parsed and evaluated to count completed items.
  * Returns null if project is not found.
@@ -195,7 +195,6 @@ export function getProjectsByRole(
  */
 export function getProjectProgress(id: number): {
   project: ProjectFull;
-  taskProgress: number;
   criteriaProgress: number;
 } | null {
   const db = getDatabase();
@@ -208,10 +207,6 @@ export function getProjectProgress(id: number): {
     return null;
   }
 
-  // Beräkna taskProgress
-  const taskProgress =
-    project.total_tasks > 0 ? project.done_tasks / project.total_tasks : 0;
-
   // Beräkna criteriaProgress
   const criteria = parseFinishCriteria(project.finish_criteria);
   const criteriaProgress =
@@ -221,7 +216,6 @@ export function getProjectProgress(id: number): {
 
   return {
     project,
-    taskProgress,
     criteriaProgress,
   };
 }

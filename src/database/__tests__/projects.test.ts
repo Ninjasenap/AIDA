@@ -55,10 +55,8 @@ describe('getProjectById', () => {
     expect(project?.status).toBe('active');
     expect(project?.role_name).toBeDefined();
     expect(project?.role_type).toBeDefined();
-    expect(project?.total_tasks).toBeGreaterThanOrEqual(0);
-    expect(project?.done_tasks).toBeGreaterThanOrEqual(0);
-    expect(project?.percent_complete).toBeGreaterThanOrEqual(0);
-    expect(project?.tasks_json).toBeDefined();
+    expect(project?.todoist_project_id).toBeNull();
+    expect(project?.description).toBeDefined();
   });
 
   test('should return null when project not found', () => {
@@ -107,7 +105,7 @@ describe('getAllProjects', () => {
     if (activeProjects && activeProjects.length > 0) {
       const project = activeProjects[0];
       expect(project.role_name).toBeDefined();
-      expect(project.total_tasks).toBeGreaterThanOrEqual(0);
+      expect(project.todoist_project_id).toBeNull();
     }
   });
 
@@ -164,7 +162,7 @@ describe('getActiveProjects', () => {
       expect(project.id).toBeGreaterThan(0);
       expect(project.name).toBeDefined();
       expect(project.role_name).toBeDefined();
-      expect(project.total_tasks).toBeGreaterThanOrEqual(0);
+      expect(project.todoist_project_id).toBeNull();
     }
   });
 
@@ -232,10 +230,19 @@ describe('searchProjects', () => {
   });
 
   test('should include completed projects when option is set', () => {
-    const results = searchProjects({ query: '', includeCompleted: true });
+    const completedProject = createProject({
+      name: 'Completed search test',
+      role_id: 1,
+      description: 'Test project for includeCompleted',
+    });
 
-    // Should include all projects regardless of status
-    expect(results.length).toBeGreaterThanOrEqual(0);
+    setProjectStatus({ id: completedProject.id, status: 'completed' });
+
+    const results = searchProjects({ query: 'Completed search test', includeCompleted: true });
+    expect(results.some((p) => p.id === completedProject.id)).toBe(true);
+
+    const defaultResults = searchProjects({ query: 'Completed search test' });
+    expect(defaultResults.some((p) => p.id === completedProject.id)).toBe(false);
   });
 });
 
@@ -308,43 +315,42 @@ describe('getProjectsByRole', () => {
  **************************************************************************/
 
 describe('getProjectProgress', () => {
-  /**
-   * Confirms project progress metrics are calculated correctly.
-   */
-  test('should calculate task and criteria progress', () => {
-    // Project ID 1 is AIDA with tasks and finish_criteria
+  test('should calculate criteria progress', () => {
     const result = getProjectProgress(1);
 
     expect(result).not.toBeNull();
     expect(result?.project).toBeDefined();
     expect(result?.project.id).toBe(1);
-    expect(result?.taskProgress).toBeGreaterThanOrEqual(0);
-    expect(result?.taskProgress).toBeLessThanOrEqual(1);
     expect(result?.criteriaProgress).toBeGreaterThanOrEqual(0);
     expect(result?.criteriaProgress).toBeLessThanOrEqual(1);
   });
 
-  test('should handle project with no finish criteria', () => {
-    // Some projects might not have finish_criteria
-    const result = getProjectProgress(1);
+  test('should return 0 criteriaProgress when project has no criteria', () => {
+    const project = createProject({
+      name: 'Project without criteria',
+      role_id: 1,
+      description: 'Test',
+    });
+
+    const result = getProjectProgress(project.id);
 
     expect(result).not.toBeNull();
-    // criteriaProgress should be valid even if no criteria
-    expect(result?.criteriaProgress).toBeGreaterThanOrEqual(0);
+    expect(result?.criteriaProgress).toBe(0);
+  });
+
+  test('should reflect completed criteria', () => {
+    // Project 2 has one criterion marked as done in demo data
+    const result = getProjectProgress(2);
+
+    expect(result).not.toBeNull();
+    expect(result?.criteriaProgress).toBeGreaterThan(0);
+    expect(result?.criteriaProgress).toBeLessThanOrEqual(1);
   });
 
   test('should return null for non-existent project', () => {
     const result = getProjectProgress(99999);
 
     expect(result).toBeNull();
-  });
-
-  test('should calculate 0 progress when no tasks are done', () => {
-    const result = getProjectProgress(1);
-
-    expect(result).not.toBeNull();
-    // taskProgress should be 0 if no tasks are done
-    expect(typeof result?.taskProgress).toBe('number');
   });
 });
 

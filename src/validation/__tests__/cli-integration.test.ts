@@ -2,15 +2,33 @@
  * CLI Integration Tests
  *
  * End-to-end tests for CLI validation integration.
- * Tests that validation errors are properly returned and valid input succeeds.
+ *
+ * Note: Tasks are Todoist-backed; these tests only exercise validation for `tasks/*`
+ * to avoid network dependencies during `bun test`.
  */
-import { describe, test, expect } from 'bun:test';
+import { beforeAll, describe, test, expect } from 'bun:test';
 import { $ } from 'bun';
+let roleId = 1;
+
+beforeAll(async () => {
+  // Ensure local DB exists and has at least one role.
+  const reset = await $`bun run src/database/manage-db.ts reset`.nothrow();
+  if (reset.exitCode !== 0) {
+    throw new Error(reset.stderr.toString());
+  }
+
+  const proc = await $`bun run src/aida-cli.ts roles createRole '{"name":"Test role","type":"work","description":"Test"}'`.nothrow();
+  if (proc.exitCode !== 0) {
+    throw new Error(proc.stderr.toString());
+  }
+
+  roleId = JSON.parse(proc.stdout.toString()).id;
+});
 
 describe('CLI Validation Integration', () => {
-  describe('Tasks module', () => {
-    test('returns structured error for missing required field (title)', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks createTask '{"role_id":1}'`.nothrow();
+  describe('Tasks module (Todoist)', () => {
+    test('returns structured error for missing required field (content)', async () => {
+      const proc = await $`bun run src/aida-cli.ts tasks createTask '{}'`.nothrow();
       const result = proc.stderr.toString();
 
       const parsed = JSON.parse(result);
@@ -18,25 +36,16 @@ describe('CLI Validation Integration', () => {
       expect(parsed.validation).toBeDefined();
       expect(parsed.validation.module).toBe('tasks');
       expect(parsed.validation.function).toBe('createTask');
-      expect(parsed.validation.details.some((d: any) => d.field === 'title')).toBe(true);
+      expect(parsed.validation.details.some((d: any) => d.field === 'content')).toBe(true);
     });
 
-    test('returns structured error for invalid status value', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks createTask '{"title":"Test","role_id":1,"status":"invalid"}'`.nothrow();
+    test('returns structured error for invalid priority value', async () => {
+      const proc = await $`bun run src/aida-cli.ts tasks createTask '{"content":"Test","priority":5}'`.nothrow();
       const result = proc.stderr.toString();
 
       const parsed = JSON.parse(result);
       expect(parsed.error).toBe(true);
-      expect(parsed.validation.details.some((d: any) => d.field === 'status')).toBe(true);
-    });
-
-    test('passes validation for correct task input', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks createTask '{"title":"Test Task","role_id":1}'`.nothrow();
-      const result = proc.stdout.toString();
-
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toBeUndefined();
-      expect(parsed.title).toBe('Test Task');
+      expect(parsed.validation.details.some((d: any) => d.field === 'priority')).toBe(true);
     });
 
     test('returns error for invalid function in module', async () => {
@@ -78,7 +87,7 @@ describe('CLI Validation Integration', () => {
 
   describe('Projects module', () => {
     test('returns structured error for missing description', async () => {
-      const proc = await $`bun run src/aida-cli.ts projects createProject '{"name":"Test","role_id":1}'`.nothrow();
+      const proc = await $`bun run src/aida-cli.ts projects createProject '{"name":"Test","role_id":${roleId}}'`.nothrow();
       const result = proc.stderr.toString();
 
       const parsed = JSON.parse(result);
@@ -87,7 +96,7 @@ describe('CLI Validation Integration', () => {
     });
 
     test('passes validation for correct project input', async () => {
-      const proc = await $`bun run src/aida-cli.ts projects createProject '{"name":"Test Project","role_id":1,"description":"Test description"}'`.nothrow();
+      const proc = await $`bun run src/aida-cli.ts projects createProject '{"name":"Test Project","role_id":${roleId},"description":"Test description"}'`.nothrow();
       const result = proc.stdout.toString();
 
       const parsed = JSON.parse(result);
@@ -146,27 +155,19 @@ describe('CLI Validation Integration', () => {
   });
 
   describe('No-arg functions', () => {
-    test('passes validation for no-arg tasks.getTodayTasks', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks getTodayTasks`.nothrow();
+    test('passes validation for roles.getActiveRoles', async () => {
+      const proc = await $`bun run src/aida-cli.ts roles getActiveRoles`.nothrow();
       const result = proc.stdout.toString();
 
       const parsed = JSON.parse(result);
       expect(parsed.error).toBeUndefined();
-      expect(typeof parsed).toBe('object');
-    });
-
-    test('passes validation for no-arg profile.getCurrentEnergyLevel', async () => {
-      const proc = await $`bun run src/aida-cli.ts profile getCurrentEnergyLevel`.nothrow();
-      const result = proc.stdout.toString();
-
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toBeUndefined();
+      expect(Array.isArray(parsed)).toBe(true);
     });
   });
 
   describe('Positional-id functions', () => {
     test('returns structured error for invalid ID (non-positive)', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks getTaskById 0`.nothrow();
+      const proc = await $`bun run src/aida-cli.ts roles getRoleById 0`.nothrow();
       const result = proc.stderr.toString();
 
       const parsed = JSON.parse(result);
@@ -175,21 +176,17 @@ describe('CLI Validation Integration', () => {
     });
 
     test('passes validation for valid positive ID', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks getTaskById 1`.nothrow();
+      const proc = await $`bun run src/aida-cli.ts roles getRoleById ${roleId}`.nothrow();
       const result = proc.stdout.toString();
 
       const parsed = JSON.parse(result);
-      // May be null if task doesn't exist, but should not have validation error
-      // If null, that's fine - it means no task with ID 1 exists
-      if (parsed !== null) {
-        expect(parsed.error).toBeUndefined();
-      }
+      expect(parsed.error).toBeUndefined();
     });
   });
 
   describe('Error messages', () => {
     test('includes helpful suggestion in error message', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks setTaskStatus '{"status":"done"}'`.nothrow();
+      const proc = await $`bun run src/aida-cli.ts roles setRoleStatus '{"status":"inactive"}'`.nothrow();
       const result = proc.stderr.toString();
 
       const parsed = JSON.parse(result);
@@ -198,14 +195,15 @@ describe('CLI Validation Integration', () => {
     });
 
     test('lists all validation errors', async () => {
-      const proc = await $`bun run src/aida-cli.ts tasks createTask '{}'`.nothrow();
+      const proc = await $`bun run src/aida-cli.ts projects createProject '{}'`.nothrow();
       const result = proc.stderr.toString();
 
       const parsed = JSON.parse(result);
       expect(parsed.validation.details.length).toBeGreaterThan(0);
       const fields = parsed.validation.details.map((d: any) => d.field);
-      expect(fields).toContain('title');
+      expect(fields).toContain('name');
       expect(fields).toContain('role_id');
+      expect(fields).toContain('description');
     });
   });
 });

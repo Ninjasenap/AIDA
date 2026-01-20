@@ -6,7 +6,8 @@
 
 // Schemas
 export * from './schemas/common';
-export * from './schemas/tasks';
+export * from './schemas/todoist-tasks';
+export * from './schemas/todoist-tags';
 export * from './schemas/journal';
 export * from './schemas/roles';
 export * from './schemas/projects';

@@ -28,7 +28,7 @@ describe('Journal Schemas', () => {
           entry_type: 'checkin',
           content: 'Feeling productive today',
           timestamp: '2025-12-19T09:00:00',
-          related_task_id: 1,
+          todoist_task_id: 'todoist-1',
           related_project_id: 2,
           related_role_id: 3,
         });
@@ -71,11 +71,11 @@ describe('Journal Schemas', () => {
     });
 
     describe('task entries', () => {
-      test('accepts task entry with task association', () => {
+      test('accepts task entry with todoist task association', () => {
         const result = CreateEntryInputSchema.safeParse({
           entry_type: 'task',
           content: 'Task completed',
-          related_task_id: 5,
+          todoist_task_id: 'todoist-5',
         });
 
         expect(result.success).toBe(true);
@@ -161,11 +161,11 @@ describe('Journal Schemas', () => {
         expect(result.success).toBe(false);
       });
 
-      test('rejects invalid related_task_id type', () => {
+      test('rejects invalid todoist_task_id type', () => {
         const result = CreateEntryInputSchema.safeParse({
           entry_type: 'task',
           content: 'Test',
-          related_task_id: 'abc',
+          todoist_task_id: 123,
         });
 
         expect(result.success).toBe(false);

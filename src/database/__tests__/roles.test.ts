@@ -55,11 +55,7 @@ describe('getRoleById', () => {
 
     // Should include statistics from v_roles_summary
     expect(role).toHaveProperty('active_projects');
-    expect(role).toHaveProperty('active_tasks');
-    expect(role).toHaveProperty('captured_tasks');
-    expect(role).toHaveProperty('ready_tasks');
-    expect(role).toHaveProperty('planned_tasks');
-    expect(role).toHaveProperty('overdue_tasks');
+    expect(role).toHaveProperty('paused_projects');
     expect(role).toHaveProperty('projects_json');
   });
 
@@ -90,7 +86,8 @@ describe('getRoleById', () => {
  * TESTS:
  * - Returns only active roles (status = 'active')
  * - Results ordered by ID ascending
- * - Each role includes statistics (projects, tasks, etc.)
+  * - Each role includes statistics (projects)
+
  *
  * VALIDATES:
  * - Status filtering works correctly
@@ -142,15 +139,12 @@ describe('getActiveRoles', () => {
   test('includes statistics for each role', () => {
     const roles = getActiveRoles();
 
-    for (const role of roles) {
-      expect(role).toHaveProperty('active_projects');
-      expect(role).toHaveProperty('active_tasks');
-      expect(role).toHaveProperty('captured_tasks');
-      expect(role).toHaveProperty('ready_tasks');
-      expect(role).toHaveProperty('planned_tasks');
-      expect(role).toHaveProperty('overdue_tasks');
-      expect(role).toHaveProperty('projects_json');
-    }
+     for (const role of roles) {
+       expect(role).toHaveProperty('active_projects');
+       expect(role).toHaveProperty('paused_projects');
+       expect(role).toHaveProperty('projects_json');
+     }
+
   });
 });
 
@@ -630,43 +624,40 @@ describe('setRoleStatus', () => {
     expect(result.role.status).toBe('historical');
   });
 
-  /**
-   * Verifies warning is issued when deactivating role with linked tasks.
-   */
-  test('warns when setting to inactive with linked tasks', () => {
-    // Create a role with tasks
-    const db = getDatabase();
-    const role = createRole({ name: 'Role With Tasks', type: 'work' as const });
+   /**
+    * Verifies warning is issued when deactivating role with linked projects.
+    */
+   test('warns when setting to inactive with linked projects', () => {
+     const db = getDatabase();
+     const role = createRole({ name: 'Role With Projects', type: 'work' as const });
 
-    // Create a task for this role
-    db.query('INSERT INTO tasks (title, role_id, status) VALUES (?, ?, ?)')
-      .run('Test task', role.id, 'captured');
+     db.query('INSERT INTO projects (name, role_id, status, description) VALUES (?, ?, ?, ?)')
+       .run('Project for role', role.id, 'active', 'Test description');
 
-    const result = setRoleStatus({ id: role.id, status: 'inactive' });
+     const result = setRoleStatus({ id: role.id, status: 'inactive' });
 
-    expect(result.role.status).toBe('inactive');
-    expect(result.warning).toBeDefined();
-    expect(result.warning?.linkedTaskCount).toBeGreaterThan(0);
-  });
+     expect(result.role.status).toBe('inactive');
+     expect(result.warning).toBeDefined();
+     expect(result.warning?.linkedProjectCount).toBeGreaterThan(0);
+   });
 
-  /**
-   * Verifies warning is issued when setting role to historical with linked tasks.
-   */
-  test('warns when setting to historical with linked tasks', () => {
-    // Create a role with tasks
-    const db = getDatabase();
-    const role = createRole({ name: 'Another Role With Tasks', type: 'hobby' as const });
+   /**
+    * Verifies warning is issued when setting role to historical with linked projects.
+    */
+   test('warns when setting to historical with linked projects', () => {
+     const db = getDatabase();
+     const role = createRole({ name: 'Another Role With Projects', type: 'hobby' as const });
 
-    // Create a task for this role
-    db.query('INSERT INTO tasks (title, role_id, status) VALUES (?, ?, ?)')
-      .run('Another test task', role.id, 'ready');
+     db.query('INSERT INTO projects (name, role_id, status, description) VALUES (?, ?, ?, ?)')
+       .run('Another project for role', role.id, 'active', 'Test description');
 
-    const result = setRoleStatus({ id: role.id, status: 'historical' });
+     const result = setRoleStatus({ id: role.id, status: 'historical' });
 
-    expect(result.role.status).toBe('historical');
-    expect(result.warning).toBeDefined();
-    expect(result.warning?.linkedTaskCount).toBeGreaterThan(0);
-  });
+     expect(result.role.status).toBe('historical');
+     expect(result.warning).toBeDefined();
+     expect(result.warning?.linkedProjectCount).toBeGreaterThan(0);
+   });
+
 
   /**
    * Confirms no warning issued when activating a role.
@@ -683,23 +674,22 @@ describe('setRoleStatus', () => {
     expect(result.warning).toBeUndefined();
   });
 
-  /**
-   * Verifies no warning when deactivating role with no linked tasks.
-   */
-  test('no warning when setting to inactive/historical without tasks', () => {
-    const role = createRole({
-      name: 'No Tasks Role',
-      type: 'private' as const,
-    });
+   /**
+    * Verifies no warning when deactivating role with no linked projects.
+    */
+   test('no warning when setting to inactive/historical without projects', () => {
+     const role = createRole({
+       name: 'No Projects Role',
+       type: 'private' as const,
+     });
 
-    const result = setRoleStatus({ id: role.id, status: 'inactive' });
+     const result = setRoleStatus({ id: role.id, status: 'inactive' });
 
-    expect(result.role.status).toBe('inactive');
-    // Should have no warning or warning with 0 tasks
-    if (result.warning) {
-      expect(result.warning.linkedTaskCount).toBe(0);
-    }
-  });
+     expect(result.role.status).toBe('inactive');
+     // Should have no warning (no linked projects)
+     expect(result.warning).toBeUndefined();
+   });
+
 
   /**
    * Confirms status change throws error when role ID does not exist.

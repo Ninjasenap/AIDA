@@ -7,16 +7,6 @@
 import { z } from 'zod';
 import { PositiveIntSchema, ISODateSchema } from './schemas/common';
 import {
-  CreateTaskInputSchema,
-  UpdateTaskInputSchema,
-  SetTaskStatusInputSchema,
-  SearchTasksInputSchema,
-  GetTasksByRoleInputSchema,
-  GetWeekTasksInputSchema,
-  GetStaleTasksInputSchema,
-  GetTasksWithSubtasksInputSchema,
-} from './schemas/tasks';
-import {
   TodoistCreateTaskInputSchema,
   TodoistUpdateTaskInputSchema,
   TodoistGetTasksFilterSchema,
@@ -67,36 +57,21 @@ export const schemaRegistry: Record<string, Record<string, SchemaEntry>> = {
   tasks: {
     // No-arg operations
     getTodayTasks: { schema: z.undefined(), argMode: 'none' },
-    getOverdueTasks: { schema: z.undefined(), argMode: 'none' },
 
     // Simple positional ID queries
-    getTaskById: { schema: PositiveIntSchema, argMode: 'positional-id' },
-    getTasksByProject: { schema: PositiveIntSchema, argMode: 'positional-id' },
-
-    // Object-based WRITE operations
-    createTask: { schema: CreateTaskInputSchema, argMode: 'single-object' },
-    updateTask: { schema: UpdateTaskInputSchema, argMode: 'single-object' },
-    setTaskStatus: { schema: SetTaskStatusInputSchema, argMode: 'single-object' },
-
-    // Object-based READ operations with filters
-    searchTasks: { schema: SearchTasksInputSchema, argMode: 'single-object' },
-    getTasksByRole: { schema: GetTasksByRoleInputSchema, argMode: 'single-object' },
-    getWeekTasks: { schema: GetWeekTasksInputSchema, argMode: 'single-object' },
-    getStaleTasks: { schema: GetStaleTasksInputSchema, argMode: 'single-object' },
-    getTasksWithSubtasks: { schema: GetTasksWithSubtasksInputSchema, argMode: 'single-object' },
-  },
-
-  todoistTasks: {
-    getTodayTasks: { schema: z.undefined(), argMode: 'none' },
     getTaskById: { schema: z.union([z.string(), z.number()]), argMode: 'positional-id' },
     completeTask: { schema: z.union([z.string(), z.number()]), argMode: 'positional-id' },
     deleteTask: { schema: z.union([z.string(), z.number()]), argMode: 'positional-id' },
+
+    // Object-based WRITE operations
     createTask: { schema: TodoistCreateTaskInputSchema, argMode: 'single-object' },
     updateTask: { schema: TodoistUpdateTaskInputSchema, argMode: 'single-object' },
+    tagTask: { schema: TodoistTagTaskSchema, argMode: 'single-object' },
+
+    // Object-based READ operations with filters
     getTasks: { schema: TodoistGetTasksFilterSchema.optional(), argMode: 'single-object' },
     getTasksByEnergy: { schema: TodoistGetTasksByEnergySchema, argMode: 'single-object' },
     getTasksByRole: { schema: TodoistGetTasksByRoleSchema, argMode: 'single-object' },
-    tagTask: { schema: TodoistTagTaskSchema, argMode: 'single-object' },
   },
 
   todoist: {
@@ -129,9 +104,26 @@ export const schemaRegistry: Record<string, Record<string, SchemaEntry>> = {
     getProjects: { schema: z.undefined(), argMode: 'none' },
     getConfigPath: { schema: z.undefined(), argMode: 'none' },
     purgeTodoist: {
+      schema: z.object({
+        confirm: z.string().min(1),
+        includeCompleted: z.boolean().optional(),
+      }),
+      argMode: 'single-object',
+    },
+    clearTestData: {
       schema: z
         .object({
-          includeCompleted: z.boolean().optional(),
+          deleteProjects: z.boolean().optional(),
+          deleteTasks: z.boolean().optional(),
+        })
+        .optional(),
+      argMode: 'single-object',
+    },
+    seedTestData: {
+      schema: z
+        .object({
+          clearExisting: z.boolean().optional(),
+          createCompletion: z.boolean().optional(),
         })
         .optional(),
       argMode: 'single-object',
@@ -143,7 +135,7 @@ export const schemaRegistry: Record<string, Record<string, SchemaEntry>> = {
     getTodayEntries: { schema: z.undefined(), argMode: 'none' },
 
     // Simple positional
-    getEntriesByTask: { schema: PositiveIntSchema, argMode: 'positional-id' },
+    getEntriesByTodoistTask: { schema: z.coerce.string().min(1), argMode: 'positional-id' },
     getEntriesByProject: { schema: PositiveIntSchema, argMode: 'positional-id' },
     getEntriesByRole: { schema: PositiveIntSchema, argMode: 'positional-id' },
 

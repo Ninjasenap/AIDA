@@ -35,21 +35,21 @@ describe('validateCLIArgs', () => {
 
   describe('Argument mode: positional-id', () => {
     test('accepts valid ID', () => {
-      const result = validateCLIArgs('tasks', 'getTaskById', [1]);
+      const result = validateCLIArgs('roles', 'getRoleById', [1]);
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual([1]);
     });
 
     test('rejects invalid ID type', () => {
-      const result = validateCLIArgs('tasks', 'getTaskById', ['abc']);
+      const result = validateCLIArgs('roles', 'getRoleById', ['abc']);
 
       expect(result.success).toBe(false);
       expect(result.error?.details).toBeDefined();
     });
 
     test('rejects wrong argument count', () => {
-      const result = validateCLIArgs('tasks', 'getTaskById', []);
+      const result = validateCLIArgs('roles', 'getRoleById', []);
 
       expect(result.success).toBe(false);
       expect(result.error?.message).toContain('requires exactly 1 argument');
@@ -71,8 +71,7 @@ describe('validateCLIArgs', () => {
       expect(result.data).toEqual(['tomorrow']);
     });
 
-    // Note: Full single-object validation will be tested in module-specific tests
-    // once CreateTaskInputSchema etc. are added to the registry
+    // Note: Full single-object validation lives in module-specific tests.
   });
 
   describe('Error formatting', () => {

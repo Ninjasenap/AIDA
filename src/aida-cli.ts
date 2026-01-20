@@ -10,14 +10,13 @@
  *
  * Examples:
  *   bun run src/aida-cli.ts tasks getTodayTasks
- *   bun run src/aida-cli.ts tasks getOverdueTasks
+ *   bun run src/aida-cli.ts tasks getTasks '{"due":"overdue"}'
  *   bun run src/aida-cli.ts journal getTodayEntries
  *   bun run src/aida-cli.ts journal createEntry '{"entry_type":"checkin","content":"Morning check-in"}'
  *   bun run src/aida-cli.ts roles getActiveRoles
  *
  * Modules:
- *   - tasks: Local task operations (SQLite)
- *   - todoistTasks: Todoist-backed task operations
+ *   - tasks: Todoist-backed task operations
  *   - todoist: Todoist integration utilities (sync, labels, projects)
  *   - roles: Role management (7 functions)
  *   - projects: Project management (10 functions)
@@ -36,8 +35,7 @@
  *   - Errors go to stderr, data to stdout
  */
 
-import * as tasks from './database/queries/tasks';
-import * as todoistTasks from './integrations/todoist/tasks';
+import * as tasks from './integrations/todoist/tasks';
 import * as todoist from './integrations/todoist';
 import * as roles from './database/queries/roles';
 import * as projects from './database/queries/projects';
@@ -49,18 +47,17 @@ import * as time from './utilities/time';
 import { serializeWithMaps } from './utilities/json-serialization';
 import { validateCLIArgs } from './validation/validator';
 
-const modules = { tasks, todoistTasks, todoist, roles, projects, journal, journalMd, plan, profile, time };
+const modules = { tasks, todoist, roles, projects, journal, journalMd, plan, profile, time };
 
 const [module, func, ...args] = process.argv.slice(2);
 
 if (!module || !func) {
   console.log('Usage: aida-cli <module> <function> [args...]');
   console.log('');
-  console.log('Modules: tasks, todoistTasks, todoist, roles, projects, journal, journalMd, plan, profile');
+  console.log('Modules: tasks, todoist, roles, projects, journal, journalMd, plan, profile');
   console.log('');
   console.log('Examples:');
   console.log('  bun run src/aida-cli.ts tasks getTodayTasks');
-  console.log('  bun run src/aida-cli.ts todoistTasks getTodayTasks');
   console.log('  bun run src/aida-cli.ts todoist sync');
   console.log('  bun run src/aida-cli.ts journal createEntry \'{"entry_type":"checkin","content":"test"}\'');
   console.log('  bun run src/aida-cli.ts journalMd regenerateJournalMarkdown "2025-12-16"');

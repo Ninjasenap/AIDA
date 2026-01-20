@@ -47,8 +47,8 @@ function formatTime(timestamp: string): string {
 function formatEntryMetadata(entry: JournalEntryFull): string {
   const parts: string[] = [];
 
-  if (entry.task_title) {
-    parts.push(`**Uppgift:** ${entry.task_title}`);
+  if (entry.todoist_task_id) {
+    parts.push(`**Todoist:** ${entry.todoist_task_id}`);
   }
 
   if (entry.project_name) {

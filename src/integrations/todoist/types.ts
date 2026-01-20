@@ -100,8 +100,34 @@ export interface SyncState {
   last_completed_check: string;
 }
 
+export type SyncAction =
+  | {
+      type: 'todoist_project_missing_locally';
+      todoist_project_id: string;
+      todoist_project_name: string;
+      local_project_id: number;
+      local_project_name: string;
+      required_fields: Array<'role_id' | 'description'>;
+    }
+  | {
+      type: 'local_project_missing_in_todoist';
+      project_id: number;
+      project_name: string;
+      todoist_project_id: string;
+      resolutions: Array<'completed' | 'cancelled'>;
+    }
+  | {
+      type: 'project_link_conflict';
+      project_id: number;
+      project_name: string;
+      local_todoist_project_id: string;
+      todoist_project_id: string;
+      todoist_project_name: string;
+    };
+
 export interface SyncResult {
   completed_synced: number;
   journal_entries_created: number;
   timestamp: string;
+  actions_required?: SyncAction[];
 }

@@ -83,6 +83,21 @@ export function formatTodoistProjectName(projectId: number, projectName: string)
   return `${prefix}-${projectName}`;
 }
 
+export function parseTodoistProjectName(
+  todoistProjectName: string
+): { projectId: number; projectName: string } | null {
+  const match = /^P(\d{3})-(.+)$/.exec(todoistProjectName.trim());
+  if (!match) return null;
+
+  const projectId = Number(match[1]);
+  const projectName = match[2].trim();
+
+  if (!Number.isFinite(projectId) || projectId <= 0) return null;
+  if (!projectName) return null;
+
+  return { projectId, projectName };
+}
+
 async function updateProjectName(projectId: string, name: string): Promise<void> {
   const client = new TodoistClient();
   await client.request<void>(`/projects/${projectId}`, {

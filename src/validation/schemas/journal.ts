@@ -20,7 +20,7 @@ export const EntryTypeSchema = z.enum(
  * Schema for creating journal entries.
  *
  * Required fields: entry_type, content
- * Optional fields: timestamp, related_task_id, related_project_id, related_role_id
+ * Optional fields: timestamp, todoist_task_id, related_project_id, related_role_id
  *
  * Soft validation approach: All entry-specific fields are optional,
  * allowing flexibility in what data is provided for each entry type.
@@ -29,8 +29,7 @@ export const CreateEntryInputSchema = z.object({
 	entry_type: EntryTypeSchema,
 	content: z.string().min(1, 'Content cannot be empty'),
 	timestamp: ISODateTimeSchema.optional(),
-	todoist_task_id: z.string().optional(),
-	related_task_id: PositiveIntSchema.optional(),
+	todoist_task_id: z.string().min(1).optional(),
 	related_project_id: PositiveIntSchema.optional(),
 	related_role_id: PositiveIntSchema.optional(),
 });

@@ -14,3 +14,5 @@ export * from './sync';
 export * from './setup';
 export * from './migrate';
 export * from './purge';
+export * from './seed-test-data';
+export * from './test-data';

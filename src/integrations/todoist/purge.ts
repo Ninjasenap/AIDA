@@ -7,6 +7,7 @@
 import { randomUUID } from 'crypto';
 import { getConfig } from './config';
 import { TodoistClient } from './client';
+import { TEST_DATA_LABEL_NAME } from './test-data';
 import type { TodoistLabel, TodoistProject, TodoistTask } from './types';
 
 export interface PurgeResult {
@@ -19,7 +20,14 @@ export interface PurgeResult {
   errors: Array<{ stage: string; id?: string; message: string }>;
 }
 
-export async function purgeTodoist(input?: { includeCompleted?: boolean }): Promise<PurgeResult> {
+const PURGE_CONFIRM_STRING = 'DELETE_ALL_TODOIST';
+
+export async function purgeTodoist(input: { confirm: string; includeCompleted?: boolean }): Promise<PurgeResult> {
+  if (!isPurgeConfirmed(input.confirm)) {
+    throw new Error(
+      `Refusing to purge Todoist without confirmation. Pass {"confirm":"${PURGE_CONFIRM_STRING}"} or set TODOIST_PURGE_CONFIRM=${PURGE_CONFIRM_STRING}.`
+    );
+  }
   const result: PurgeResult = {
     deletedActiveTasks: 0,
     deletedCompletedTasksAttempted: 0,
@@ -34,7 +42,7 @@ export async function purgeTodoist(input?: { includeCompleted?: boolean }): Prom
   await purgeActiveTasks(result);
 
   // 2) Completed tasks (best-effort)
-  if (input?.includeCompleted) {
+  if (input.includeCompleted) {
     await purgeCompletedTasksBestEffort(result);
   }
 
@@ -80,6 +88,10 @@ async function purgeLabels(result: PurgeResult): Promise<void> {
   }
 
   for (const label of labels) {
+    if (label.name === TEST_DATA_LABEL_NAME) {
+      continue;
+    }
+
     try {
       await client.request<void>(`/labels/${label.id}`, { method: 'DELETE' });
       result.deletedLabels += 1;
@@ -121,6 +133,15 @@ async function purgeProjects(result: PurgeResult): Promise<void> {
 
 const COMPLETED_GET_ALL_URL = 'https://api.todoist.com/sync/v9/completed/get_all';
 const SYNC_URL = 'https://api.todoist.com/sync/v9/sync';
+
+function isPurgeConfirmed(confirm: string): boolean {
+  if (confirm === PURGE_CONFIRM_STRING) {
+    return true;
+  }
+
+  const env = process.env.TODOIST_PURGE_CONFIRM;
+  return Boolean(env && env === PURGE_CONFIRM_STRING);
+}
 
 async function purgeCompletedTasksBestEffort(result: PurgeResult): Promise<void> {
   const config = getConfig();
